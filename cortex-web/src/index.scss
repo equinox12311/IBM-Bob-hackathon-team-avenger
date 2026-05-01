@@ -1,0 +1,10 @@
+// Carbon Design System global styles
+@use "@carbon/react";
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+}
