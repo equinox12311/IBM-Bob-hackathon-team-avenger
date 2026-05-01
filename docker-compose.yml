@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: ./cortex-api
+      context: ./src/cortex-api
       dockerfile: Dockerfile
     container_name: cortex-api
     ports:
@@ -19,7 +19,7 @@ services:
 
   web:
     build:
-      context: ./cortex-web
+      context: ./src/cortex-web
       dockerfile: Dockerfile
     container_name: cortex-web
     ports:
@@ -37,7 +37,7 @@ services:
 
   bot:
     build:
-      context: ./cortex-bot
+      context: ./src/cortex-bot
       dockerfile: Dockerfile
     container_name: cortex-bot
     env_file:

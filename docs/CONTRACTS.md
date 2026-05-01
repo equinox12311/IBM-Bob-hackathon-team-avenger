@@ -130,29 +130,45 @@ A judge installs by copying `bob/` contents into their `~/.bob/`.
 │   ├── technical_report.pdf      # 4-page A4 technical write-up (Phase 4)
 │   ├── bob-sessions/             # exported Bob task-session reports
 │   └── security/                 # Bob-generated secret-scan report
-├── cortex-api/                   # Python: MCP server + REST API (port 8080)
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── pyproject.toml
-│   └── cortex_api/               # Python package
-│       ├── __init__.py
-│       ├── server.py             # FastAPI app + MCP stdio transport
-│       ├── storage.py            # sqlite-vec wrapper
-│       ├── retrieval.py          # search + re-ranking
-│       ├── embeddings.py         # watsonx.ai + sentence-transformers
-│       └── tools.py              # the 5 MCP tools
-├── cortex-bot/                   # Python: Telegram bot
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── cortex_bot/
-│       ├── __init__.py
-│       └── main.py
-├── cortex-web/                   # React + Vite + TS UI (port 8081)
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── src/
-├── bob/                          # Bob extensions (above)
+├── src/                          # all application source code
+│   ├── cortex-api/               # Python: MCP server + REST API (port 8080)
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   ├── pyproject.toml
+│   │   └── cortex_api/           # Python package
+│   │       ├── __init__.py
+│   │       ├── server.py         # FastAPI app
+│   │       ├── mcp_server.py     # MCP stdio server
+│   │       ├── storage.py        # sqlite-vec wrapper
+│   │       ├── retrieval.py      # search + re-ranking
+│   │       ├── embeddings.py     # watsonx.ai + sentence-transformers
+│   │       ├── tools.py          # the 5 MCP tools
+│   │       ├── secrets.py        # secret-detection middleware
+│   │       ├── models.py         # pydantic models (per CONTRACTS.md)
+│   │       ├── auth.py           # bearer-token dependency
+│   │       └── config.py         # env-based settings
+│   ├── cortex-bot/               # Python: Telegram bot
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── cortex_bot/
+│   │       ├── main.py
+│   │       ├── handlers.py
+│   │       ├── transcription.py
+│   │       ├── api_client.py
+│   │       ├── secret_guard.py
+│   │       └── config.py
+│   └── cortex-web/               # React + Vite + TS UI (port 8081)
+│       ├── Dockerfile
+│       ├── package.json
+│       ├── vite.config.ts
+│       └── src/
+│           ├── App.tsx
+│           ├── pages/
+│           ├── components/
+│           ├── api/
+│           ├── hooks/
+│           └── lib/
+├── bob/                          # Bob extensions (mode + skill + cmds + rules + INSTALL/MCP_CONFIG)
 ├── tests/                        # pytest
 └── assets/                       # UI mockups, screenshots, demo stills
 ```

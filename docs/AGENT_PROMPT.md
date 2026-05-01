@@ -29,12 +29,12 @@ TECH STACK
 - API listens on port 8080
 
 REPO STRUCTURE
-- cortex-api/      Python MCP server + REST API (port 8080)
-- cortex-web/      React UI (port 8081)
-- cortex-bot/      Telegram bot
-- bob/             Bob extension manifests (mode, skill, slash commands, rules)
-- docs/            PLAN.md, CONTRACTS.md, SUBMISSION.md, BOB_USAGE.md, etc.
-- tests/           pytest
+- src/cortex-api/   Python MCP server + REST API (port 8080)
+- src/cortex-web/   React UI (port 8081)
+- src/cortex-bot/   Telegram bot
+- bob/              Bob extension manifests (mode, skill, slash commands, rules)
+- docs/             PLAN.md, CONTRACTS.md, SUBMISSION.md, BOB_USAGE.md, etc.
+- tests/            pytest
 
 GROUND RULES (these override your defaults)
 1. READ docs/PLAN.md and docs/CONTRACTS.md before any change to API surface, schema, or shared types.

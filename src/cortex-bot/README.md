@@ -10,10 +10,10 @@ Telegram bot — mobile capture surface for Cortex. Owned by **M4**.
 ## Run locally
 
 ```bash
-cd cortex-bot
+cd src/cortex-bot
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp ../.env.example ../.env       # set TELEGRAM_BOT_TOKEN, DIARY_TOKEN, allowlist
+cp ../../.env.example ../../.env # set TELEGRAM_BOT_TOKEN, DIARY_TOKEN, allowlist
 python -m cortex_bot
 ```
 

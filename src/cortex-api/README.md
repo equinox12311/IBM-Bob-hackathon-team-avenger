@@ -10,10 +10,10 @@ Cortex MCP server + REST API. Owned by **M2** (Backend Lead).
 ## Run locally (without Docker)
 
 ```bash
-cd cortex-api
+cd src/cortex-api
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp ../.env.example ../.env       # then fill in DIARY_TOKEN at minimum
+cp ../../.env.example ../../.env # then fill in DIARY_TOKEN at minimum
 python -m cortex_api
 ```
 

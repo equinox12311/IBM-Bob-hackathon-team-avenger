@@ -116,12 +116,10 @@ The repo we push to GitHub at Hour 0 contains **only this skeleton — no implem
 │   ├── IDEA.md
 │   ├── bob-sessions/         (empty; per-member exports go here)
 │   └── security/             (empty; secret-scan reports go here)
-├── cortex-api/
-│   └── Dockerfile            (skeleton)
-├── cortex-web/
-│   └── Dockerfile            (skeleton)
-├── cortex-bot/
-│   └── Dockerfile            (skeleton)
+├── src/
+│   ├── cortex-api/           (Python: MCP server + REST API, port 8080)
+│   ├── cortex-web/           (React + Vite + TS UI, port 8081)
+│   └── cortex-bot/           (Telegram bot)
 ├── bob/
 │   ├── custom_modes.yaml.example
 │   ├── skills/cortex/        (empty)

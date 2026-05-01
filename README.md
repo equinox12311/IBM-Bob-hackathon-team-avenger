@@ -62,8 +62,12 @@ cp .env.example .env        # then fill in DIARY_TOKEN, watsonx creds, telegram 
 # run the full stack (api on :8080, web on :8081, bot polls Telegram)
 docker compose up --build
 
-# install Bob extensions
-cp -r bob/* ~/.bob/         # then restart Bob and switch to 📓 Cortex mode
+# install Bob extensions (see bob/INSTALL.md for the full guide)
+cp bob/custom_modes.yaml.example ~/.bob/custom_modes.yaml
+cp -r bob/skills/cortex            ~/.bob/skills/
+cp -r bob/commands/                ~/.bob/commands/
+cp -r bob/rules-cortex             ~/.bob/rules-cortex
+# then wire the Cortex MCP server in Bob settings — see bob/MCP_CONFIG.md
 ```
 
 Then in Bob, switch to the `📓 Cortex` mode and try `/diary-save your first insight`.

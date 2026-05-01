@@ -5,7 +5,7 @@ React + Vite + TypeScript UI with **IBM Carbon Design System**. Owned by **M3**.
 ## Run locally
 
 ```bash
-cd cortex-web
+cd src/cortex-web
 npm install        # or pnpm install
 cp .env.example .env
 npm run dev        # opens on http://localhost:5173
