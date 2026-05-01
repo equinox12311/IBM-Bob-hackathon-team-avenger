@@ -1,12 +1,17 @@
-// Timeline view — reverse-chron list of entries. Phase 1 / 2 (M3).
-
-import { Loading, Tag, Tile } from "@carbon/react";
+import {
+  InlineLoading,
+  InlineNotification,
+  Stack,
+  Tag,
+  Tile,
+} from "@carbon/react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { listTimeline } from "@/api/client";
 import type { Entry } from "@/api/types";
 import { useAuth } from "@/hooks/useAuth";
+import { relativeTime, sourceBadgeColor } from "@/lib/format";
 
 export default function Timeline() {
   const { token } = useAuth();
@@ -15,37 +20,65 @@ export default function Timeline() {
 
   useEffect(() => {
     if (!token) return;
-    listTimeline(token, 20)
-      .then((r) => setEntries(r.entries))
-      .catch((e) => setError(String(e)));
+    let cancelled = false;
+    listTimeline(token, 50)
+      .then((r) => {
+        if (!cancelled) setEntries(r.entries);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String(e));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
-  if (error) return <p style={{ color: "var(--cds-support-error)" }}>{error}</p>;
-  if (!entries) return <Loading withOverlay={false} />;
+  if (error)
+    return (
+      <InlineNotification
+        kind="error"
+        title="Couldn't load timeline"
+        subtitle={error}
+        hideCloseButton
+      />
+    );
+  if (!entries) return <InlineLoading description="Loading timeline…" />;
   if (entries.length === 0)
     return (
-      <Tile>
+      <Tile style={{ padding: "1.5rem" }}>
         <h3>No entries yet</h3>
-        <p>Capture your first insight via Bob, Telegram, or this UI.</p>
+        <p style={{ marginTop: ".5rem", color: "var(--cds-text-secondary)" }}>
+          Capture your first insight via Bob (<code>/diary-save</code>),
+          Telegram, or this web UI.
+        </p>
       </Tile>
     );
 
   return (
-    <div style={{ display: "grid", gap: "1rem", maxWidth: 720 }}>
+    <Stack gap={4} style={{ maxWidth: 720 }}>
       <h2>Timeline</h2>
       {entries.map((e) => (
         <Tile key={e.id} style={{ padding: "1rem" }}>
-          <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
-            <Tag type="blue">{e.source}</Tag>
+          <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem", alignItems: "center" }}>
+            <Tag type={sourceBadgeColor(e.source)}>{e.source}</Tag>
             <span style={{ color: "var(--cds-text-secondary)", fontSize: 12 }}>
-              {new Date(e.created_at).toLocaleString()}
+              #{e.id} · {relativeTime(e.created_at)}
             </span>
           </div>
-          <Link to={`/entry/${e.id}`} style={{ textDecoration: "none" }}>
-            <p style={{ margin: 0 }}>{e.text.slice(0, 200)}{e.text.length > 200 ? "…" : ""}</p>
+          <Link to={`/entry/${e.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+            <p style={{ margin: 0 }}>
+              {e.text.slice(0, 240)}
+              {e.text.length > 240 ? "…" : ""}
+            </p>
           </Link>
+          {e.file && (
+            <p style={{ marginTop: ".5rem", color: "var(--cds-text-secondary)", fontSize: 12 }}>
+              📍 {e.file}
+              {e.line_start ? `:${e.line_start}` : ""}
+            </p>
+          )}
         </Tile>
       ))}
-    </div>
+    </Stack>
   );
 }

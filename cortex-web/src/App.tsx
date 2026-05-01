@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import CommandPalette from "@/components/CommandPalette";
 import Layout from "@/components/Layout";
 import EntryDetail from "@/pages/EntryDetail";
 import Login from "@/pages/Login";
@@ -22,6 +23,7 @@ export default function App() {
 
   return (
     <Layout>
+      <CommandPalette />
       <Routes>
         <Route path="/" element={<Navigate to="/timeline" replace />} />
         <Route path="/timeline" element={<Timeline />} />
