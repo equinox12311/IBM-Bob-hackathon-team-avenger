@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from cortex_api import storage
@@ -22,11 +23,15 @@ from cortex_api.models import (
     TimelineResponse,
 )
 from cortex_api.retrieval import recall
+from cortex_api.secrets import detect_secrets
+
+log = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     provider = get_provider()
+    log.info("Embeddings provider: %s (dim=%d)", provider.name, provider.dim)
     storage.init_db(embedding_dim=provider.dim)
     yield
 
@@ -35,7 +40,7 @@ app = FastAPI(title="cortex-api", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO(M3): tighten to the actual web origin in production
+    allow_origins=["*"],  # locked down via reverse proxy in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -46,8 +51,26 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/api/v1/entries", response_model=CreateEntryResponse, dependencies=[AuthDep])
+@app.post(
+    "/api/v1/entries",
+    response_model=CreateEntryResponse,
+    dependencies=[AuthDep],
+    status_code=status.HTTP_201_CREATED,
+)
 def create_entry(req: CreateEntryRequest) -> CreateEntryResponse:
+    findings = detect_secrets(req.text)
+    if findings:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "error": "secret_detected",
+                "message": "Refused to save text containing apparent secrets.",
+                "findings": [
+                    {"label": f.label, "snippet": f.snippet} for f in findings
+                ],
+            },
+        )
+
     provider = get_provider()
     embedding = provider.embed(req.text)
     entry_id, created_at = storage.insert_entry(
@@ -69,8 +92,16 @@ def search_entries(q: str = Query(..., min_length=1), k: int = 5) -> SearchRespo
 
 
 @app.get("/api/v1/entries", response_model=TimelineResponse, dependencies=[AuthDep])
-def timeline(limit: int = 20) -> TimelineResponse:
-    return TimelineResponse(entries=storage.list_recent(limit=limit))
+def timeline(limit: int = 20, since: int | None = None) -> TimelineResponse:
+    return TimelineResponse(entries=storage.list_recent(limit=limit, since_ms=since))
+
+
+@app.get("/api/v1/entries/{entry_id}", response_model=Entry, dependencies=[AuthDep])
+def get_entry(entry_id: int) -> Entry:
+    entry = storage.get_entry(entry_id)
+    if entry is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="entry not found")
+    return entry
 
 
 @app.patch(
@@ -79,7 +110,15 @@ def timeline(limit: int = 20) -> TimelineResponse:
     dependencies=[AuthDep],
 )
 def link_code(entry_id: int, req: LinkCodeRequest) -> LinkCodeResponse:
-    # TODO(M2 Phase 3): implement
+    if storage.get_entry(entry_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="entry not found")
+    storage.link_code(
+        entry_id,
+        repo=req.repo,
+        file=req.file,
+        line_start=req.line_start,
+        line_end=req.line_end,
+    )
     return LinkCodeResponse(id=entry_id)
 
 
@@ -89,5 +128,8 @@ def link_code(entry_id: int, req: LinkCodeRequest) -> LinkCodeResponse:
     dependencies=[AuthDep],
 )
 def feedback(entry_id: int, req: FeedbackRequest) -> FeedbackResponse:
-    # TODO(M2 Phase 3): adjust entry.score, persist feedback row, clamp [0.1, 5.0]
-    return FeedbackResponse(id=entry_id, score=1.0)
+    try:
+        new_score = storage.apply_feedback(entry_id, req.signal)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    return FeedbackResponse(id=entry_id, score=new_score)
