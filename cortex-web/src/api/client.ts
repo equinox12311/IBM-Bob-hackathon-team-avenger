@@ -3,7 +3,13 @@
 
 import type { CreateEntryRequest, Entry } from "./types";
 
-const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+function baseURL(): string {
+  return (
+    localStorage.getItem("cortex.api_base_url") ||
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://localhost:8080"
+  );
+}
 
 function authHeaders(token: string): HeadersInit {
   return {
@@ -14,7 +20,8 @@ function authHeaders(token: string): HeadersInit {
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText}: ${await res.text()}`);
+    const body = await res.text();
+    throw new Error(`${res.status} ${res.statusText}: ${body}`);
   }
   return res.json() as Promise<T>;
 }
@@ -23,7 +30,7 @@ export async function listTimeline(
   token: string,
   limit = 20,
 ): Promise<{ entries: Entry[] }> {
-  const res = await fetch(`${BASE}/api/v1/entries?limit=${limit}`, {
+  const res = await fetch(`${baseURL()}/api/v1/entries?limit=${limit}`, {
     headers: authHeaders(token),
   });
   return handle(res);
@@ -35,7 +42,7 @@ export async function searchEntries(
   k = 5,
 ): Promise<{ entries: Entry[] }> {
   const res = await fetch(
-    `${BASE}/api/v1/search?q=${encodeURIComponent(query)}&k=${k}`,
+    `${baseURL()}/api/v1/search?q=${encodeURIComponent(query)}&k=${k}`,
     { headers: authHeaders(token) },
   );
   return handle(res);
@@ -45,8 +52,33 @@ export async function createEntry(
   token: string,
   body: CreateEntryRequest,
 ): Promise<{ id: number; created_at: number }> {
-  const res = await fetch(`${BASE}/api/v1/entries`, {
+  const res = await fetch(`${baseURL()}/api/v1/entries`, {
     method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(body),
+  });
+  return handle(res);
+}
+
+export async function getEntry(token: string, id: number): Promise<Entry> {
+  const res = await fetch(`${baseURL()}/api/v1/entries/${id}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function linkCode(
+  token: string,
+  id: number,
+  body: {
+    repo: string;
+    file: string;
+    line_start: number;
+    line_end: number;
+  },
+): Promise<{ id: number }> {
+  const res = await fetch(`${baseURL()}/api/v1/entries/${id}/link`, {
+    method: "PATCH",
     headers: authHeaders(token),
     body: JSON.stringify(body),
   });
@@ -58,10 +90,15 @@ export async function sendFeedback(
   id: number,
   signal: "boost" | "flag",
 ): Promise<{ id: number; score: number }> {
-  const res = await fetch(`${BASE}/api/v1/entries/${id}/feedback`, {
+  const res = await fetch(`${baseURL()}/api/v1/entries/${id}/feedback`, {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify({ signal }),
   });
+  return handle(res);
+}
+
+export async function checkHealth(): Promise<{ status: string }> {
+  const res = await fetch(`${baseURL()}/health`);
   return handle(res);
 }

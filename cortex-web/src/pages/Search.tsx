@@ -1,44 +1,84 @@
-// Semantic search page. Phase 3 (M3).
-
-import { Search as SearchInput, Tag, Tile } from "@carbon/react";
+import {
+  InlineLoading,
+  InlineNotification,
+  Search as SearchInput,
+  Stack,
+  Tag,
+  Tile,
+} from "@carbon/react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { searchEntries } from "@/api/client";
 import type { Entry } from "@/api/types";
 import { useAuth } from "@/hooks/useAuth";
+import { relativeTime, sourceBadgeColor } from "@/lib/format";
 
 export default function Search() {
   const { token } = useAuth();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Entry[]>([]);
+  const [results, setResults] = useState<Entry[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function run(q: string) {
-    if (!q.trim() || !token) return;
-    const r = await searchEntries(token, q, 5);
-    setResults(r.entries);
+  async function run() {
+    const q = query.trim();
+    if (!q || !token) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await searchEntries(token, q, 10);
+      setResults(r.entries);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <div style={{ display: "grid", gap: "1rem", maxWidth: 720 }}>
+    <Stack gap={5} style={{ maxWidth: 720 }}>
       <h2>Search</h2>
       <SearchInput
         labelText=""
         placeholder="What did I learn about…"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => setQuery((e.target as HTMLInputElement).value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") run(query);
+          if (e.key === "Enter") run();
         }}
       />
-      {results.map((e) => (
-        <Tile key={e.id} style={{ padding: "1rem" }}>
-          <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
-            <Tag type="blue">{e.source}</Tag>
-            <Tag type="green">score {e.score.toFixed(2)}</Tag>
-          </div>
-          <p style={{ margin: 0 }}>{e.text}</p>
+      {busy && <InlineLoading description="Searching…" />}
+      {error && (
+        <InlineNotification
+          kind="error"
+          title="Search failed"
+          subtitle={error}
+          hideCloseButton
+        />
+      )}
+      {results && results.length === 0 && !busy && (
+        <Tile>
+          <p style={{ margin: 0, color: "var(--cds-text-secondary)" }}>
+            No matches for "{query}". Try a more specific phrase.
+          </p>
         </Tile>
-      ))}
-    </div>
+      )}
+      {results &&
+        results.map((e) => (
+          <Tile key={e.id} style={{ padding: "1rem" }}>
+            <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
+              <Tag type={sourceBadgeColor(e.source)}>{e.source}</Tag>
+              <Tag type="green">score {e.score.toFixed(2)}</Tag>
+              <span style={{ color: "var(--cds-text-secondary)", fontSize: 12 }}>
+                #{e.id} · {relativeTime(e.created_at)}
+              </span>
+            </div>
+            <Link to={`/entry/${e.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+              <p style={{ margin: 0 }}>{e.text}</p>
+            </Link>
+          </Tile>
+        ))}
+    </Stack>
   );
 }
