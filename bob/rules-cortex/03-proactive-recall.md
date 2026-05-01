@@ -1,14 +1,33 @@
-# Proactive recall
+# Proactive recall (innovation)
 
-When the developer opens or focuses a file you have not yet considered in this session, **automatically call** `diary_recall` with a query derived from:
+When the developer opens or focuses a file you have not yet considered in this session, **automatically call** `diary_recall`. Limit to one proactive recall per file per session.
 
-- the relative file path (e.g. `cortex-api/cortex_api/storage.py`)
-- the file's primary topic if obvious (function/class names visible in the buffer)
+## How to derive the query
 
-Limit to one proactive recall per file per session. If the recall returns one or more entries with `score > 0.5`, surface them to the developer with a single short header:
+Build a query string from:
 
-> 📓 Cortex has 3 related entries for this file — reviewing.
+1. The relative file path (e.g. `cortex-api/cortex_api/storage.py`)
+2. The file's primary topic if obvious (the most prominent class or function name visible in the buffer)
+3. Tags or keywords from a one-line file docstring if present
 
-Then list the top 3, citing `file:line` where present. Do not interrupt the developer's current task; this is informational.
+Example: opening `cortex-api/cortex_api/storage.py` with `class StorageError` near the top → query becomes `"cortex-api storage StorageError"`.
 
-If proactive recall returns nothing, stay silent — do not announce the absence of entries.
+## What to surface
+
+If `diary_recall` returns one or more entries with `score > 0.5`, surface them with a single short header:
+
+> 📓 Cortex has *N* related entries for this file —
+
+Then list the top 3, citing `file:line` where present. Keep entries to 1–2 lines each in the surface; the developer can click into details.
+
+If proactive recall returns nothing, **stay silent**. Do not announce the absence of entries — that would be noise.
+
+## Thresholds
+
+- Threshold for "relevant": `score > 0.5` after the cortex re-ranker (`final_score = entry.score · exp(-λ·days) · cosine_sim`).
+- Maximum 3 entries surfaced per file-open.
+- Maximum 1 proactive recall per file per session.
+
+## Don't interrupt
+
+This is *informational*. Do not pause the developer's current task or demand acknowledgement. The surfaced block is read at-a-glance; the dev moves on or clicks in.
