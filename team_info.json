@@ -1,0 +1,36 @@
+{
+  "team_name": "Cortex",
+  "team_lead": "Ahmed Abdullah Farooqi",
+  "members": [
+    {
+      "name": "Ahmed Abdullah Farooqi",
+      "registered_contact": "TBD",
+      "role": "Team Lead · Bob/DX Lead",
+      "specialty": "Backend / AI",
+      "github": "TBD"
+    },
+    {
+      "name": "TBD",
+      "registered_contact": "TBD",
+      "role": "Backend Lead",
+      "specialty": "Backend / AI",
+      "github": "TBD"
+    },
+    {
+      "name": "TBD",
+      "registered_contact": "TBD",
+      "role": "Frontend Owner",
+      "specialty": "Frontend",
+      "github": "TBD"
+    },
+    {
+      "name": "TBD",
+      "registered_contact": "TBD",
+      "role": "AI / Integrations Lead",
+      "specialty": "Backend / AI",
+      "github": "TBD"
+    }
+  ],
+  "github_repo": "https://github.com/equinox12311/IBM-Bob",
+  "demo_link": "TBD"
+}

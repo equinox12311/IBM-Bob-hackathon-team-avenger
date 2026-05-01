@@ -1,0 +1,52 @@
+services:
+  api:
+    build:
+      context: ./cortex-api
+      dockerfile: Dockerfile
+    container_name: cortex-api
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  web:
+    build:
+      context: ./cortex-web
+      dockerfile: Dockerfile
+    container_name: cortex-web
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE_URL: "http://localhost:8080"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+  bot:
+    build:
+      context: ./cortex-bot
+      dockerfile: Dockerfile
+    container_name: cortex-bot
+    env_file:
+      - .env
+    depends_on:
+      - api
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
