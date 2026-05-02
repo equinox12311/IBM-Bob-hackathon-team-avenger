@@ -1,11 +1,26 @@
-// Mock auth: a single bearer token persisted in localStorage. NOT real auth.
-// Phase 4 (M3): if time, swap for a real session cookie / SSO flow.
+// Shared auth state via React context — every component sees the same token.
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 const STORAGE_KEY = "cortex.diary_token";
 
-export function useAuth() {
+interface AuthContextValue {
+  token: string | null;
+  login: (next: string) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem(STORAGE_KEY),
   );
@@ -18,9 +33,9 @@ export function useAuth() {
     return () => window.removeEventListener("storage", handler);
   }, []);
 
-  const login = useCallback((newToken: string) => {
-    localStorage.setItem(STORAGE_KEY, newToken);
-    setToken(newToken);
+  const login = useCallback((next: string) => {
+    localStorage.setItem(STORAGE_KEY, next);
+    setToken(next);
   }, []);
 
   const logout = useCallback(() => {
@@ -28,5 +43,18 @@ export function useAuth() {
     setToken(null);
   }, []);
 
-  return { token, login, logout };
+  const value = useMemo<AuthContextValue>(
+    () => ({ token, login, logout }),
+    [token, login, logout],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (ctx === null) {
+    throw new Error("useAuth must be used inside <AuthProvider>");
+  }
+  return ctx;
 }
