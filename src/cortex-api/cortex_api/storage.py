@@ -23,7 +23,7 @@ from typing import Iterable, Iterator
 import sqlite_vec
 
 from cortex_api.config import settings
-from cortex_api.models import Entry, EntrySource, FeedbackSignal
+from cortex_api.models import Entry, EntryKind, EntrySource, FeedbackSignal
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS entries (
     created_at  INTEGER NOT NULL,
     score       REAL NOT NULL DEFAULT 1.0,
     source      TEXT NOT NULL,
+    kind        TEXT NOT NULL DEFAULT 'note',
     repo        TEXT,
     file        TEXT,
     line_start  INTEGER,
@@ -50,9 +51,39 @@ CREATE TABLE IF NOT EXISTS feedback (
     ts        INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS wellness_breaks (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts     INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_profile (
+    id        INTEGER PRIMARY KEY CHECK (id = 1),  -- single-row table
+    name      TEXT NOT NULL DEFAULT 'Dev',
+    handle    TEXT NOT NULL DEFAULT 'dev',
+    bio       TEXT NOT NULL DEFAULT '',
+    pronouns  TEXT,
+    timezone  TEXT NOT NULL DEFAULT 'UTC',
+    public_url TEXT
+);
+
+CREATE TABLE IF NOT EXISTS automations (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    name         TEXT NOT NULL,
+    trigger_kind TEXT NOT NULL,
+    action       TEXT NOT NULL,
+    enabled      INTEGER NOT NULL DEFAULT 1,
+    created_at   INTEGER NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_entries_created_at ON entries(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_entries_kind ON entries(kind, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_feedback_entry ON feedback(entry_id);
 """
+
+# In-place migration for v0.1 → v0.2 (adds kind column to existing dbs).
+MIGRATIONS_SQL = [
+    "ALTER TABLE entries ADD COLUMN kind TEXT NOT NULL DEFAULT 'note'",
+]
 
 VEC_TABLE_SQL = (
     "CREATE VIRTUAL TABLE IF NOT EXISTS vec_entries "
@@ -95,10 +126,18 @@ def _connect() -> Iterator[sqlite3.Connection]:
 
 
 def init_db(embedding_dim: int = 384) -> None:
-    """Create tables on first run (idempotent)."""
+    """Create tables on first run (idempotent), then run any migrations."""
 
     with _connect() as conn:
         conn.executescript(SCHEMA_SQL)
+        for stmt in MIGRATIONS_SQL:
+            try:
+                conn.execute(stmt)
+            except sqlite3.OperationalError:
+                # column already exists — migration already applied
+                pass
+        # Seed the single-row profile table
+        conn.execute("INSERT OR IGNORE INTO user_profile (id) VALUES (1)")
         try:
             conn.execute(VEC_TABLE_SQL.format(dim=embedding_dim))
         except sqlite3.OperationalError as exc:
@@ -113,6 +152,7 @@ def insert_entry(
     text: str,
     source: EntrySource,
     embedding: list[float],
+    kind: EntryKind = "note",
     repo: str | None = None,
     file: str | None = None,
     line_start: int | None = None,
@@ -127,10 +167,10 @@ def insert_entry(
         cur = conn.execute(
             """
             INSERT INTO entries
-                (text, created_at, source, repo, file, line_start, line_end, tags)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (text, created_at, source, kind, repo, file, line_start, line_end, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (text, created_at, source, repo, file, line_start, line_end, tags_csv),
+            (text, created_at, source, kind, repo, file, line_start, line_end, tags_csv),
         )
         entry_id = cur.lastrowid
         if entry_id is None:
@@ -193,17 +233,132 @@ def get_entry(entry_id: int) -> Entry | None:
     return _row_to_entry(row) if row else None
 
 
-def list_recent(limit: int = 20, since_ms: int | None = None) -> list[Entry]:
+def list_recent(
+    limit: int = 20,
+    since_ms: int | None = None,
+    kind: EntryKind | None = None,
+) -> list[Entry]:
     sql = "SELECT * FROM entries"
     params: list = []
+    where: list[str] = []
     if since_ms is not None:
-        sql += " WHERE created_at >= ?"
+        where.append("created_at >= ?")
         params.append(since_ms)
+    if kind is not None:
+        where.append("kind = ?")
+        params.append(kind)
+    if where:
+        sql += " WHERE " + " AND ".join(where)
     sql += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
     with _connect() as conn:
         rows = conn.execute(sql, params).fetchall()
     return [_row_to_entry(r) for r in rows]
+
+
+# ---------- aggregations / feature-specific reads ---------------------------
+
+
+def counts_by_kind(since_ms: int | None = None) -> dict[str, int]:
+    sql = "SELECT kind, COUNT(*) AS n FROM entries"
+    params: list = []
+    if since_ms is not None:
+        sql += " WHERE created_at >= ?"
+        params.append(since_ms)
+    sql += " GROUP BY kind"
+    with _connect() as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return {r["kind"]: r["n"] for r in rows}
+
+
+def total_count(since_ms: int | None = None) -> int:
+    sql = "SELECT COUNT(*) AS n FROM entries"
+    params: list = []
+    if since_ms is not None:
+        sql += " WHERE created_at >= ?"
+        params.append(since_ms)
+    with _connect() as conn:
+        row = conn.execute(sql, params).fetchone()
+    return int(row["n"]) if row else 0
+
+
+# ---------- wellness break tracking -----------------------------------------
+
+
+def log_wellness_break() -> int:
+    ts = now_ms()
+    with _connect() as conn:
+        cur = conn.execute("INSERT INTO wellness_breaks (ts) VALUES (?)", (ts,))
+        return cur.lastrowid or 0
+
+
+def last_wellness_break() -> int | None:
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT ts FROM wellness_breaks ORDER BY ts DESC LIMIT 1"
+        ).fetchone()
+    return int(row["ts"]) if row else None
+
+
+def wellness_breaks_since(since_ms: int) -> int:
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n FROM wellness_breaks WHERE ts >= ?", (since_ms,)
+        ).fetchone()
+    return int(row["n"]) if row else 0
+
+
+# ---------- user profile ----------------------------------------------------
+
+
+def get_profile() -> dict:
+    with _connect() as conn:
+        row = conn.execute("SELECT * FROM user_profile WHERE id = 1").fetchone()
+    return dict(row) if row else {}
+
+
+def update_profile(**fields: str) -> dict:
+    if not fields:
+        return get_profile()
+    cols = ", ".join(f"{k} = ?" for k in fields)
+    params = list(fields.values()) + [1]
+    with _connect() as conn:
+        conn.execute(f"UPDATE user_profile SET {cols} WHERE id = ?", params)
+    return get_profile()
+
+
+# ---------- automations -----------------------------------------------------
+
+
+def list_automations() -> list[dict]:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM automations ORDER BY created_at DESC"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def create_automation(name: str, trigger_kind: str, action: str) -> int:
+    with _connect() as conn:
+        cur = conn.execute(
+            "INSERT INTO automations (name, trigger_kind, action, enabled, created_at) "
+            "VALUES (?, ?, ?, 1, ?)",
+            (name, trigger_kind, action, now_ms()),
+        )
+        return cur.lastrowid or 0
+
+
+def toggle_automation(automation_id: int, enabled: bool) -> None:
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE automations SET enabled = ? WHERE id = ?",
+            (1 if enabled else 0, automation_id),
+        )
+
+
+def delete_automation(automation_id: int) -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM automations WHERE id = ?", (automation_id,))
 
 
 def search(query_embedding: list[float], k: int = 5) -> list[tuple[Entry, float]]:
@@ -272,11 +427,17 @@ def _l2_to_cosine(l2_distance: float) -> float:
 
 def _row_to_entry(row: sqlite3.Row) -> Entry:
     tags_csv = row["tags"]
+    # ``kind`` may be missing on rows persisted before the v0.2 migration.
+    try:
+        kind = row["kind"] or "note"
+    except (IndexError, KeyError):
+        kind = "note"
     return Entry(
         id=row["id"],
         text=row["text"],
         score=row["score"],
         source=row["source"],
+        kind=kind,
         repo=row["repo"],
         file=row["file"],
         line_start=row["line_start"],
