@@ -94,24 +94,44 @@ VEC_TABLE_SQL = (
 # ---------- connection helpers ---------------------------------------------
 
 
+_VEC_AVAILABLE: bool | None = None  # tri-state: None = unknown, True/False = decided
+
+
 def _open_connection() -> sqlite3.Connection:
     """Open a connection with sqlite-vec loaded.
 
     sqlite_vec ``load`` uses a runtime extension. If extension loading is
     blocked (e.g. on Python builds compiled without it) we fall back to a
-    plain connection — search will use the slower Python-cosine path.
+    plain connection — search will use the slower Python-cosine path. We
+    detect this once at startup and silently skip the load attempt thereafter.
     """
+
+    global _VEC_AVAILABLE
 
     db_path: Path = settings.diary_db_path
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
+
+    if _VEC_AVAILABLE is False:
+        return conn
+
     try:
         conn.enable_load_extension(True)
         sqlite_vec.load(conn)
         conn.enable_load_extension(False)
+        if _VEC_AVAILABLE is None:
+            log.info("sqlite-vec extension loaded")
+        _VEC_AVAILABLE = True
     except (sqlite3.NotSupportedError, AttributeError) as exc:
-        log.warning("sqlite-vec extension unavailable (%s); using Python cosine fallback", exc)
+        if _VEC_AVAILABLE is None:
+            log.warning(
+                "sqlite-vec extension unavailable (%s); using Python cosine fallback. "
+                "This is expected on python.org's Python on macOS; install Python via "
+                "Homebrew or pyenv to enable native vector search.",
+                exc,
+            )
+        _VEC_AVAILABLE = False
     return conn
 
 
