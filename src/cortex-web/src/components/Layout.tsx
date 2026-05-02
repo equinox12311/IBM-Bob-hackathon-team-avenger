@@ -1,19 +1,26 @@
-// Carbon Header + side nav. Phase 1 work for M3.
-
 import {
   Content,
   Header,
+  HeaderMenuItem,
   HeaderName,
   HeaderNavigation,
-  HeaderMenuItem,
   SkipToContent,
 } from "@carbon/react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const NAV = [
+const NAV: { to: string; label: string }[] = [
+  { to: "/today", label: "Today" },
   { to: "/timeline", label: "Timeline" },
   { to: "/search", label: "Search" },
+  { to: "/ideas", label: "Ideas" },
+  { to: "/debug", label: "Debug" },
+  { to: "/report", label: "Report" },
+  { to: "/analytics", label: "Analytics" },
+  { to: "/github", label: "GitHub" },
+  { to: "/automations", label: "Automations" },
+  { to: "/wellness", label: "Wellness" },
+  { to: "/profile", label: "Profile" },
   { to: "/settings", label: "Settings" },
 ];
 
@@ -23,7 +30,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <>
       <Header aria-label="Cortex">
         <SkipToContent />
-        <HeaderName as={Link} to="/timeline" prefix="📓">
+        <HeaderName as={Link} to="/today" prefix="📓">
           Cortex
         </HeaderName>
         <HeaderNavigation aria-label="Cortex nav">
@@ -39,7 +46,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           ))}
         </HeaderNavigation>
       </Header>
-      <Content style={{ padding: "2rem" }}>{children}</Content>
+      <Content style={{ padding: "2rem", maxWidth: 1200, margin: "0 auto" }}>{children}</Content>
     </>
   );
 }
