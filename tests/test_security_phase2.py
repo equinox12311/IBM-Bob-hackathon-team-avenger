@@ -5,29 +5,25 @@ Tests HTTPS enforcement, error sanitization, API URL validation, and CORS
 
 import pytest
 from unittest.mock import Mock, patch
-from fastapi.testclient import TestClient
-from cortex_api.server import app
 
 
 class TestCORSConfiguration:
     """Test CORS middleware configuration"""
     
-    def test_cors_allows_localhost_in_dev(self):
+    def test_cors_allows_localhost_in_dev(self, client):
         """CORS should allow localhost in development mode"""
         with patch('cortex_api.server.settings') as mock_settings:
             mock_settings.reload = True
-            client = TestClient(app)
             response = client.options(
                 "/health",
                 headers={"Origin": "http://localhost:5173"}
             )
             assert response.status_code in [200, 204]
     
-    def test_cors_restricts_origins_in_production(self):
+    def test_cors_restricts_origins_in_production(self, client):
         """CORS should restrict origins in production mode"""
         with patch('cortex_api.server.settings') as mock_settings:
             mock_settings.reload = False
-            client = TestClient(app)
             
             # Test allowed origin
             response = client.options(
@@ -59,10 +55,8 @@ class TestHTTPSEnforcement:
 class TestErrorSanitization:
     """Test error message sanitization"""
     
-    def test_error_responses_dont_leak_details(self):
+    def test_error_responses_dont_leak_details(self, client):
         """Error responses should not leak implementation details"""
-        client = TestClient(app)
-        
         # Test 404 error
         response = client.get("/api/v1/entries/999999")
         assert response.status_code == 404
@@ -72,10 +66,8 @@ class TestErrorSanitization:
         assert "/Users/" not in response.text
         assert "cortex_api" not in response.text
     
-    def test_validation_errors_are_generic(self):
+    def test_validation_errors_are_generic(self, client):
         """Validation errors should not expose internal structure"""
-        client = TestClient(app)
-        
         # Test with invalid token
         response = client.get(
             "/api/v1/entries",
@@ -105,10 +97,8 @@ class TestAPIURLValidation:
 class TestInputValidation:
     """Test input validation from Phase 1 still works"""
     
-    def test_search_query_validation(self):
+    def test_search_query_validation(self, client):
         """Search queries should be validated"""
-        client = TestClient(app)
-        
         # Empty query should fail
         response = client.get(
             "/api/v1/search?q=&k=5",
@@ -116,10 +106,8 @@ class TestInputValidation:
         )
         assert response.status_code == 422
     
-    def test_entry_id_validation(self):
+    def test_entry_id_validation(self, client):
         """Entry IDs should be validated"""
-        client = TestClient(app)
-        
         # Invalid ID format should fail
         response = client.get(
             "/api/v1/entries/abc",
