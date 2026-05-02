@@ -32,11 +32,19 @@ import {
   setOllamaHost,
 } from '../src/services/llm';
 import { getSessionStats } from '../src/services/memory';
+import {
+  checkApiHealth,
+  getApiBase,
+  getToken,
+  setApiBase,
+  setToken,
+} from '../src/services/api';
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState({ total: 0, byKind: {} as Record<string, number>, topTags: [] as string[] });
   const [wellness, setWellness] = useState({ breaks_today: 0, last_break_at: null as number | null });
+  const [ollamaHost, setOllamaHostState] = useState('');  // keep for type compat
   const [hostInput, setHostInput] = useState('');
   const [llmStatus, setLlmStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
   const [llmError, setLlmError] = useState('');
@@ -47,18 +55,32 @@ export default function ProfileScreen() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Cortex API connection
+  const [apiBase, setApiBaseState] = useState('');
+  const [apiBaseInput, setApiBaseInput] = useState('');
+  const [apiToken, setApiTokenState] = useState('');
+  const [apiTokenInput, setApiTokenInput] = useState('');
+  const [apiStatus, setApiStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
+
   const load = useCallback(async () => {
-    const [p, s, w, host] = await Promise.all([
+    const [p, s, w, host, base, tok] = await Promise.all([
       getProfile(),
       getSessionStats(),
       getWellnessStats(),
       getOllamaHost(),
+      getApiBase(),
+      getToken(),
     ]);
     setProfile(p);
     setStats(s);
     setWellness(w);
     setHostInput(host);
+    setApiBaseState(base);
+    setApiBaseInput(base);
+    setApiTokenState(tok);
+    setApiTokenInput(tok);
     if (host) runCheckLLM(host);
+    if (base) checkApi(base);
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -85,6 +107,28 @@ export default function ProfileScreen() {
     }
     await setOllamaHost(h);
     runCheckLLM(h);
+  };
+
+  const checkApi = async (base?: string) => {
+    setApiStatus('checking');
+    try {
+      await checkApiHealth();
+      setApiStatus('online');
+    } catch {
+      setApiStatus('offline');
+    }
+  };
+
+  const handleApiConnect = async () => {
+    const base = apiBaseInput.trim();
+    const tok = apiTokenInput.trim();
+    if (!base) { Alert.alert('Enter URL', 'Enter the cortex-api URL.\nExample: http://10.221.151.4:8080'); return; }
+    if (!tok) { Alert.alert('Enter token', 'Enter your DIARY_TOKEN from .env'); return; }
+    await setApiBase(base);
+    await setToken(tok);
+    setApiBaseState(base);
+    setApiTokenState(tok);
+    checkApi(base);
   };
 
   const saveProfile = async () => {
@@ -215,6 +259,70 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.greenBtn} onPress={handleBreak}>
               <Ionicons name="leaf-outline" size={14} color="#fff" />
               <Text style={styles.greenBtnText}>Log Break</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── Cortex API Connection ── */}
+        <Text style={styles.sectionLabel}>Cortex API (Backend)</Text>
+        <View style={styles.card}>
+          {/* Status */}
+          <View style={[styles.row, styles.cardRow]}>
+            <View style={[styles.statusIcon, {
+              backgroundColor: apiStatus === 'online' ? '#defbe6' : apiStatus === 'offline' ? '#fff1f2' : '#fffbeb',
+            }]}>
+              <Ionicons
+                name="server-outline"
+                size={18}
+                color={apiStatus === 'online' ? Colors.llmOnline : apiStatus === 'offline' ? Colors.llmOffline : Colors.llmLoading}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowLabel}>cortex-api</Text>
+              <Text style={[styles.statusText, {
+                color: apiStatus === 'online' ? Colors.llmOnline : apiStatus === 'offline' ? Colors.llmOffline : Colors.outline
+              }]}>
+                {apiStatus === 'online' ? '● Connected' : apiStatus === 'offline' ? '● Disconnected' : apiStatus === 'checking' ? '● Checking…' : '● Not configured'}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => checkApi()} style={styles.iconBtn}>
+              {apiStatus === 'checking'
+                ? <ActivityIndicator size="small" color={Colors.primary} />
+                : <Ionicons name="refresh-outline" size={20} color={Colors.primary} />}
+            </TouchableOpacity>
+          </View>
+
+          {/* API URL */}
+          <View style={[styles.hostRow, styles.cardRow]}>
+            <TextInput
+              style={styles.hostInput}
+              value={apiBaseInput}
+              onChangeText={setApiBaseInput}
+              placeholder="http://10.221.151.4:8080"
+              placeholderTextColor={Colors.outline}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              returnKeyType="next"
+            />
+          </View>
+
+          {/* Token */}
+          <View style={[styles.hostRow, styles.cardRow]}>
+            <TextInput
+              style={styles.hostInput}
+              value={apiTokenInput}
+              onChangeText={setApiTokenInput}
+              placeholder="DIARY_TOKEN (e.g. test)"
+              placeholderTextColor={Colors.outline}
+              autoCapitalize="none"
+              autoCorrect={false}
+              secureTextEntry
+              returnKeyType="done"
+              onSubmitEditing={handleApiConnect}
+            />
+            <TouchableOpacity style={styles.connectBtn} onPress={handleApiConnect}>
+              <Text style={styles.connectBtnText}>Connect</Text>
             </TouchableOpacity>
           </View>
         </View>

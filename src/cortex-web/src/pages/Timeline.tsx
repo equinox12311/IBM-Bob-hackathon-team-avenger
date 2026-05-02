@@ -21,7 +21,7 @@ export default function Timeline() {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    listTimeline(token, 50)
+    listTimeline(token, { limit: 50 })
       .then((r) => {
         if (!cancelled) setEntries(r.entries);
       })

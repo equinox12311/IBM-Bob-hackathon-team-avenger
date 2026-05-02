@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "cortex": {
+      "command": "python3",
+      "args": [
+        "-m",
+        "cortex_api.mcp_server"
+      ],
+      "cwd": "C:\\Users\\HP\\Videos\\cortex\\IBM-Bob\\src\\cortex-api",
+      "env": {
+        "DIARY_TOKEN": "test",
+        "DIARY_DB_PATH": "C:\\Users\\HP\\Videos\\cortex\\IBM-Bob\\data\\diary.db",
+        "EMBEDDINGS_PROVIDER": "local",
+        "LLM_PROVIDER": "off"
+      }
+    }
+  }
+}

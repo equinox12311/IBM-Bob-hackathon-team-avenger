@@ -24,6 +24,7 @@ import { Colors, Spacing } from '../src/constants/theme';
 import { clearConversation, getConversationHistory } from '../src/services/database';
 import { chat, checkOllamaHealth, getOllamaHost } from '../src/services/llm';
 import { buildLLMContext } from '../src/services/memory';
+import { apiChat, apiLlmInfo, checkApiHealth, getApiBase } from '../src/services/api';
 
 interface UIMessage {
   id: string;

@@ -1,4 +1,5 @@
 // Thin fetch wrapper for cortex-api.
+// Security: Input validation, HTTPS enforcement, error sanitization, CSRF (OWASP Phase 1, 2 & 3)
 
 import type {
   Automation,
@@ -14,25 +15,47 @@ import type {
   WellnessStatus,
 } from "./types";
 
+import { validateSearchQuery, sanitizeErrorMessage } from "@/lib/validation";
+import { addCsrfHeader } from "@/lib/csrf";
+
 function baseURL(): string {
-  return (
-    localStorage.getItem("cortex.api_base_url") ||
-    import.meta.env.VITE_API_BASE_URL ||
-    "http://localhost:8080"
-  );
+  const stored = localStorage.getItem("cortex.api_base_url");
+  const env = import.meta.env.VITE_API_BASE_URL;
+  const url = stored || env || "http://localhost:8080";
+  
+  // Enforce HTTPS in production (OWASP Phase 2)
+  if (import.meta.env.PROD && !url.startsWith("https://")) {
+    console.error("Production requires HTTPS API URL");
+    throw new Error("Insecure API URL in production mode");
+  }
+  
+  return url;
 }
 
-function authHeaders(token: string): HeadersInit {
-  return {
+function authHeaders(token: string, includeCSRF = false): HeadersInit {
+  const headers: HeadersInit = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
+  
+  // Add CSRF token for state-changing requests (OWASP Phase 3)
+  if (includeCSRF) {
+    return addCsrfHeader(headers);
+  }
+  
+  return headers;
 }
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    
+    // Sanitize error messages in production (OWASP Phase 2)
+    const errorMessage = import.meta.env.PROD
+      ? sanitizeErrorMessage(res.status, body)
+      : `${res.status} ${res.statusText}: ${body}`;
+    
+    throw new Error(errorMessage);
   }
   return res.json() as Promise<T>;
 }
@@ -57,8 +80,11 @@ export async function searchEntries(
   query: string,
   k = 5,
 ): Promise<{ entries: Entry[] }> {
+  // Validate query before sending to API (OWASP Phase 1)
+  const validQuery = validateSearchQuery(query);
+  
   const res = await fetch(
-    `${baseURL()}/api/v1/search?q=${encodeURIComponent(query)}&k=${k}`,
+    `${baseURL()}/api/v1/search?q=${encodeURIComponent(validQuery)}&k=${k}`,
     { headers: authHeaders(token) },
   );
   return handle(res);
@@ -70,7 +96,7 @@ export async function createEntry(
 ): Promise<{ id: number; created_at: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: authHeaders(token, true), // CSRF protection
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -90,7 +116,7 @@ export async function linkCode(
 ): Promise<{ id: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries/${id}/link`, {
     method: "PATCH",
-    headers: authHeaders(token),
+    headers: authHeaders(token, true), // CSRF protection
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -103,7 +129,7 @@ export async function sendFeedback(
 ): Promise<{ id: number; score: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries/${id}/feedback`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: authHeaders(token, true), // CSRF protection
     body: JSON.stringify({ signal }),
   });
   return handle(res);

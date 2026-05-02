@@ -18,6 +18,7 @@ import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { listEntries, type Entry } from '../src/services/database';
 import { checkOllamaHealth } from '../src/services/llm';
 import { getSessionStats } from '../src/services/memory';
+import { apiListEntries, checkApiHealth, getToken } from '../src/services/api';
 
 const KIND_META: Record<string, { color: string; icon: string; bg: string }> = {
   idea:    { color: '#0f62fe', icon: 'bulb',          bg: '#dbe1ff' },
@@ -37,10 +38,32 @@ export default function TodayScreen() {
     topTags: [] as string[],
   });
   const [llmStatus, setLlmStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+  const [apiOnline, setApiOnline] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
+    // Try backend API first, fall back to local SQLite
+    try {
+      const tok = await getToken();
+      if (tok) {
+        const remote = await apiListEntries(30);
+        // Map remote entries to local Entry shape
+        setEntries(remote as any);
+        const byKind: Record<string, number> = {};
+        const tagCounts: Record<string, number> = {};
+        remote.forEach(e => {
+          byKind[e.kind] = (byKind[e.kind] ?? 0) + 1;
+          (e.tags ?? []).forEach(t => { tagCounts[t] = (tagCounts[t] ?? 0) + 1; });
+        });
+        const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
+        setStats({ total: remote.length, byKind, topTags });
+        setApiOnline(true);
+        return;
+      }
+    } catch { setApiOnline(false); }
+
+    // Local fallback
     const [e, s] = await Promise.all([listEntries(30), getSessionStats()]);
     setEntries(e);
     setStats(s);

@@ -14,6 +14,7 @@ import { getEntry, sendFeedback } from "@/api/client";
 import type { Entry } from "@/api/types";
 import { useAuth } from "@/hooks/useAuth";
 import { gitHubUrl, relativeTime, sourceBadgeColor } from "@/lib/format";
+import { validateEntryId } from "@/lib/validation";
 
 export default function EntryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,9 +26,16 @@ export default function EntryDetail() {
 
   useEffect(() => {
     if (!token || !id) return;
-    getEntry(token, Number(id))
-      .then(setEntry)
-      .catch((e) => setError(String(e)));
+    
+    try {
+      // Validate entry ID before making API call (OWASP Phase 1)
+      const validId = validateEntryId(id);
+      getEntry(token, validId)
+        .then(setEntry)
+        .catch((e) => setError(String(e)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid entry ID");
+    }
   }, [token, id]);
 
   async function vote(signal: "boost" | "flag") {
