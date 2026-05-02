@@ -31,7 +31,7 @@ DIARY_TOKEN  ?= test
 EMBEDDINGS_PROVIDER ?= local
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev build up down test lint submit clean
+.PHONY: help setup dev judge install-bob build up down test lint submit clean
 
 help:  ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -56,6 +56,16 @@ setup:  ## one-time install: venv + pip + npm
 	@test -f .env || cp .env.example .env
 	@echo
 	@echo "✓ Setup complete. Run:  make dev"
+
+install-bob:  ## install Cortex into Bob (~/.bob): mode + skill + commands + rules + MCP config
+	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
+	@$(PY) scripts/install-bob.py
+
+judge:  ## one-command demo prep: setup + install-bob (then run 'make dev')
+	@$(MAKE) setup
+	@$(MAKE) install-bob
+	@echo
+	@echo "✓ Cortex installed into Bob. Run 'make dev' to start api+web."
 
 dev:  ## start api (8080) + web (5173) for local development
 	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
