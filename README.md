@@ -101,4 +101,12 @@ The build is a deliberate Claude-Code-and-Bob split: Claude Code handles scaffol
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) — see [`docs/LICENSE_AUDIT.md`](docs/LICENSE_AUDIT.md) for the full third-party audit.
+
+## Building the submission
+
+```bash
+make submit          # builds Cortex_bob-hackathon_submission.zip at the repo root
+```
+
+Excludes `.git/`, `node_modules/`, `__pycache__/`, `.venv/`, the local `data/` SQLite, and any caches. Demo video uploads separately and is linked from this README.
