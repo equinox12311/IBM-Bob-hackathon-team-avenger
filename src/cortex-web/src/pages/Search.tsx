@@ -14,6 +14,7 @@ import type { Entry } from "@/api/types";
 import { useAuth } from "@/hooks/useAuth";
 import { relativeTime, sourceBadgeColor } from "@/lib/format";
 import { validateSearchQuery } from "@/lib/validation";
+import { rateLimiters } from "@/lib/rateLimit";
 
 export default function Search() {
   const { token } = useAuth();
@@ -24,6 +25,13 @@ export default function Search() {
 
   async function run() {
     if (!token) return;
+    
+    // Rate limiting (OWASP Phase 3)
+    if (!rateLimiters.search.canMakeRequest()) {
+      const waitTime = Math.ceil(rateLimiters.search.getTimeUntilNextRequest() / 1000);
+      setError(`Rate limited. Please wait ${waitTime} seconds before searching again.`);
+      return;
+    }
     
     setBusy(true);
     setError(null);
