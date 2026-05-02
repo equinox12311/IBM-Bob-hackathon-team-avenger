@@ -1,5 +1,5 @@
 // Shared auth state via React context — every component sees the same token.
-// Security: Token encryption added (OWASP Phase 1)
+// Security: Token encryption (Phase 1), CSRF protection (Phase 3)
 
 import {
   createContext,
@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { decryptToken, encryptToken } from "@/lib/crypto";
+import { regenerateCsrfToken, clearCsrfToken } from "@/lib/csrf";
 
 const STORAGE_KEY = "cortex.diary_token";
 
@@ -57,6 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const encrypted = encryptToken(next);
       localStorage.setItem(STORAGE_KEY, encrypted);
       setToken(next);
+      
+      // Generate new CSRF token on login (OWASP Phase 3)
+      regenerateCsrfToken();
     } catch (e) {
       console.error("Failed to encrypt token:", e);
       throw new Error("Failed to save authentication token");
@@ -66,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setToken(null);
+    
+    // Clear CSRF token on logout (OWASP Phase 3)
+    clearCsrfToken();
   }, []);
 
   const value = useMemo<AuthContextValue>(

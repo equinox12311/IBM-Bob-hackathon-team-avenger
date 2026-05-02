@@ -1,5 +1,5 @@
 // Thin fetch wrapper for cortex-api.
-// Security: Input validation, HTTPS enforcement, error sanitization (OWASP Phase 1 & 2)
+// Security: Input validation, HTTPS enforcement, error sanitization, CSRF (OWASP Phase 1, 2 & 3)
 
 import type {
   Automation,
@@ -16,6 +16,7 @@ import type {
 } from "./types";
 
 import { validateSearchQuery, sanitizeErrorMessage } from "@/lib/validation";
+import { addCsrfHeader } from "@/lib/csrf";
 
 function baseURL(): string {
   const stored = localStorage.getItem("cortex.api_base_url");
@@ -31,11 +32,18 @@ function baseURL(): string {
   return url;
 }
 
-function authHeaders(token: string): HeadersInit {
-  return {
+function authHeaders(token: string, includeCSRF = false): HeadersInit {
+  const headers: HeadersInit = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
+  
+  // Add CSRF token for state-changing requests (OWASP Phase 3)
+  if (includeCSRF) {
+    return addCsrfHeader(headers);
+  }
+  
+  return headers;
 }
 
 async function handle<T>(res: Response): Promise<T> {
@@ -88,7 +96,7 @@ export async function createEntry(
 ): Promise<{ id: number; created_at: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: authHeaders(token, true), // CSRF protection
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -108,7 +116,7 @@ export async function linkCode(
 ): Promise<{ id: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries/${id}/link`, {
     method: "PATCH",
-    headers: authHeaders(token),
+    headers: authHeaders(token, true), // CSRF protection
     body: JSON.stringify(body),
   });
   return handle(res);
@@ -121,7 +129,7 @@ export async function sendFeedback(
 ): Promise<{ id: number; score: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries/${id}/feedback`, {
     method: "POST",
-    headers: authHeaders(token),
+    headers: authHeaders(token, true), // CSRF protection
     body: JSON.stringify({ signal }),
   });
   return handle(res);
