@@ -42,14 +42,16 @@ setup:  ## one-time install: venv + pip + npm
 	@echo "▶ Creating venv at .venv/"
 	@test -d .venv || python3 -m venv .venv
 	@echo "▶ Installing Python deps for cortex-api"
-	@$(PIP) install --quiet --upgrade pip
-	@$(PIP) install --quiet -r src/cortex-api/requirements.txt
+	@$(PIP) install --upgrade pip
+	@$(PIP) install -r src/cortex-api/requirements.txt
 	@echo "▶ Installing Python deps for cortex-bot"
-	@$(PIP) install --quiet -r src/cortex-bot/requirements.txt
+	@$(PIP) install -r src/cortex-bot/requirements.txt
 	@echo "▶ Installing test deps"
-	@$(PIP) install --quiet pytest httpx
+	@$(PIP) install pytest httpx
 	@echo "▶ Installing npm deps for cortex-web"
-	@cd src/cortex-web && npm install --silent
+	@cd src/cortex-web && npm install
+	@test -x src/cortex-web/node_modules/.bin/vite \
+		|| { echo "✗ npm install did not produce node_modules/.bin/vite — check the output above"; exit 1; }
 	@echo "▶ Bootstrapping .env"
 	@test -f .env || cp .env.example .env
 	@echo
