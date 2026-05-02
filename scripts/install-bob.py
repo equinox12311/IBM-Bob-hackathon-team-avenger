@@ -3,14 +3,13 @@
 
 IBM Bob is its own editor. It reads:
   - Extension assets (mode YAML, skills, slash commands, rules) from ~/.bob/
-  - MCP server config from ~/.bob/mcp.json
+  - MCP server config from ~/.bob/settings/mcp_settings.json
     (top-level mcpServers map — same shape as Claude Desktop)
 
-This script:
+For workspace-scoped overrides, it also reads <project>/.bob/mcp.json.
 
-1. Copies all five extension layers from this repo's bob/ into ~/.bob/
-2. Merges {"mcpServers": {"cortex": ...}} into ~/.bob/mcp.json
-3. Prints next steps
+This script writes to BOTH so the install works whether Bob looks at
+global or workspace config first.
 
 Usage:
     python scripts/install-bob.py
@@ -121,8 +120,8 @@ def cortex_mcp_block() -> dict:
     }
 
 
-def patch_mcp_json(bob_home: Path, dry_run: bool) -> None:
-    mcp_path = bob_home / "mcp.json"
+def _patch_one(mcp_path: Path, dry_run: bool) -> None:
+    """Merge cortex into the mcpServers map at mcp_path. Idempotent."""
 
     if mcp_path.exists():
         raw = mcp_path.read_text()
@@ -154,7 +153,19 @@ def patch_mcp_json(bob_home: Path, dry_run: bool) -> None:
         print(f"  (backup → {backup})")
 
     mcp_path.write_text(json.dumps(existing, indent=2) + "\n")
-    print(f"✓ MCP config patched: {mcp_path} (mcpServers.cortex registered)")
+    print(f"✓ MCP config patched: {mcp_path}")
+
+
+def patch_mcp_config(bob_home: Path, dry_run: bool) -> None:
+    """Write to BOTH global and workspace MCP configs so we cover Bob's reads."""
+
+    # Bob's canonical global config (confirmed empirically)
+    global_path = bob_home / "settings" / "mcp_settings.json"
+    _patch_one(global_path, dry_run)
+
+    # Workspace-scoped override (the project's own .bob/mcp.json)
+    workspace_path = REPO_ROOT / ".bob" / "mcp.json"
+    _patch_one(workspace_path, dry_run)
 
 
 def _print_manual_merge(mcp_path: Path) -> None:
@@ -190,9 +201,9 @@ def main() -> None:
 
     if args.no_mcp:
         print("(skipped MCP config patch per --no-mcp)")
-        _print_manual_merge(bob_home / "mcp.json")
+        _print_manual_merge(bob_home / "settings" / "mcp_settings.json")
     else:
-        patch_mcp_json(bob_home, args.dry_run)
+        patch_mcp_config(bob_home, args.dry_run)
 
     print()
     print("✓ Done. Next:")
