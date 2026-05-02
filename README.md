@@ -15,6 +15,15 @@ make dev       # starts api on :8080 and web on :5173
 
 Then open **http://localhost:5173** and paste `test` as the bearer token.
 
+### For judges — also wire Cortex into Bob (one extra command)
+
+```bash
+make judge     # = make setup + make install-bob (copies extensions + patches MCP config)
+make dev       # then start the stack
+```
+
+`make install-bob` is idempotent: it copies the mode, skill, slash commands, and four mode rules into `~/.bob/`, and registers the `cortex` MCP server in `~/.bob/settings.json` with absolute paths derived from your venv. Restart Bob, switch to the **📓 Cortex** mode, and `/diary-save` will land in the same SQLite the web UI is reading from.
+
 `make setup` is idempotent — safe to re-run if anything changes. The default `.env` uses local sentence-transformers for embeddings (no IBM Cloud creds needed). Switch to `EMBEDDINGS_PROVIDER=watsonx` once you fill in `WATSONX_*` to use IBM watsonx.ai.
 
 ### Alternative: Docker
@@ -98,16 +107,18 @@ Restart Bob, switch to the **📓 Cortex** mode, and try `/diary-save your first
 ## Make targets
 
 ```
-make help     # list targets
-make setup    # one-time install (venv + Python + npm + .env)
-make dev      # start api:8080 + web:5173 concurrently
-make test     # pytest the backend
-make build    # docker compose build
-make up       # docker compose up (api:8080, web:8081, bot)
-make down     # docker compose down
-make lint     # ruff + tsc
-make submit   # build Cortex_bob-hackathon_submission.zip
-make clean    # remove caches + zip
+make help        # list targets
+make setup       # one-time install (venv + Python + npm + .env)
+make install-bob # install Cortex into Bob: mode + skill + commands + rules + MCP config
+make judge       # one-command demo: setup + install-bob
+make dev         # start api:8080 + web:5173 concurrently
+make test        # pytest the backend
+make build       # docker compose build
+make up          # docker compose up (api:8080, web:8081, bot)
+make down        # docker compose down
+make lint        # ruff + tsc
+make submit      # build Cortex_bob-hackathon_submission.zip
+make clean       # remove caches + zip
 ```
 
 ## Docs
