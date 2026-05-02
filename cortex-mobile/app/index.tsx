@@ -201,6 +201,29 @@ export default function TodayScreen() {
           </View>
         )}
 
+        {/* ── Quick Actions (Today Hub tiles) ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActions}>
+            {[
+              { kind: 'bug', emoji: '🐛', title: 'Log a Fix', hint: 'Document a resolved issue' },
+              { kind: 'note', emoji: '🏛️', title: 'Save Decision', hint: 'Record an architectural choice' },
+              { kind: 'note', emoji: '📝', title: 'Quick Note', hint: 'Jot a fleeting thought' },
+            ].map(action => (
+              <TouchableOpacity
+                key={action.title}
+                style={styles.quickActionCard}
+                onPress={() => router.push({ pathname: '/capture', params: { kind: action.kind } })}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.quickActionEmoji}>{action.emoji}</Text>
+                <Text style={styles.quickActionTitle}>{action.title}</Text>
+                <Text style={styles.quickActionHint}>{action.hint}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* ── Quick Capture ── */}
         <View style={styles.quickRow}>
           <TouchableOpacity
@@ -384,6 +407,21 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   tagChipText: { fontFamily: 'monospace', fontSize: 12, color: Colors.onSurface },
+
+  quickActions: { flexDirection: 'row', gap: 8 },
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+  },
+  quickActionEmoji: { fontSize: 22 },
+  quickActionTitle: { fontSize: 11, fontWeight: '700', color: Colors.onSurface, textAlign: 'center' },
+  quickActionHint: { fontSize: 10, color: Colors.onSurfaceVariant, textAlign: 'center', lineHeight: 14 },
 
   // Quick row
   quickRow: {

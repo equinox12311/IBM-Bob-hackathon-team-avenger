@@ -106,12 +106,22 @@ def install_assets(bob_home: Path, dry_run: bool) -> None:
 
 
 def cortex_mcp_block() -> dict:
-    venv_python = REPO_ROOT / ".venv" / "bin" / "python"
+    # Windows venv uses Scripts\python.exe; Unix uses bin/python
+    venv_python_win = REPO_ROOT / ".venv" / "Scripts" / "python.exe"
+    venv_python_unix = REPO_ROOT / ".venv" / "bin" / "python"
+    if venv_python_win.exists():
+        python_cmd = str(venv_python_win)
+    elif venv_python_unix.exists():
+        python_cmd = str(venv_python_unix)
+    else:
+        python_cmd = "python"   # fallback — must be on PATH
+
     return {
-        "command": str(venv_python if venv_python.exists() else "python3"),
+        "command": python_cmd,
         "args": ["-m", "cortex_api.mcp_server"],
         "cwd": str(REPO_ROOT / "src" / "cortex-api"),
         "env": {
+            "PYTHONPATH": str(REPO_ROOT / "src" / "cortex-api"),
             "DIARY_TOKEN": os.environ.get("DIARY_TOKEN", "test"),
             "DIARY_DB_PATH": str(REPO_ROOT / "data" / "diary.db"),
             "EMBEDDINGS_PROVIDER": os.environ.get("EMBEDDINGS_PROVIDER", "local"),

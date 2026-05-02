@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../src/constants/theme';
 import { deleteEntry, listEntries, type Entry } from '../../src/services/database';
 import { summariseEntry } from '../../src/services/llm';
+import { apiGetEntry, apiFeedback, getToken } from '../../src/services/api';
 
 export default function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,13 +25,43 @@ export default function EntryDetailScreen() {
   const [entry, setEntry] = useState<Entry | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarising, setSummarising] = useState(false);
+  const [voting, setVoting] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
 
   useEffect(() => {
-    listEntries(1000).then(entries => {
+    const loadEntry = async () => {
+      try {
+        const tok = await getToken();
+        if (tok) {
+          const remote = await apiGetEntry(Number(id));
+          setEntry(remote as any);
+          setScore((remote as any).score ?? 0);
+          return;
+        }
+      } catch {}
+      const entries = await listEntries(1000);
       const found = entries.find(e => e.id === Number(id));
       setEntry(found ?? null);
-    });
+      setScore(found?.score ?? 0);
+    };
+    loadEntry();
   }, [id]);
+
+  const handleVote = async (signal: 'boost' | 'flag') => {
+    if (!entry || voting) return;
+    setVoting(true);
+    try {
+      const tok = await getToken();
+      if (tok) {
+        const res = await apiFeedback(entry.id, signal);
+        setScore((res as any).score ?? score);
+        Alert.alert(signal === 'boost' ? '👍 Boosted!' : '👎 Flagged', signal === 'boost' ? 'Entry ranked higher in future recalls.' : 'Entry ranked lower in future recalls.');
+      } else {
+        Alert.alert('Connect API', 'Connect cortex-api in Profile to use feedback.');
+      }
+    } catch (e: any) { Alert.alert('Error', e?.message); }
+    setVoting(false);
+  };
 
   const handleSummarise = async () => {
     if (!entry) return;
@@ -122,6 +153,32 @@ export default function EntryDetailScreen() {
                 <Text style={styles.summariseBtnText}>Generate summary with Granite 3.3</Text>
               )}
             </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Feedback */}
+        <View style={styles.feedbackRow}>
+          <TouchableOpacity
+            style={[styles.feedbackBtn, styles.feedbackBoost]}
+            onPress={() => handleVote('boost')}
+            disabled={voting}
+          >
+            {voting ? <ActivityIndicator size="small" color="#fff" /> : (
+              <><Text style={styles.feedbackIcon}>👍</Text><Text style={styles.feedbackText}>Boost</Text></>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.feedbackBtn, styles.feedbackFlag]}
+            onPress={() => handleVote('flag')}
+            disabled={voting}
+          >
+            <Text style={styles.feedbackIcon}>👎</Text>
+            <Text style={[styles.feedbackText, { color: Colors.error }]}>Flag</Text>
+          </TouchableOpacity>
+          {score !== null && (
+            <View style={styles.scoreChip}>
+              <Text style={styles.scoreText}>score {score.toFixed(2)}</Text>
+            </View>
           )}
         </View>
 
@@ -240,4 +297,12 @@ const styles = StyleSheet.create({
   },
   fileText: { ...Typography.code, color: Colors.onSurface, flex: 1 },
   lineText: { ...Typography.code, color: Colors.primary },
+  feedbackRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.md, marginBottom: Spacing.md },
+  feedbackBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1 },
+  feedbackBoost: { backgroundColor: '#defbe6', borderColor: '#a7f3d0' },
+  feedbackFlag: { backgroundColor: '#fff1f2', borderColor: '#fecdd3' },
+  feedbackIcon: { fontSize: 16 },
+  feedbackText: { fontSize: 13, fontWeight: '700', color: Colors.success },
+  scoreChip: { marginLeft: 'auto', backgroundColor: Colors.surfaceContainerLow, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: Colors.outlineVariant },
+  scoreText: { fontSize: 11, color: Colors.onSurfaceVariant, fontFamily: 'monospace' },
 });

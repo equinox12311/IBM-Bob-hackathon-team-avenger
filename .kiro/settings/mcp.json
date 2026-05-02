@@ -13,7 +13,12 @@
         "DIARY_DB_PATH": "C:\\Users\\HP\\Videos\\cortex\\IBM-Bob\\data\\diary.db",
         "EMBEDDINGS_PROVIDER": "local",
         "LLM_PROVIDER": "off"
-      }
+      },
+      "disabled": false,
+      "autoApprove": [
+        "diary_recall",
+        "diary_timeline"
+      ]
     }
   }
 }
