@@ -8,7 +8,9 @@ from tests.conftest import auth_headers
 def test_health_no_auth_required(client):
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json() == {"status": "ok"}
+    body = r.json()
+    assert body["status"] == "ok"
+    assert "version" in body
 
 
 def test_create_entry_requires_auth(client):

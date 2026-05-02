@@ -8,7 +8,6 @@ The cortex-api package needs:
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -21,24 +20,28 @@ sys.path.insert(0, str(ROOT / "src" / "cortex-bot"))
 
 @pytest.fixture(autouse=True)
 def _isolated_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Per-test isolated database + deterministic auth token."""
+    """Per-test isolated database, deterministic auth token, local embeddings.
+
+    We patch ``settings`` *in place* so any module that has already imported
+    ``from cortex_api.config import settings`` sees the new values immediately.
+    """
 
     db_path = tmp_path / "diary.db"
     monkeypatch.setenv("DIARY_DB_PATH", str(db_path))
     monkeypatch.setenv("DIARY_TOKEN", "test-token")
     monkeypatch.setenv("EMBEDDINGS_PROVIDER", "local")
 
-    # cortex_api.config.settings is a module-level singleton — re-import
-    # so each test gets a fresh Settings() with the overridden env.
-    for mod in [
-        "cortex_api.config",
-        "cortex_api.storage",
-        "cortex_api.embeddings",
-        "cortex_api.retrieval",
-        "cortex_api.server",
-        "cortex_api.tools",
-    ]:
-        sys.modules.pop(mod, None)
+    from cortex_api.config import settings
+
+    monkeypatch.setattr(settings, "diary_db_path", db_path)
+    monkeypatch.setattr(settings, "diary_token", "test-token")
+    monkeypatch.setattr(settings, "embeddings_provider", "local")
+
+    # Reset the embeddings provider singleton so the fake_embed fixture (or a
+    # fresh local model) is picked up next time get_provider() is called.
+    from cortex_api.embeddings import get_provider
+
+    get_provider.cache_clear()
 
 
 @pytest.fixture
@@ -50,10 +53,9 @@ def fake_embed(monkeypatch: pytest.MonkeyPatch):
         name = "fake"
 
         def embed(self, text: str) -> list[float]:
-            # Deterministic per-text vector: hash → 384 floats in [-1, 1].
             seed = sum(ord(c) for c in text)
             return [
-                ((seed * (i + 1)) % 1000) / 500.0 - 1.0  # roughly in [-1, 1]
+                ((seed * (i + 1)) % 1000) / 500.0 - 1.0
                 for i in range(self.dim)
             ]
 

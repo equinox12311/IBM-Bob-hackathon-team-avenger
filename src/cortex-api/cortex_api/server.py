@@ -6,7 +6,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -263,6 +263,8 @@ def toggle_automation(automation_id: int, enabled: bool) -> dict[str, bool]:
     "/api/v1/automations/{automation_id}",
     dependencies=[AuthDep],
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
 )
-def delete_automation(automation_id: int) -> None:
+def delete_automation(automation_id: int) -> Response:
     storage.delete_automation(automation_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
