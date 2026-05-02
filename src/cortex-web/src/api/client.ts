@@ -1,4 +1,5 @@
 // Thin fetch wrapper for cortex-api.
+// Security: Input validation added (OWASP Phase 1)
 
 import type {
   Automation,
@@ -13,6 +14,8 @@ import type {
   UserProfile,
   WellnessStatus,
 } from "./types";
+
+import { validateSearchQuery } from "@/lib/validation";
 
 function baseURL(): string {
   return (
@@ -57,8 +60,11 @@ export async function searchEntries(
   query: string,
   k = 5,
 ): Promise<{ entries: Entry[] }> {
+  // Validate query before sending to API (OWASP Phase 1)
+  const validQuery = validateSearchQuery(query);
+  
   const res = await fetch(
-    `${baseURL()}/api/v1/search?q=${encodeURIComponent(query)}&k=${k}`,
+    `${baseURL()}/api/v1/search?q=${encodeURIComponent(validQuery)}&k=${k}`,
     { headers: authHeaders(token) },
   );
   return handle(res);

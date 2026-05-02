@@ -1,4 +1,5 @@
 // Shared auth state via React context — every component sees the same token.
+// Security: Token encryption added (OWASP Phase 1)
 
 import {
   createContext,
@@ -9,6 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
+import { decryptToken, encryptToken } from "@/lib/crypto";
 
 const STORAGE_KEY = "cortex.diary_token";
 
@@ -21,21 +24,43 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem(STORAGE_KEY),
-  );
+  const [token, setToken] = useState<string | null>(() => {
+    const encrypted = localStorage.getItem(STORAGE_KEY);
+    if (!encrypted) return null;
+    
+    // Decrypt token from storage
+    const decrypted = decryptToken(encrypted);
+    if (!decrypted) {
+      // If decryption fails, clear invalid token
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    
+    return decrypted;
+  });
 
   useEffect(() => {
     const handler = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) setToken(e.newValue);
+      if (e.key === STORAGE_KEY) {
+        // Decrypt token when storage changes
+        const decrypted = e.newValue ? decryptToken(e.newValue) : null;
+        setToken(decrypted);
+      }
     };
     window.addEventListener("storage", handler);
     return () => window.removeEventListener("storage", handler);
   }, []);
 
   const login = useCallback((next: string) => {
-    localStorage.setItem(STORAGE_KEY, next);
-    setToken(next);
+    try {
+      // Encrypt token before storing
+      const encrypted = encryptToken(next);
+      localStorage.setItem(STORAGE_KEY, encrypted);
+      setToken(next);
+    } catch (e) {
+      console.error("Failed to encrypt token:", e);
+      throw new Error("Failed to save authentication token");
+    }
   }, []);
 
   const logout = useCallback(() => {
