@@ -11,5 +11,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    headers: {
+      // Security headers for dev server (mirrors production nginx config)
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    },
   },
 });
