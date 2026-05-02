@@ -66,9 +66,34 @@ The MCP server is the brain; Bob, Telegram, and the web UI are clients of it.
 ## IBM technology used
 
 - **IBM Bob** — five-layer extension (MCP, custom mode, skill, slash commands, mode rules); also used substantively *during the build* by every team member.
-- **watsonx.ai** — Granite embeddings for vector search; speech-to-text for Telegram voice memos.
+- **watsonx.ai** — Granite embeddings for vector search; **Granite 3 8B Instruct** for `/chat`, `/generate/summary`, `/generate/report`; speech-to-text for Telegram voice memos.
+- **Local IBM Granite** — `granite-3.1-2b-instruct` GGUF via `llama-cpp-python` for offline / privacy-first runs (same model family, swap with one env var).
 - *(Optional)* **watsonx Orchestrate** — agentic auto-capture flow on Bob task completion.
 - *(Optional)* **IBM Cloud Code Engine** — public hosting of the web UI.
+
+## Bob extension — five layers
+
+Cortex uses **all five** of Bob's extension surfaces. This is what makes the integration first-class instead of bolted on:
+
+| Layer | File(s) in `bob/` | What it does |
+|---|---|---|
+| **1. MCP server** | (`cortex-api`, runs separately — see [`bob/MCP_CONFIG.md`](bob/MCP_CONFIG.md)) | Five tools — `diary_save`, `diary_recall`, `diary_link_code`, `diary_feedback`, `diary_timeline` — that Bob calls via `use_mcp_tool`. |
+| **2. Custom mode** | [`bob/custom_modes.yaml.example`](bob/custom_modes.yaml.example) | The `📓 Cortex` mode. Auto-loads the skill, includes `mcp` tool group, and orients Bob's behaviour around proactive recall + agentic capture. |
+| **3. Skill** | [`bob/skills/cortex/SKILL.md`](bob/skills/cortex/SKILL.md) + [`examples.md`](bob/skills/cortex/examples.md) | The playbook Bob follows — when to capture, when to recall, how to format, the feedback loop. Auto-activated by description match. Includes 4 transcript examples. |
+| **4. Slash commands** | [`bob/commands/diary-save.md`](bob/commands/diary-save.md) · [`diary-recall.md`](bob/commands/diary-recall.md) · [`diary-timeline.md`](bob/commands/diary-timeline.md) | Explicit user-driven shortcuts. The save command runs a local secret-detection check before any MCP call. |
+| **5. Mode rules** | [`bob/rules-cortex/01-capture-style.md`](bob/rules-cortex/01-capture-style.md) · [`02-no-secrets.md`](bob/rules-cortex/02-no-secrets.md) · [`03-proactive-recall.md`](bob/rules-cortex/03-proactive-recall.md) · [`04-agentic-auto-capture.md`](bob/rules-cortex/04-agentic-auto-capture.md) | Enforces capture style + secret refusal + the two innovations: **proactive recall** on file-open and **agentic auto-capture** on task completion. |
+
+**Install for a judge** ([full guide in `bob/INSTALL.md`](bob/INSTALL.md)):
+
+```bash
+cp bob/custom_modes.yaml.example ~/.bob/custom_modes.yaml
+cp -r bob/skills/cortex            ~/.bob/skills/
+cp -r bob/commands/                ~/.bob/commands/
+cp -r bob/rules-cortex             ~/.bob/rules-cortex
+# then add a "cortex" entry to Bob's mcpServers (see bob/MCP_CONFIG.md)
+```
+
+Restart Bob, switch to the **📓 Cortex** mode, and try `/diary-save your first insight` — or just open a file you've worked on before; Bob will surface related entries automatically.
 
 ## Make targets
 
