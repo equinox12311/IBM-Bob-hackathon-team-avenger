@@ -4,6 +4,27 @@
 
 **Status:** In development for [IBM Bob Dev Day Hackathon](https://bob.ibm.com), May 1–3, 2026.
 
+## Quick start (one-click install)
+
+```bash
+git clone https://github.com/equinox12311/IBM-Bob.git
+cd IBM-Bob
+make setup     # creates venv, installs Python + npm deps, copies .env
+make dev       # starts api on :8080 and web on :5173
+```
+
+Then open **http://localhost:5173** and paste `test` as the bearer token.
+
+`make setup` is idempotent — safe to re-run if anything changes. The default `.env` uses local sentence-transformers for embeddings (no IBM Cloud creds needed). Switch to `EMBEDDINGS_PROVIDER=watsonx` once you fill in `WATSONX_*` to use IBM watsonx.ai.
+
+### Alternative: Docker
+
+```bash
+docker compose up --build      # api:8080, web:8081, bot
+# or
+make up
+```
+
 ## Problem
 
 Developers lose 80% of what they figure out, between sessions. Debug discoveries, "why we picked X" decisions, and "tried this didn't work" learnings vanish into Slack scrollback or notes never re-read. AI coding assistants don't remember either; every session starts cold.
@@ -42,35 +63,27 @@ The MCP server is the brain; Bob, Telegram, and the web UI are clients of it.
 └────────────────┘   └─────────────────────┘   └──────────────────┘
 ```
 
-A higher-fidelity diagram lives at `docs/architecture.png` (added in Phase 4).
-
 ## IBM technology used
 
-- **IBM Bob** — five-layer extension (MCP, custom mode, skill, slash commands, mode rules); also used substantively *during the build* by every team member (refactor, tests, secret scan, docs, demo session).
+- **IBM Bob** — five-layer extension (MCP, custom mode, skill, slash commands, mode rules); also used substantively *during the build* by every team member.
 - **watsonx.ai** — Granite embeddings for vector search; speech-to-text for Telegram voice memos.
 - *(Optional)* **watsonx Orchestrate** — agentic auto-capture flow on Bob task completion.
 - *(Optional)* **IBM Cloud Code Engine** — public hosting of the web UI.
 
-## Run me
+## Make targets
 
-```bash
-# clone + configure
-git clone https://github.com/equinox12311/IBM-Bob.git
-cd IBM-Bob
-cp .env.example .env        # then fill in DIARY_TOKEN, watsonx creds, telegram bot token
-
-# run the full stack (api on :8080, web on :8081, bot polls Telegram)
-docker compose up --build
-
-# install Bob extensions (see bob/INSTALL.md for the full guide)
-cp bob/custom_modes.yaml.example ~/.bob/custom_modes.yaml
-cp -r bob/skills/cortex            ~/.bob/skills/
-cp -r bob/commands/                ~/.bob/commands/
-cp -r bob/rules-cortex             ~/.bob/rules-cortex
-# then wire the Cortex MCP server in Bob settings — see bob/MCP_CONFIG.md
 ```
-
-Then in Bob, switch to the `📓 Cortex` mode and try `/diary-save your first insight`.
+make help     # list targets
+make setup    # one-time install (venv + Python + npm + .env)
+make dev      # start api:8080 + web:5173 concurrently
+make test     # pytest the backend
+make build    # docker compose build
+make up       # docker compose up (api:8080, web:8081, bot)
+make down     # docker compose down
+make lint     # ruff + tsc
+make submit   # build Cortex_bob-hackathon_submission.zip
+make clean    # remove caches + zip
+```
 
 ## Docs
 
@@ -81,8 +94,9 @@ Then in Bob, switch to the `📓 Cortex` mode and try `/diary-save your first in
 - [`docs/AGENT_PROMPT.md`](docs/AGENT_PROMPT.md) — starting prompt for non-Bob AI agents (Claude Code, Cursor, etc.)
 - [`docs/TRELLO_BOARD.md`](docs/TRELLO_BOARD.md) — Trello board structure & initial cards
 - [`docs/IDEA.md`](docs/IDEA.md) — pitch one-pager for sharing externally
-- [`docs/technical_report.pdf`](docs/technical_report.pdf) — technical write-up (added in Phase 4)
-- [`docs/bob-sessions/`](docs/bob-sessions/) — exported Bob task-session reports (one per session, all members)
+- [`docs/technical_report.md`](docs/technical_report.md) — technical write-up (PDF source)
+- [`docs/LICENSE_AUDIT.md`](docs/LICENSE_AUDIT.md) — third-party license audit
+- [`docs/bob-sessions/`](docs/bob-sessions/) — exported Bob task-session reports
 
 ## Team
 
@@ -102,11 +116,3 @@ The build is a deliberate Claude-Code-and-Bob split: Claude Code handles scaffol
 ## License
 
 [MIT](LICENSE) — see [`docs/LICENSE_AUDIT.md`](docs/LICENSE_AUDIT.md) for the full third-party audit.
-
-## Building the submission
-
-```bash
-make submit          # builds Cortex_bob-hackathon_submission.zip at the repo root
-```
-
-Excludes `.git/`, `node_modules/`, `__pycache__/`, `.venv/`, the local `data/` SQLite, and any caches. Demo video uploads separately and is linked from this README.
