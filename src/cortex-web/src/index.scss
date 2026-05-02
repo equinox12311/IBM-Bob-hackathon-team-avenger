@@ -1,10 +1,205 @@
-// Carbon Design System global styles
+// Cortex global styles.
+// Carbon's white theme provides the IBM Plex / IBM Blue / sharp-corner base;
+// we override a few tokens to match docs/Ui/developer_journal_design_system.
+
+@use "@carbon/react/scss/themes";
+@use "@carbon/react/scss/theme" with ($theme: themes.$white);
 @use "@carbon/react";
+
+// ---------- design-token overrides ----------------------------------------
+// The "Cortex Soft" palette has a near-white background (#faf8ff) instead of
+// pure white. Layered surfaces stay white so foreground content reads cleanly.
+
+:root {
+  --cds-background: #faf8ff;
+  --cds-layer: #ffffff;
+  --cds-layer-accent: #f2f3ff;
+  --cds-layer-active: #e7e7f4;
+  --cds-border-subtle: #e1e1ee;
+  --cds-border-strong: #c3c6d8;
+  --cds-text-primary: #191b24;
+  --cds-text-secondary: #424656;
+  --cds-text-on-color: #ffffff;
+  --cds-link-primary: #0052dd;
+  --cds-link-primary-hover: #003da9;
+  --cds-button-primary: #0f62fe;
+  --cds-button-primary-hover: #0050e6;
+  --cds-focus: #0f62fe;
+  --cds-support-success: #198038;
+  --cds-support-warning: #f1c21b;
+  --cds-support-error: #da1e28;
+
+  // Cortex semantic tokens (used by inline styles in feature pages)
+  --cortex-surface: #faf8ff;
+  --cortex-surface-container: #ecedfa;
+  --cortex-surface-container-low: #f2f3ff;
+  --cortex-surface-container-lowest: #ffffff;
+  --cortex-surface-container-high: #e7e7f4;
+  --cortex-on-surface: #191b24;
+  --cortex-on-surface-variant: #424656;
+  --cortex-outline: #737687;
+  --cortex-outline-variant: #c3c6d8;
+  --cortex-primary: #0f62fe;
+}
 
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
+  background: var(--cortex-surface);
+  color: var(--cortex-on-surface);
   font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code,
+pre,
+.cortex-mono {
+  font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+// ---------- Material Symbols ---------------------------------------------
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+// ---------- responsive layout helpers -------------------------------------
+
+.cortex-page {
+  padding: 24px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    padding: 32px 24px;
+  }
+}
+
+.cortex-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cortex-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 960px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ---------- mobile-first nav --------------------------------------------
+// Carbon's HeaderNavigation hides at < 1056px by default. We add a
+// bottom-tab nav for narrow viewports to keep the most-used sections one
+// thumb-tap away.
+
+.cortex-bottom-nav {
+  display: none;
+  position: fixed;
+  inset: auto 0 0 0;
+  background: var(--cortex-surface-container-lowest);
+  border-top: 1px solid var(--cortex-outline-variant);
+  z-index: 9000;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+
+  @media (max-width: 1055px) {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    color: var(--cortex-on-surface-variant);
+    text-decoration: none;
+    font-size: 10px;
+    letter-spacing: 0.32px;
+    text-transform: uppercase;
+    min-height: 56px;
+
+    &.active {
+      color: var(--cortex-primary);
+    }
+
+    .material-symbols-outlined {
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+  }
+}
+
+// Push main content above the bottom nav on mobile
+@media (max-width: 1055px) {
+  .cds--content,
+  .cortex-page {
+    padding-bottom: 88px !important;
+  }
+}
+
+// ---------- tile / button polish ----------------------------------------
+// Sharp corners (0px) per the design system. Carbon's defaults are already 0.
+
+.cds--tile {
+  border: 1px solid var(--cortex-outline-variant) !important;
+  background: var(--cortex-surface-container-lowest) !important;
+}
+
+.cortex-stat-card {
+  padding: 16px;
+  background: var(--cortex-surface-container-lowest);
+  border: 1px solid var(--cortex-outline-variant);
+
+  .label {
+    font-size: 12px;
+    letter-spacing: 0.32px;
+    text-transform: uppercase;
+    color: var(--cortex-on-surface-variant);
+    margin: 0;
+  }
+
+  .value {
+    font-size: 32px;
+    font-weight: 300;
+    line-height: 1.1;
+    margin: 4px 0 0;
+  }
+}
+
+// ---------- accessibility focus rings ----------------------------------
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--cortex-primary);
+  outline-offset: 2px;
 }
