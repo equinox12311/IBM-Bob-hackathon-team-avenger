@@ -1,7 +1,18 @@
-// Thin fetch wrapper for cortex-api. All non-health endpoints are
-// authenticated via a bearer token stored in localStorage by useAuth().
+// Thin fetch wrapper for cortex-api.
 
-import type { CreateEntryRequest, Entry } from "./types";
+import type {
+  Automation,
+  CreateEntryRequest,
+  DailyReport,
+  Entry,
+  EntryKind,
+  GitHubActivity,
+  IdentityGraph,
+  SessionAnalytics,
+  TodaySummary,
+  UserProfile,
+  WellnessStatus,
+} from "./types";
 
 function baseURL(): string {
   return (
@@ -26,11 +37,16 @@ async function handle<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// ---------- core entries ----------
+
 export async function listTimeline(
   token: string,
-  limit = 20,
+  opts: { limit?: number; kind?: EntryKind } = {},
 ): Promise<{ entries: Entry[] }> {
-  const res = await fetch(`${baseURL()}/api/v1/entries?limit=${limit}`, {
+  const p = new URLSearchParams();
+  p.set("limit", String(opts.limit ?? 20));
+  if (opts.kind) p.set("kind", opts.kind);
+  const res = await fetch(`${baseURL()}/api/v1/entries?${p}`, {
     headers: authHeaders(token),
   });
   return handle(res);
@@ -70,12 +86,7 @@ export async function getEntry(token: string, id: number): Promise<Entry> {
 export async function linkCode(
   token: string,
   id: number,
-  body: {
-    repo: string;
-    file: string;
-    line_start: number;
-    line_end: number;
-  },
+  body: { repo: string; file: string; line_start: number; line_end: number },
 ): Promise<{ id: number }> {
   const res = await fetch(`${baseURL()}/api/v1/entries/${id}/link`, {
     method: "PATCH",
@@ -98,7 +109,127 @@ export async function sendFeedback(
   return handle(res);
 }
 
-export async function checkHealth(): Promise<{ status: string }> {
+export async function checkHealth(): Promise<{ status: string; version?: string }> {
   const res = await fetch(`${baseURL()}/health`);
   return handle(res);
+}
+
+// ---------- v0.2 feature endpoints ----------
+
+export async function getToday(token: string): Promise<TodaySummary> {
+  const res = await fetch(`${baseURL()}/api/v1/today`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getDailyReport(token: string, days = 1): Promise<DailyReport> {
+  const res = await fetch(`${baseURL()}/api/v1/reports/daily?days=${days}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getSessionAnalytics(
+  token: string,
+  window = 90,
+): Promise<SessionAnalytics> {
+  const res = await fetch(
+    `${baseURL()}/api/v1/analytics/session?window=${window}`,
+    { headers: authHeaders(token) },
+  );
+  return handle(res);
+}
+
+export async function getIdentityGraph(token: string, topN = 12): Promise<IdentityGraph> {
+  const res = await fetch(`${baseURL()}/api/v1/identity/graph?top_n=${topN}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getGitHubActivity(
+  token: string,
+  user = "demo",
+  days = 30,
+): Promise<GitHubActivity> {
+  const res = await fetch(
+    `${baseURL()}/api/v1/github/activity?user=${encodeURIComponent(user)}&days=${days}`,
+    { headers: authHeaders(token) },
+  );
+  return handle(res);
+}
+
+export async function getWellness(token: string, interval = 90): Promise<WellnessStatus> {
+  const res = await fetch(`${baseURL()}/api/v1/wellness/status?interval=${interval}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function logWellnessBreak(token: string): Promise<WellnessStatus> {
+  const res = await fetch(`${baseURL()}/api/v1/wellness/break`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getProfile(token: string): Promise<UserProfile> {
+  const res = await fetch(`${baseURL()}/api/v1/profile`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function updateProfile(
+  token: string,
+  update: Partial<UserProfile>,
+): Promise<UserProfile> {
+  const res = await fetch(`${baseURL()}/api/v1/profile`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify(update),
+  });
+  return handle(res);
+}
+
+export async function listAutomations(
+  token: string,
+): Promise<{ automations: Automation[] }> {
+  const res = await fetch(`${baseURL()}/api/v1/automations`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function createAutomation(
+  token: string,
+  body: { name: string; trigger_kind: string; action: string },
+): Promise<{ id: number }> {
+  const res = await fetch(`${baseURL()}/api/v1/automations`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(body),
+  });
+  return handle(res);
+}
+
+export async function toggleAutomation(
+  token: string,
+  id: number,
+  enabled: boolean,
+): Promise<{ enabled: boolean }> {
+  const res = await fetch(
+    `${baseURL()}/api/v1/automations/${id}?enabled=${enabled}`,
+    { method: "PATCH", headers: authHeaders(token) },
+  );
+  return handle(res);
+}
+
+export async function deleteAutomation(token: string, id: number): Promise<void> {
+  await fetch(`${baseURL()}/api/v1/automations/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
 }

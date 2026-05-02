@@ -6,6 +6,17 @@ from pydantic import BaseModel, Field
 
 EntrySource = Literal["bob", "telegram-text", "telegram-voice", "web"]
 FeedbackSignal = Literal["boost", "flag"]
+EntryKind = Literal[
+    "note",          # default — generic dev journal entry
+    "idea",          # idea_mapper
+    "debug",         # debugging_helper
+    "decision",      # ADRs / today_hub "Save a Decision"
+    "fix",           # today_hub "Log a Fix"
+    "task",          # task_automation
+    "report",        # daily_report
+    "wellness",      # touch_grass_wellness
+    "client",        # client_discussion_prep
+]
 
 
 class Entry(BaseModel):
@@ -15,6 +26,7 @@ class Entry(BaseModel):
     text: str
     score: float
     source: EntrySource
+    kind: EntryKind = "note"
     repo: str | None = None
     file: str | None = None
     line_start: int | None = None
@@ -26,6 +38,7 @@ class Entry(BaseModel):
 class CreateEntryRequest(BaseModel):
     text: str
     source: EntrySource
+    kind: EntryKind = "note"
     repo: str | None = None
     file: str | None = None
     line_start: int | None = None
@@ -64,3 +77,72 @@ class FeedbackResponse(BaseModel):
 
 class TimelineResponse(BaseModel):
     entries: list[Entry]
+
+
+# ---------- feature-specific responses --------------------------------------
+
+
+class TodaySummary(BaseModel):
+    """today_hub dashboard: greeting + today's entries grouped by kind."""
+
+    greeting: str
+    current_focus: Entry | None = None
+    counts_by_kind: dict[str, int]
+    recent: list[Entry]
+
+
+class DailyReport(BaseModel):
+    """Aggregated report for a date range."""
+
+    date_start: int  # epoch ms
+    date_end: int
+    total_entries: int
+    by_kind: dict[str, int]
+    highlights: list[Entry]
+
+
+class GitHubActivity(BaseModel):
+    """github_activity_graph stub. Real GH API integration is post-hackathon."""
+
+    user: str
+    days: int
+    contributions: list[dict]  # [{date, count}]
+    streak: int
+
+
+class IdentityGraphNode(BaseModel):
+    """Node in developer_identity_graph."""
+
+    id: str
+    label: str
+    kind: str
+    weight: int
+
+
+class IdentityGraphEdge(BaseModel):
+    source: str
+    target: str
+    weight: int
+
+
+class IdentityGraph(BaseModel):
+    nodes: list[IdentityGraphNode]
+    edges: list[IdentityGraphEdge]
+
+
+class WellnessStatus(BaseModel):
+    """touch_grass_wellness state."""
+
+    minutes_since_break: int
+    break_due: bool
+    last_break_at: int | None
+    breaks_today: int
+
+
+class UserProfile(BaseModel):
+    name: str
+    handle: str
+    bio: str
+    pronouns: str | None = None
+    timezone: str
+    public_url: str | None = None
