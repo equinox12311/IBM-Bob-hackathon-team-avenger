@@ -5,6 +5,8 @@ import Layout from "@/components/Layout";
 import Automations from "@/pages/Automations";
 import DailyReportPage from "@/pages/DailyReportPage";
 import DebuggingHelper from "@/pages/DebuggingHelper";
+import DeveloperIdentity from "@/pages/DeveloperIdentity";
+import DeveloperNews from "@/pages/DeveloperNews";
 import EntryDetail from "@/pages/EntryDetail";
 import GitHubActivityPage from "@/pages/GitHubActivityPage";
 import IdeaMapper from "@/pages/IdeaMapper";
@@ -46,6 +48,8 @@ export default function App() {
         <Route path="/automations" element={<Automations />} />
         <Route path="/wellness" element={<TouchGrass />} />
         <Route path="/profile" element={<UserProfilePage />} />
+        <Route path="/identity" element={<DeveloperIdentity />} />
+        <Route path="/news" element={<DeveloperNews />} />
         <Route path="/entry/:id" element={<EntryDetail />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/today" replace />} />
