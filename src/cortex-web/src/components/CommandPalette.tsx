@@ -15,6 +15,7 @@ import { searchEntries } from "@/api/client";
 import type { Entry } from "@/api/types";
 import { useAuth } from "@/hooks/useAuth";
 import { relativeTime, sourceBadgeColor } from "@/lib/format";
+import { validateSearchQuery } from "@/lib/validation";
 
 export default function CommandPalette() {
   const { token } = useAuth();
@@ -38,19 +39,24 @@ export default function CommandPalette() {
 
   useEffect(() => {
     if (!open || !token) return;
-    const q = query.trim();
-    if (!q) {
-      setResults([]);
-      return;
-    }
+    
     const t = setTimeout(async () => {
       try {
-        const r = await searchEntries(token, q, 5);
+        // Validate query before searching (OWASP Phase 1)
+        const validQuery = validateSearchQuery(query);
+        const r = await searchEntries(token, validQuery, 5);
         setResults(r.entries);
-      } catch {
+      } catch (e) {
+        // Clear results on validation error or search failure
         setResults([]);
+        if (e instanceof Error && e.message.includes("empty")) {
+          // Don't show error for empty query
+          return;
+        }
+        console.warn("Search validation failed:", e);
       }
     }, 200);
+    
     return () => clearTimeout(t);
   }, [query, open, token]);
 
