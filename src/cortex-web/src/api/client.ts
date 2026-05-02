@@ -1,5 +1,5 @@
 // Thin fetch wrapper for cortex-api.
-// Security: Input validation added (OWASP Phase 1)
+// Security: Input validation, HTTPS enforcement, error sanitization (OWASP Phase 1 & 2)
 
 import type {
   Automation,
@@ -15,14 +15,20 @@ import type {
   WellnessStatus,
 } from "./types";
 
-import { validateSearchQuery } from "@/lib/validation";
+import { validateSearchQuery, sanitizeErrorMessage } from "@/lib/validation";
 
 function baseURL(): string {
-  return (
-    localStorage.getItem("cortex.api_base_url") ||
-    import.meta.env.VITE_API_BASE_URL ||
-    "http://localhost:8080"
-  );
+  const stored = localStorage.getItem("cortex.api_base_url");
+  const env = import.meta.env.VITE_API_BASE_URL;
+  const url = stored || env || "http://localhost:8080";
+  
+  // Enforce HTTPS in production (OWASP Phase 2)
+  if (import.meta.env.PROD && !url.startsWith("https://")) {
+    console.error("Production requires HTTPS API URL");
+    throw new Error("Insecure API URL in production mode");
+  }
+  
+  return url;
 }
 
 function authHeaders(token: string): HeadersInit {
@@ -35,7 +41,13 @@ function authHeaders(token: string): HeadersInit {
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    
+    // Sanitize error messages in production (OWASP Phase 2)
+    const errorMessage = import.meta.env.PROD
+      ? sanitizeErrorMessage(res.status, body)
+      : `${res.status} ${res.statusText}: ${body}`;
+    
+    throw new Error(errorMessage);
   }
   return res.json() as Promise<T>;
 }

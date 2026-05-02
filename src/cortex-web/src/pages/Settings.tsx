@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 import { checkHealth } from "@/api/client";
 import { useAuth } from "@/hooks/useAuth";
+import { validateApiUrl } from "@/lib/validation";
 
 const API_URL_KEY = "cortex.api_base_url";
 
@@ -28,9 +29,17 @@ export default function Settings() {
   }, [token]);
 
   function saveApiBase() {
-    if (apiBase === envBase) localStorage.removeItem(API_URL_KEY);
-    else localStorage.setItem(API_URL_KEY, apiBase);
-    setHealthMsg("API base URL saved.");
+    // Validate API URL before saving (OWASP Phase 2)
+    try {
+      const validUrl = validateApiUrl(apiBase);
+      if (validUrl === envBase) localStorage.removeItem(API_URL_KEY);
+      else localStorage.setItem(API_URL_KEY, validUrl);
+      setHealthMsg("API base URL saved.");
+      setHealthOk(true);
+    } catch (e) {
+      setHealthOk(false);
+      setHealthMsg(e instanceof Error ? e.message : "Invalid API URL");
+    }
   }
 
   async function testHealth() {

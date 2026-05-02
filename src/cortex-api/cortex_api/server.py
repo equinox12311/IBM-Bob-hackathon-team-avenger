@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from cortex_api import features, generate, llm, storage
 from cortex_api.auth import AuthDep
+from cortex_api.config import settings
 from cortex_api.embeddings import get_provider
 from cortex_api.models import (
     CreateEntryRequest,
@@ -47,11 +48,20 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="cortex-api", version="0.2.0", lifespan=lifespan)
 
+# CORS configuration - tightened for production (OWASP Phase 2)
+allowed_origins = ["*"] if settings.reload else [
+    "https://cortex.dev",
+    "https://www.cortex.dev",
+    "http://localhost:5173",  # Vite dev server
+    "http://127.0.0.1:5173",  # Vite dev server alternative
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # locked down via reverse proxy in production
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+    allow_credentials=True,
 )
 
 
