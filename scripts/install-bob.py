@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
 """Install Cortex into IBM Bob — idempotent, safe to re-run.
 
-Bob ships as the "Roo Cline" VS Code extension. So:
-  - File-based extension assets (mode YAML, skills, slash commands, rules)
-    go into ~/.bob/  (Bob reads these from disk per the bob/INSTALL.md doc)
-  - The MCP server config goes into VS Code's user settings.json under the
-    "roo-cline.mcpServers" key (this is what Bob actually reads at runtime).
+IBM Bob is its own editor. It reads:
+  - Extension assets (mode YAML, skills, slash commands, rules) from ~/.bob/
+  - MCP server config from ~/.bob/mcp.json
+    (top-level mcpServers map — same shape as Claude Desktop)
 
 This script:
 
 1. Copies all five extension layers from this repo's bob/ into ~/.bob/
-2. Detects VS Code (or Cursor / VSCodium) user settings.json on this OS
-3. Merges roo-cline.mcpServers.cortex into that settings file
-4. Prints next steps
+2. Merges {"mcpServers": {"cortex": ...}} into ~/.bob/mcp.json
+3. Prints next steps
 
 Usage:
-    python scripts/install-bob.py            # auto-detect everything
+    python scripts/install-bob.py
     python scripts/install-bob.py --dry-run
     python scripts/install-bob.py --bob-home ~/.bob
-    python scripts/install-bob.py --vscode-settings ~/path/to/settings.json
-    python scripts/install-bob.py --no-mcp    # skip settings.json patch
+    python scripts/install-bob.py --no-mcp          # assets only
 """
 
 from __future__ import annotations
@@ -40,21 +37,6 @@ DEFAULT_BOB_HOMES = [
     Path.home() / "Library" / "Application Support" / "bob",
 ]
 
-# VS Code / fork user settings.json locations (in priority order)
-def _vscode_settings_candidates() -> list[Path]:
-    home = Path.home()
-    if sys.platform == "darwin":
-        base = home / "Library" / "Application Support"
-    elif sys.platform.startswith("linux"):
-        base = home / ".config"
-    elif sys.platform == "win32":
-        base = Path(os.environ.get("APPDATA", str(home)))
-    else:
-        base = home
-    editors = ["Code", "Cursor", "Code - Insiders", "VSCodium"]
-    return [base / e / "User" / "settings.json" for e in editors]
-
-
 # ---------- helpers --------------------------------------------------------
 
 
@@ -65,16 +47,6 @@ def detect_bob_home(custom: str | None) -> Path:
         if h and h.exists() and h.is_dir():
             return h.resolve()
     return (Path.home() / ".bob").resolve()
-
-
-def detect_vscode_settings(custom: str | None) -> Path:
-    if custom:
-        return Path(custom).expanduser().resolve()
-    for p in _vscode_settings_candidates():
-        if p.exists():
-            return p.resolve()
-    # Fall back to plain VS Code path even if missing — we'll create it
-    return _vscode_settings_candidates()[0].resolve()
 
 
 def _replace(src: Path, dest: Path, dry_run: bool, label: str) -> None:
@@ -131,7 +103,7 @@ def install_assets(bob_home: Path, dry_run: bool) -> None:
         _replace(f, cmd_dest_dir / f.name, dry_run, label=f"slash command: {f.name}")
 
 
-# ---------- step 2: patch VS Code settings.json (roo-cline.mcpServers) ---
+# ---------- step 2: patch ~/.bob/mcp.json --------------------------------
 
 
 def cortex_mcp_block() -> dict:
@@ -149,47 +121,46 @@ def cortex_mcp_block() -> dict:
     }
 
 
-def patch_vscode_settings(settings_path: Path, dry_run: bool) -> None:
-    if settings_path.exists():
-        raw = settings_path.read_text()
+def patch_mcp_json(bob_home: Path, dry_run: bool) -> None:
+    mcp_path = bob_home / "mcp.json"
+
+    if mcp_path.exists():
+        raw = mcp_path.read_text()
         try:
-            settings = json.loads(raw) if raw.strip() else {}
+            existing = json.loads(raw) if raw.strip() else {}
         except json.JSONDecodeError:
             try:
-                settings = json.loads(_strip_jsonc_comments(raw))
-                print(
-                    f"⚠  {settings_path} contained JSONC comments — they will be stripped on write."
-                )
+                existing = json.loads(_strip_jsonc_comments(raw))
+                print(f"⚠  {mcp_path} had JSONC comments — they will be stripped on write.")
             except json.JSONDecodeError as exc:
-                print(f"⚠  Couldn't parse {settings_path}: {exc}")
-                _print_manual_merge(settings_path)
+                print(f"⚠  Couldn't parse {mcp_path}: {exc}")
+                _print_manual_merge(mcp_path)
                 return
     else:
-        settings = {}
+        existing = {}
 
-    settings.setdefault("roo-cline.mcpServers", {})
-    settings["roo-cline.mcpServers"]["cortex"] = cortex_mcp_block()
+    existing.setdefault("mcpServers", {})
+    existing["mcpServers"]["cortex"] = cortex_mcp_block()
 
     if dry_run:
-        print(f"[dry-run] would write {settings_path}:")
-        print(json.dumps(settings, indent=2))
+        print(f"[dry-run] would write {mcp_path}:")
+        print(json.dumps(existing, indent=2))
         return
 
-    settings_path.parent.mkdir(parents=True, exist_ok=True)
-    # Backup first if file existed
-    if settings_path.exists():
-        backup = settings_path.with_suffix(".json.bak")
-        shutil.copy2(settings_path, backup)
+    mcp_path.parent.mkdir(parents=True, exist_ok=True)
+    if mcp_path.exists():
+        backup = mcp_path.with_suffix(".json.bak")
+        shutil.copy2(mcp_path, backup)
         print(f"  (backup → {backup})")
 
-    settings_path.write_text(json.dumps(settings, indent=2) + "\n")
-    print(f"✓ MCP config patched: {settings_path} (roo-cline.mcpServers.cortex registered)")
+    mcp_path.write_text(json.dumps(existing, indent=2) + "\n")
+    print(f"✓ MCP config patched: {mcp_path} (mcpServers.cortex registered)")
 
 
-def _print_manual_merge(settings_path: Path) -> None:
-    block = {"roo-cline.mcpServers": {"cortex": cortex_mcp_block()}}
+def _print_manual_merge(mcp_path: Path) -> None:
+    block = {"mcpServers": {"cortex": cortex_mcp_block()}}
     print()
-    print(f"Manually merge this into {settings_path}:")
+    print(f"Manually merge this into {mcp_path}:")
     print(json.dumps(block, indent=2))
     print()
 
@@ -203,15 +174,11 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--bob-home", help="Bob assets dir (default: ~/.bob)")
-    parser.add_argument(
-        "--vscode-settings",
-        help="VS Code user settings.json (default: auto-detect)",
-    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--no-mcp",
         action="store_true",
-        help="Skip the VS Code settings patch (copy assets only)",
+        help="Skip the mcp.json patch (copy assets only)",
     )
     args = parser.parse_args()
 
@@ -223,16 +190,14 @@ def main() -> None:
 
     if args.no_mcp:
         print("(skipped MCP config patch per --no-mcp)")
-        _print_manual_merge(Path("(your VS Code settings.json)"))
+        _print_manual_merge(bob_home / "mcp.json")
     else:
-        settings_path = detect_vscode_settings(args.vscode_settings)
-        print(f"▶ VS Code settings → {settings_path}")
-        patch_vscode_settings(settings_path, args.dry_run)
+        patch_mcp_json(bob_home, args.dry_run)
 
     print()
     print("✓ Done. Next:")
-    print("  1. Reload VS Code  (⌘+Shift+P → 'Developer: Reload Window')")
-    print("  2. In Bob, switch to the '📓 Cortex' mode")
+    print("  1. Reload Bob  (⌘+Shift+P → 'Developer: Reload Window' in Bob)")
+    print("  2. Switch to the '📓 Cortex' mode")
     print("  3. Try:  /diary-save just installed Cortex into Bob")
 
 
