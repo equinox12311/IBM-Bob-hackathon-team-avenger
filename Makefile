@@ -31,7 +31,7 @@ DIARY_TOKEN  ?= test
 EMBEDDINGS_PROVIDER ?= local
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev judge install-bob build up down test lint submit clean
+.PHONY: help setup dev judge install-bob verify-mcp build up down test lint submit clean
 
 help:  ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -60,6 +60,14 @@ setup:  ## one-time install: venv + pip + npm
 install-bob:  ## install Cortex into Bob (~/.bob): mode + skill + commands + rules + MCP config
 	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
 	@$(PY) scripts/install-bob.py
+
+verify-mcp:  ## launch MCP Inspector against the cortex server (verifies tools without burning Bob coins)
+	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
+	@command -v npx > /dev/null || { echo "npx is required. Install Node 18+."; exit 1; }
+	@chmod +x scripts/run-mcp-server.sh
+	@echo "▶ Launching MCP Inspector — opens in your browser. Try the diary_save and diary_recall tools."
+	@echo "  (Server logs go to stderr; the inspector handles stdin/stdout framing.)"
+	@npx -y @modelcontextprotocol/inspector scripts/run-mcp-server.sh
 
 judge:  ## one-command demo prep: setup + install-bob (then run 'make dev')
 	@$(MAKE) setup
