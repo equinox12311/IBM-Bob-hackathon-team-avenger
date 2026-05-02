@@ -20,7 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { Colors } from '../src/constants/theme';
-import { apiCreateEntry, apiListEntries, getToken } from '../src/services/api';
+import { apiCreateEntry, apiListEntries, getToken, apiListAutomations, apiCreateAutomation, apiToggleAutomation, apiDeleteAutomation } from '../src/services/api';
 
 interface Automation { id: number; name: string; trigger_kind: string; action: string; enabled: boolean; }
 

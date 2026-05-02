@@ -290,6 +290,105 @@ export async function chatLLM(
   return handle(res);
 }
 
+// ---------- New Features API ----------
+
+export async function getProductivityMetrics(
+  token: string,
+  days = 7,
+): Promise<any> {
+  const res = await fetch(`${baseURL()}/api/v1/metrics/productivity?days=${days}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getBobSessions(
+  token: string,
+  limit = 50,
+): Promise<any> {
+  const res = await fetch(`${baseURL()}/api/v1/bob/sessions?limit=${limit}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getBobImpact(token: string): Promise<any> {
+  const res = await fetch(`${baseURL()}/api/v1/bob/impact`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function getWorkflowTemplates(token: string): Promise<any> {
+  const res = await fetch(`${baseURL()}/api/v1/workflows/templates`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function executeWorkflow(
+  token: string,
+  templateId: string,
+  taskDescription: string,
+): Promise<any> {
+  const res = await fetch(
+    `${baseURL()}/api/v1/workflows/execute?template_id=${encodeURIComponent(templateId)}&task_description=${encodeURIComponent(taskDescription)}`,
+    {
+      method: "POST",
+      headers: authHeaders(token, true),
+    },
+  );
+  return handle(res);
+}
+
+export async function getMCPExamples(token: string): Promise<any> {
+  const res = await fetch(`${baseURL()}/api/v1/mcp/examples`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function generateMCPServer(
+  token: string,
+  spec: any,
+): Promise<any> {
+  const res = await fetch(`${baseURL()}/api/v1/mcp/generate`, {
+    method: "POST",
+    headers: authHeaders(token, true),
+    body: JSON.stringify(spec),
+  });
+  return handle(res);
+}
+
+export async function analyzeLegacyRepo(
+  token: string,
+  repoUrl: string,
+): Promise<any> {
+  const res = await fetch(
+    `${baseURL()}/api/v1/legacy/analyze?repo_url=${encodeURIComponent(repoUrl)}`,
+    {
+      method: "POST",
+      headers: authHeaders(token, true),
+    },
+  );
+  return handle(res);
+}
+
+export async function analyzeModernization(
+  token: string,
+  repoPath: string,
+  modernizationType: string,
+): Promise<any> {
+  const res = await fetch(
+    `${baseURL()}/api/v1/modernization/analyze?repo_path=${encodeURIComponent(repoPath)}&modernization_type=${modernizationType}`,
+    {
+      method: "POST",
+      headers: authHeaders(token, true),
+    },
+  );
+  return handle(res);
+}
+
 export async function generateSummary(
   token: string,
   entryId: number,

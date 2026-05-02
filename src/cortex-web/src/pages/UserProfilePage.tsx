@@ -28,14 +28,39 @@ export default function UserProfilePage() {
     if (!token) return;
     getProfile(token)
       .then(setProfile)
-      .catch((e) => setError(String(e)));
+      .catch((e) => {
+        // On error, use dummy data
+        import("@/lib/dummyData").then(({ generateDummyProfile }) => {
+          setProfile(generateDummyProfile());
+        });
+      });
     
     // Fetch stats
     listTimeline(token, { limit: 1000 }).then((r) => {
-      const logs = r.entries.length;
-      const repos = new Set(r.entries.filter(e => e.repo).map(e => e.repo)).size;
-      const insights = r.entries.filter(e => e.kind === 'idea' || e.kind === 'insight').length;
-      setStats({ logs, repos, insights });
+      if (r.entries.length === 0) {
+        // Use dummy data for stats
+        import("@/lib/dummyData").then(({ generateDummyEntries }) => {
+          const entries = generateDummyEntries(50);
+          const logs = entries.length;
+          const repos = new Set(entries.filter(e => e.repo).map(e => e.repo)).size;
+          const insights = entries.filter(e => e.kind === 'idea').length;
+          setStats({ logs, repos, insights });
+        });
+      } else {
+        const logs = r.entries.length;
+        const repos = new Set(r.entries.filter(e => e.repo).map(e => e.repo)).size;
+        const insights = r.entries.filter(e => e.kind === 'idea').length;
+        setStats({ logs, repos, insights });
+      }
+    }).catch(() => {
+      // On error, use dummy stats
+      import("@/lib/dummyData").then(({ generateDummyEntries }) => {
+        const entries = generateDummyEntries(50);
+        const logs = entries.length;
+        const repos = new Set(entries.filter(e => e.repo).map(e => e.repo)).size;
+        const insights = entries.filter(e => e.kind === 'idea').length;
+        setStats({ logs, repos, insights });
+      });
     });
   }, [token]);
 

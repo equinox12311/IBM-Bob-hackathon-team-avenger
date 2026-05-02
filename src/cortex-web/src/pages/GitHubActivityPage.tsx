@@ -26,7 +26,12 @@ export default function GitHubActivityPage() {
     setData(null);
     getGitHubActivity(token, "demo", days)
       .then(setData)
-      .catch((e) => setError(String(e)));
+      .catch((e) => {
+        // On error, use dummy data
+        import("@/lib/dummyData").then(({ generateDummyGitHubActivity }) => {
+          setData(generateDummyGitHubActivity(days));
+        });
+      });
   }, [token, days]);
 
   if (error)

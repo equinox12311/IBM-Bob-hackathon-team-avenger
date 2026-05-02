@@ -105,6 +105,9 @@ export default function RootLayout() {
         <Tabs.Screen name="report"      options={{ href: null }} />
         <Tabs.Screen name="automations" options={{ href: null }} />
         <Tabs.Screen name="github"      options={{ href: null }} />
+        <Tabs.Screen name="debug"       options={{ href: null }} />
+        <Tabs.Screen name="identity"    options={{ href: null }} />
+        <Tabs.Screen name="news"        options={{ href: null }} />
         <Tabs.Screen name="profile"     options={{ href: null }} />
         <Tabs.Screen name="entry/[id]"  options={{ href: null }} />
       </Tabs>

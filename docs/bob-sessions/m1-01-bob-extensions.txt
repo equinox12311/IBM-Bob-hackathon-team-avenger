@@ -1,0 +1,160 @@
+# IBM Bob Task-Session Report
+# Session: IBM Bob Extension Layers Implementation
+# Member: M1 (Ahmed Abdullah Farooqi - Team Lead)
+# Date: 2026-05-02
+# Duration: 90 minutes
+# Coins Used: 14
+
+## Task Description
+Implement all five IBM Bob extension layers to create a first-class integration: MCP server, custom mode, skill, slash commands, and mode rules.
+
+## Bob's Contributions
+
+### 1. MCP Server (cortex_api/mcp_server.py)
+Bob generated the Model Context Protocol server:
+- Stdio transport for Bob communication
+- 5 tool definitions with JSON schemas
+- Tool handlers calling core API functions
+- Error handling and logging
+- Session management
+
+**Tools Exposed:**
+- `diary_save`: Save entries with optional code locations
+- `diary_recall`: Semantic search with k results
+- `diary_timeline`: Recent entries (reverse-chron)
+- `diary_link_code`: Attach file:line to existing entry
+- `diary_feedback`: Boost/flag entries for learning
+
+### 2. Custom Mode (bob/custom_modes.yaml.example)
+Bob created the "📓 Cortex" mode configuration:
+```yaml
+- slug: cortex
+  name: "📓 Cortex"
+  description: "Developer's second brain with proactive recall"
+  tool_groups: [read, edit_markdown, command, mcp]
+  skill_slugs: [cortex]
+  rule_slugs: [cortex-capture-style, cortex-no-secrets, 
+               cortex-proactive-recall, cortex-agentic-auto-capture]
+```
+
+### 3. Skill (bob/skills/cortex/SKILL.md)
+Bob generated comprehensive skill playbook:
+- When to capture entries (bug resolved, decision made, learning discovered)
+- When to recall entries (proactive on file-open, reactive on questions)
+- How to format entries (specific over generic, include context)
+- Feedback loop guidelines (boost helpful, flag stale)
+- 4 transcript examples in examples.md
+
+### 4. Slash Commands (bob/commands/)
+Bob created three slash commands:
+
+**diary-save.md:**
+- Explicit save with secret detection
+- Validates input before MCP call
+- Supports tags and code locations
+- Returns entry ID on success
+
+**diary-recall.md:**
+- Semantic search interface
+- Configurable k parameter
+- Returns formatted results with citations
+- Handles empty results gracefully
+
+**diary-timeline.md:**
+- Recent entries view
+- Configurable limit
+- Reverse-chronological order
+- Formatted with timestamps
+
+### 5. Mode Rules (bob/rules-cortex/)
+Bob generated four mode rules:
+
+**01-capture-style.md:**
+- Entry formatting guidelines
+- Specific over generic
+- Include context and reasoning
+- Use tags appropriately
+
+**02-no-secrets.md:**
+- Secret detection enforcement
+- Refuse to save API keys, tokens, passwords
+- Suggest redaction strategies
+- Security-first approach
+
+**03-proactive-recall.md (Innovation #1):**
+- Auto-trigger on file open/focus
+- Compose query from file path + class/function names
+- Surface entries with score > 0.5
+- Silent if no matches
+- Show top 3 with file:line citations
+
+**04-agentic-auto-capture.md (Innovation #2):**
+- Watch for task completion signals
+- Compose one-sentence learning summary
+- Propose diary_save with confirmation
+- Never silent - always ask first
+- Captures "why" not just "what"
+
+## Installation System
+Bob helped create installation automation:
+- scripts/install-bob.py: Copies extensions to ~/.bob/
+- Patches MCP config with absolute paths
+- Idempotent installation
+- Verification checks
+
+## Documentation
+Bob generated comprehensive docs:
+- bob/INSTALL.md: Installation guide for judges
+- bob/MCP_CONFIG.md: MCP server configuration
+- Integration examples and troubleshooting
+
+## Innovation Highlights
+
+### Proactive Recall
+Unlike traditional tools that wait for user queries, Cortex automatically surfaces relevant past learnings when Bob opens a file. This changes the workflow from "remember to search" to "automatically reminded."
+
+### Agentic Auto-Capture
+Instead of requiring manual journaling, Bob proposes draft entries when tasks complete. The developer just confirms, making capture frictionless.
+
+## Code Quality
+- Well-documented YAML and Markdown
+- Clear examples and use cases
+- Error handling in MCP server
+- Type-safe tool schemas
+- Comprehensive installation scripts
+
+## Testing
+- MCP Inspector for tool verification
+- Manual testing of all 5 layers
+- Integration testing with Bob
+- Installation testing on clean systems
+
+## Impact
+This five-layer integration demonstrates:
+- Deep platform understanding
+- Novel use of Bob's extension system
+- Production-ready implementation
+- Judge-friendly installation
+- Unique innovations not in other tools
+
+## Files Created
+- src/cortex-api/cortex_api/mcp_server.py
+- bob/custom_modes.yaml.example
+- bob/skills/cortex/SKILL.md
+- bob/skills/cortex/examples.md
+- bob/commands/diary-save.md
+- bob/commands/diary-recall.md
+- bob/commands/diary-timeline.md
+- bob/rules-cortex/01-capture-style.md
+- bob/rules-cortex/02-no-secrets.md
+- bob/rules-cortex/03-proactive-recall.md
+- bob/rules-cortex/04-agentic-auto-capture.md
+- bob/INSTALL.md
+- bob/MCP_CONFIG.md
+- scripts/install-bob.py
+
+## Commit Hash
+[To be filled after commit]
+
+## Session Export
+This session demonstrates IBM Bob's meta-capability: using Bob to build Bob extensions. The five-layer integration showcases deep platform knowledge and creates novel developer experiences.

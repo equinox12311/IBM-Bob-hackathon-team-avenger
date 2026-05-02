@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography } from '../../src/constants/theme';
 import { deleteEntry, listEntries, type Entry } from '../../src/services/database';
 import { summariseEntry } from '../../src/services/llm';
-import { apiGetEntry, apiFeedback, getToken } from '../../src/services/api';
+import { apiGetEntry, apiFeedback, apiDeleteEntry, apiGenerateSummary, isApiConfigured, getToken } from '../../src/services/api';
 
 export default function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -66,8 +66,20 @@ export default function EntryDetailScreen() {
   const handleSummarise = async () => {
     if (!entry) return;
     setSummarising(true);
-    const s = await summariseEntry(entry.text);
-    setSummary(s || 'Could not generate summary (AI offline).');
+    try {
+      const tok = await getToken();
+      if (tok) {
+        // Use backend LLM if available
+        const res = await apiGenerateSummary(entry.id);
+        setSummary(res.summary || 'No summary generated.');
+      } else {
+        const s = await summariseEntry(entry.text);
+        setSummary(s || 'Could not generate summary (AI offline).');
+      }
+    } catch {
+      const s = await summariseEntry(entry.text);
+      setSummary(s || 'Could not generate summary (AI offline).');
+    }
     setSummarising(false);
   };
 
@@ -78,7 +90,13 @@ export default function EntryDetailScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          if (entry) await deleteEntry(entry.id);
+          try {
+            const tok = await getToken();
+            if (tok && entry) await apiDeleteEntry(entry.id);
+            else if (entry) await deleteEntry(entry.id);
+          } catch {
+            if (entry) await deleteEntry(entry.id);
+          }
           router.back();
         },
       },

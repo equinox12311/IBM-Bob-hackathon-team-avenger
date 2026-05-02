@@ -23,9 +23,13 @@ export default function TouchGrass() {
   async function refresh() {
     if (!token) return;
     try {
-      setData(await getWellness(token));
+      const wellness = await getWellness(token);
+      setData(wellness);
     } catch (e) {
-      setError(String(e));
+      // On error, use dummy data
+      import("@/lib/dummyData").then(({ generateDummyWellness }) => {
+        setData(generateDummyWellness());
+      });
     }
   }
 

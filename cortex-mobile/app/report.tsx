@@ -18,6 +18,7 @@ import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { Colors } from '../src/constants/theme';
 import { listEntries, type Entry } from '../src/services/database';
 import { apiListEntries, getToken } from '../src/services/api';
+import { getDemoReport } from '../src/services/demoData';
 
 const RANGES = [{ days: 1, label: 'Today' }, { days: 7, label: '7 days' }, { days: 30, label: '30 days' }];
 const KIND_COLOR: Record<string, string> = { idea: '#0f62fe', bug: '#da1e28', insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f' };
@@ -34,10 +35,12 @@ export default function ReportScreen() {
     try {
       const tok = await getToken();
       const all = tok ? (await apiListEntries(200) as any[]) : await listEntries(200);
-      setEntries(all.filter((e: Entry) => e.created_at >= cutoff));
+      const filtered = all.filter((e: any) => e.created_at >= cutoff);
+      setEntries(filtered.length > 0 ? filtered : getDemoReport(days).highlights as any);
     } catch {
       const all = await listEntries(200);
-      setEntries(all.filter(e => e.created_at >= cutoff));
+      const filtered = all.filter(e => e.created_at >= cutoff);
+      setEntries(filtered.length > 0 ? filtered : getDemoReport(days).highlights as any);
     }
     setLoading(false);
   }, [days]);

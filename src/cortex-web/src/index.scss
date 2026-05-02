@@ -203,3 +203,265 @@ button:focus-visible,
   outline: 2px solid var(--cortex-primary);
   outline-offset: 2px;
 }
+
+// ---------- global animations and transitions --------------------------
+
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+// ---------- enhanced tile styles ---------------------------------------
+
+.cds--tile {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.cds--clickable-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+// ---------- loading states ---------------------------------------------
+
+.cortex-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--cortex-surface-container-low) 0%,
+    var(--cortex-surface-container) 50%,
+    var(--cortex-surface-container-low) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+// ---------- smooth scrolling -------------------------------------------
+
+html {
+  scroll-behavior: smooth;
+}
+
+// ---------- custom scrollbar -------------------------------------------
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cortex-surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cortex-outline-variant);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cortex-outline);
+}
+
+// ---------- enhanced button styles -------------------------------------
+
+.cds--btn {
+  transition: all 0.2s ease !important;
+}
+
+.cds--btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cds--btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+// ---------- enhanced tag styles ----------------------------------------
+
+.cds--tag {
+  transition: all 0.2s ease !important;
+}
+
+.cds--tag:hover {
+  transform: scale(1.05);
+}
+
+// ---------- glass morphism effect --------------------------------------
+
+.cortex-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+// ---------- gradient backgrounds ---------------------------------------
+
+.cortex-gradient-primary {
+  background: linear-gradient(135deg, var(--cortex-primary) 0%, #0043ce 100%);
+}
+
+.cortex-gradient-success {
+  background: linear-gradient(135deg, #198038 0%, #0e6027 100%);
+}
+
+.cortex-gradient-warning {
+  background: linear-gradient(135deg, #f1c21b 0%, #d4a017 100%);
+}
+
+.cortex-gradient-error {
+  background: linear-gradient(135deg, #da1e28 0%, #a2191f 100%);
+}
+
+// ---------- utility classes --------------------------------------------
+
+.cortex-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.cortex-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.cortex-fade-in-down {
+  animation: fadeInDown 0.3s ease-out;
+}
+
+.cortex-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.cortex-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.cortex-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.cortex-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+// ---------- responsive utilities ---------------------------------------
+
+.cortex-hide-mobile {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+.cortex-hide-desktop {
+  @media (min-width: 769px) {
+    display: none !important;
+  }
+}
+
+// ---------- text utilities ---------------------------------------------
+
+.cortex-text-gradient {
+  background: linear-gradient(135deg, var(--cortex-primary) 0%, #8a3ffc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cortex-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cortex-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cortex-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

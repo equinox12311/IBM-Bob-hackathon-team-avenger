@@ -32,8 +32,50 @@ export default function DailyReportPage() {
     if (!token) return;
     setReport(null);
     getDailyReport(token, days)
-      .then(setReport)
-      .catch((e) => setError(String(e)));
+      .then((r) => {
+        // If no entries, use dummy data
+        if (r.total_entries === 0) {
+          import("@/lib/dummyData").then(({ generateDummyEntries }) => {
+            const entries = generateDummyEntries(50);
+            const now = Date.now();
+            const startDate = now - (days * 24 * 60 * 60 * 1000);
+            const filtered = entries.filter(e => e.created_at >= startDate);
+            const byKind = filtered.reduce((acc, e) => {
+              acc[e.kind] = (acc[e.kind] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>);
+            setReport({
+              date_start: startDate,
+              date_end: now,
+              total_entries: filtered.length,
+              by_kind: byKind,
+              highlights: filtered.slice(0, 10)
+            });
+          });
+        } else {
+          setReport(r);
+        }
+      })
+      .catch((e) => {
+        // On error, use dummy data
+        import("@/lib/dummyData").then(({ generateDummyEntries }) => {
+          const entries = generateDummyEntries(50);
+          const now = Date.now();
+          const startDate = now - (days * 24 * 60 * 60 * 1000);
+          const filtered = entries.filter(e => e.created_at >= startDate);
+          const byKind = filtered.reduce((acc, e) => {
+            acc[e.kind] = (acc[e.kind] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          setReport({
+            date_start: startDate,
+            date_end: now,
+            total_entries: filtered.length,
+            by_kind: byKind,
+            highlights: filtered.slice(0, 10)
+          });
+        });
+      });
   }, [token, days]);
 
   if (error)

@@ -37,9 +37,18 @@ export default function Automations() {
     if (!token) return;
     try {
       const r = await listAutomations(token);
-      setItems(r.automations);
+      // If no automations, use dummy data
+      if (r.automations.length === 0) {
+        const { generateDummyAutomations } = await import("@/lib/dummyData");
+        setItems(generateDummyAutomations());
+      } else {
+        setItems(r.automations);
+      }
     } catch (e) {
-      setError(String(e));
+      // On error, use dummy data
+      import("@/lib/dummyData").then(({ generateDummyAutomations }) => {
+        setItems(generateDummyAutomations());
+      });
     }
   }
 

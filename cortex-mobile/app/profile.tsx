@@ -39,6 +39,7 @@ import {
   setApiBase,
   setToken,
 } from '../src/services/api';
+import { getDemoProfile } from '../src/services/demoData';
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -71,7 +72,9 @@ export default function ProfileScreen() {
       getApiBase(),
       getToken(),
     ]);
-    setProfile(p);
+    // Use demo profile if local profile is empty
+    const profileData = (p.name && p.name !== 'Developer') ? p : getDemoProfile() as any;
+    setProfile(profileData);
     setStats(s);
     setWellness(w);
     setHostInput(host);

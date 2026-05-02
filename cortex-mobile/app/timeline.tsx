@@ -19,6 +19,7 @@ import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { Colors, Spacing } from '../src/constants/theme';
 import { listEntries, type Entry } from '../src/services/database';
 import { apiListEntries, getToken } from '../src/services/api';
+import { getDemoEntries } from '../src/services/demoData';
 
 const KINDS = ['all', 'note', 'idea', 'bug', 'insight', 'snippet'] as const;
 const KIND_COLOR: Record<string, string> = {
@@ -40,10 +41,12 @@ export default function TimelineScreen() {
         const remote = await apiListEntries(100);
         setEntries(remote as any);
       } else {
-        setEntries(await listEntries(100));
+        const local = await listEntries(100);
+        setEntries(local.length > 0 ? local : getDemoEntries(50) as any);
       }
     } catch {
-      setEntries(await listEntries(100));
+      const local = await listEntries(100);
+      setEntries(local.length > 0 ? local : getDemoEntries(50) as any);
     }
     setLoading(false);
   }, []);

@@ -24,7 +24,7 @@ import { Colors, Spacing } from '../src/constants/theme';
 import { clearConversation, getConversationHistory } from '../src/services/database';
 import { chat, checkOllamaHealth, getOllamaHost } from '../src/services/llm';
 import { buildLLMContext } from '../src/services/memory';
-import { apiChat, apiLlmInfo, checkApiHealth, getApiBase } from '../src/services/api';
+import { apiChat, isApiConfigured } from '../src/services/api';
 
 interface UIMessage {
   id: string;
@@ -47,6 +47,8 @@ export default function ChatScreen() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [llmOnline, setLlmOnline] = useState<boolean | null>(null);
   const [llmHost, setLlmHost] = useState('');
+  const [apiEnabled, setApiEnabled] = useState(false);
+  const [useBackendRag, setUseBackendRag] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const inputRef = useRef<TextInput>(null);
 
@@ -70,6 +72,11 @@ export default function ChatScreen() {
   useFocusEffect(useCallback(() => {
     loadHistory();
     checkStatus();
+    isApiConfigured().then(ok => {
+      setApiEnabled(ok);
+      // Use backend RAG if API is configured (better quality with citations)
+      setUseBackendRag(ok);
+    });
   }, [loadHistory, checkStatus]));
 
   const scrollToBottom = () =>
@@ -91,6 +98,25 @@ export default function ChatScreen() {
 
     const ctx = await buildLLMContext(userText);
 
+    // Use backend RAG (/api/v1/chat) if API is configured — gives citations
+    if (useBackendRag) {
+      try {
+        const res = await apiChat(userText, 5);
+        const fullText = res.answer + (res.citations?.length
+          ? '\n\n**Sources:**\n' + res.citations.map(c => `• #${c.id}: ${c.text.slice(0, 60)}…`).join('\n')
+          : '');
+        setMessages(prev => prev.map(m =>
+          m.id === aId ? { ...m, content: fullText, streaming: false } : m
+        ));
+        setIsStreaming(false);
+        setLlmOnline(true);
+        return;
+      } catch {
+        // Fall through to Ollama
+      }
+    }
+
+    // Ollama local chat
     await chat(
       userText, ctx,
       token => {
@@ -159,7 +185,7 @@ export default function ChatScreen() {
             <Text style={S.hTitle}>Granite 3.3:2b</Text>
             <TouchableOpacity onPress={checkStatus}>
               <Text style={[S.hStatus, { color: statusColor }]}>
-                {llmOnline === null ? '● Checking…' : llmOnline ? '● Online' : llmHost ? '● Offline' : '● Not configured'}
+                {llmOnline === null ? '● Checking…' : llmOnline ? (useBackendRag ? '● RAG via API' : '● Online') : llmHost ? '● Offline' : '● Not configured'}
               </Text>
             </TouchableOpacity>
           </View>

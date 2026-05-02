@@ -1,8 +1,8 @@
 /**
- * Search Screen — keyword search + AI-powered recall.
+ * Search — keyword + AI recall, uses API when configured, local DB as fallback.
  */
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,53 +14,85 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, Spacing, Typography } from '../src/constants/theme';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
+import { Colors, Spacing, Typography } from '../src/constants/theme';
 import { searchEntries, type Entry } from '../src/services/database';
 import { recallRelevant } from '../src/services/memory';
+import { apiSearchEntries, isApiConfigured, type ApiEntry } from '../src/services/api';
+
+type SearchMode = 'keyword' | 'recall' | 'api';
+
+const KIND_COLOR: Record<string, string> = {
+  idea: '#0f62fe', bug: '#da1e28', fix: '#198038',
+  insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f',
+  decision: '#8a3ffc', task: '#f1c21b',
+};
 
 export default function SearchScreen() {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Entry[]>([]);
+  const [results, setResults] = useState<(Entry | ApiEntry)[]>([]);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'keyword' | 'recall'>('keyword');
+  const [mode, setMode] = useState<SearchMode>('keyword');
   const [searched, setSearched] = useState(false);
+  const [apiEnabled, setApiEnabled] = useState(false);
+
+  useFocusEffect(useCallback(() => {
+    isApiConfigured().then(ok => {
+      setApiEnabled(ok);
+      if (ok && mode === 'keyword') setMode('api');
+    });
+  }, []));
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); setSearched(false); return; }
     setLoading(true);
     setSearched(true);
     try {
-      const res = mode === 'recall'
-        ? await recallRelevant(q, 20)
-        : await searchEntries(q, 20);
-      setResults(res);
-    } catch {}
-    setLoading(false);
-  }, [mode]);
-
-  const kindColor = (kind: string) => {
-    switch (kind) {
-      case 'idea': return '#0f62fe';
-      case 'bug': return '#da1e28';
-      case 'insight': return '#198038';
-      default: return Colors.secondary;
+      if (mode === 'api' && apiEnabled) {
+        const res = await apiSearchEntries(q, 20);
+        setResults(res);
+      } else if (mode === 'recall') {
+        const res = await recallRelevant(q, 20);
+        setResults(res);
+      } else {
+        const res = await searchEntries(q, 20);
+        setResults(res);
+      }
+    } catch (e: any) {
+      // Fall back to local on API error
+      try {
+        const res = await searchEntries(q, 20);
+        setResults(res);
+      } catch {}
     }
-  };
+    setLoading(false);
+  }, [mode, apiEnabled]);
+
+  const MODES: { id: SearchMode; label: string; icon: string }[] = [
+    ...(apiEnabled ? [{ id: 'api' as SearchMode, label: 'Semantic', icon: 'server-outline' }] : []),
+    { id: 'keyword', label: 'Keyword', icon: 'text-outline' },
+    { id: 'recall', label: 'AI Recall', icon: 'sparkles-outline' },
+  ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={S.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search</Text>
+      <View style={S.header}>
+        <Text style={S.headerTitle}>Search</Text>
+        {apiEnabled && (
+          <View style={S.apiBadge}>
+            <Ionicons name="cloud-outline" size={12} color={Colors.llmOnline} />
+            <Text style={S.apiBadgeText}>API</Text>
+          </View>
+        )}
       </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchBar}>
+      {/* Search bar */}
+      <View style={S.searchBar}>
         <Ionicons name="search-outline" size={18} color={Colors.outline} />
         <TextInput
-          style={styles.searchInput}
+          style={S.searchInput}
           placeholder="Search entries…"
           placeholderTextColor={Colors.outline}
           value={query}
@@ -76,143 +108,102 @@ export default function SearchScreen() {
         )}
       </View>
 
-      {/* Mode Toggle */}
-      <View style={styles.modeRow}>
-        <TouchableOpacity
-          style={[styles.modeBtn, mode === 'keyword' && styles.modeBtnActive]}
-          onPress={() => { setMode('keyword'); if (query) doSearch(query); }}
-        >
-          <Ionicons name="text-outline" size={14} color={mode === 'keyword' ? Colors.surfaceContainerLowest : Colors.onSurfaceVariant} />
-          <Text style={[styles.modeBtnText, mode === 'keyword' && styles.modeBtnTextActive]}>Keyword</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.modeBtn, mode === 'recall' && styles.modeBtnActive]}
-          onPress={() => { setMode('recall'); if (query) doSearch(query); }}
-        >
-          <Ionicons name="sparkles-outline" size={14} color={mode === 'recall' ? Colors.surfaceContainerLowest : Colors.onSurfaceVariant} />
-          <Text style={[styles.modeBtnText, mode === 'recall' && styles.modeBtnTextActive]}>AI Recall</Text>
-        </TouchableOpacity>
+      {/* Mode toggle */}
+      <View style={S.modeRow}>
+        {MODES.map(m => (
+          <TouchableOpacity
+            key={m.id}
+            style={[S.modeBtn, mode === m.id && S.modeBtnActive]}
+            onPress={() => { setMode(m.id); if (query) doSearch(query); }}
+          >
+            <Ionicons name={m.icon as any} size={13} color={mode === m.id ? '#fff' : Colors.onSurfaceVariant} />
+            <Text style={[S.modeBtnText, mode === m.id && S.modeBtnTextActive]}>{m.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Results */}
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={Colors.primary} />
-        </View>
+        <View style={S.center}><ActivityIndicator color={Colors.primary} /></View>
       ) : searched && results.length === 0 ? (
-        <View style={styles.center}>
+        <View style={S.center}>
           <Ionicons name="search-outline" size={40} color={Colors.outlineVariant} />
-          <Text style={styles.emptyText}>No results for "{query}"</Text>
+          <Text style={S.emptyText}>No results for "{query}"</Text>
         </View>
       ) : (
         <FlatList
           data={results}
           keyExtractor={e => String(e.id)}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.resultCard}
-              onPress={() => router.push({ pathname: '/entry/[id]', params: { id: item.id } })}
-            >
-              <View style={[styles.kindBar, { backgroundColor: kindColor(item.kind) }]} />
-              <View style={styles.resultContent}>
-                <View style={styles.resultHeader}>
-                  <View style={[styles.kindBadge, { backgroundColor: kindColor(item.kind) + '20' }]}>
-                    <Text style={[styles.kindText, { color: kindColor(item.kind) }]}>{item.kind}</Text>
+          contentContainerStyle={{ padding: 16, paddingBottom: TAB_BAR_HEIGHT + 8, gap: 8 }}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={results.length > 0 ? (
+            <Text style={S.resultCount}>{results.length} result{results.length !== 1 ? 's' : ''}</Text>
+          ) : null}
+          renderItem={({ item }) => {
+            const color = KIND_COLOR[item.kind] ?? Colors.secondary;
+            const score = 'score' in item ? (item as ApiEntry).score : 0;
+            return (
+              <TouchableOpacity
+                style={S.card}
+                onPress={() => router.push({ pathname: '/entry/[id]', params: { id: item.id } })}
+                activeOpacity={0.75}
+              >
+                <View style={[S.kindBar, { backgroundColor: color }]} />
+                <View style={S.cardBody}>
+                  <View style={S.cardTop}>
+                    <View style={[S.kindPill, { backgroundColor: color + '20' }]}>
+                      <Text style={[S.kindPillText, { color }]}>{item.kind}</Text>
+                    </View>
+                    <View style={S.cardMeta}>
+                      {score > 0 && <Text style={S.scoreText}>⭐ {score.toFixed(2)}</Text>}
+                      <Text style={S.dateText}>{new Date(item.created_at).toLocaleDateString()}</Text>
+                    </View>
                   </View>
-                  <Text style={styles.resultTime}>
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </Text>
+                  <Text style={S.cardText} numberOfLines={3}>{item.text}</Text>
+                  {(item.tags ?? []).length > 0 && (
+                    <View style={S.tagsRow}>
+                      {(item.tags ?? []).slice(0, 4).map(t => (
+                        <Text key={t} style={S.tag}>#{t}</Text>
+                      ))}
+                    </View>
+                  )}
                 </View>
-                <Text style={styles.resultText} numberOfLines={3}>{item.text}</Text>
-                {item.tags.length > 0 && (
-                  <View style={styles.tagsRow}>
-                    {item.tags.slice(0, 4).map(t => (
-                      <Text key={t} style={styles.tag}>#{t}</Text>
-                    ))}
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          )}
-          ListHeaderComponent={
-            results.length > 0 ? (
-              <Text style={styles.resultCount}>{results.length} result{results.length !== 1 ? 's' : ''}</Text>
-            ) : null
-          }
+                <Ionicons name="chevron-forward" size={14} color={Colors.outlineVariant} style={{ alignSelf: 'center', marginRight: 8 }} />
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
-  },
-  headerTitle: { ...Typography.headingLg, color: Colors.onBackground },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.sm,
-    backgroundColor: Colors.surfaceContainerLowest,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
-    borderRadius: 10,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-  },
-  searchInput: {
-    flex: 1,
-    ...Typography.body,
-    color: Colors.onSurface,
-    paddingVertical: 10,
-  },
-  modeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  modeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
-    backgroundColor: Colors.surfaceContainerLowest,
-  },
+const S = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f4f5fb' },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3, flex: 1 },
+  apiBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#defbe6', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  apiBadgeText: { fontSize: 11, fontWeight: '700', color: Colors.llmOnline },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 8, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, paddingHorizontal: 10, paddingVertical: 4 },
+  searchInput: { flex: 1, fontSize: 15, color: '#191b24', paddingVertical: 10 },
+  modeRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 8 },
+  modeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff' },
   modeBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  modeBtnText: { ...Typography.label, color: Colors.onSurfaceVariant },
-  modeBtnTextActive: { color: Colors.surfaceContainerLowest },
+  modeBtnText: { fontSize: 12, fontWeight: '600', color: Colors.onSurfaceVariant },
+  modeBtnTextActive: { color: '#fff' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  emptyText: { ...Typography.body, color: Colors.onSurfaceVariant },
-  list: { padding: Spacing.md, gap: Spacing.sm, paddingBottom: TAB_BAR_HEIGHT + 8 },
-  resultCount: { ...Typography.label, color: Colors.outline, textTransform: 'uppercase', marginBottom: Spacing.sm },
-  resultCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surfaceContainerLowest,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: Spacing.sm,
-  },
+  emptyText: { fontSize: 14, color: Colors.onSurfaceVariant },
+  resultCount: { fontSize: 11, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  card: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, overflow: 'hidden' },
   kindBar: { width: 4 },
-  resultContent: { flex: 1, padding: Spacing.sm },
-  resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  kindBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  kindText: { ...Typography.label, fontWeight: '600', textTransform: 'capitalize' },
-  resultTime: { ...Typography.label, color: Colors.outline },
-  resultText: { ...Typography.body, color: Colors.onSurface, lineHeight: 20 },
+  cardBody: { flex: 1, padding: 10 },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
+  kindPill: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 20 },
+  kindPillText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
+  cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  scoreText: { fontSize: 11, color: Colors.primary, fontWeight: '600' },
+  dateText: { fontSize: 11, color: Colors.outline },
+  cardText: { fontSize: 14, color: '#191b24', lineHeight: 20 },
   tagsRow: { flexDirection: 'row', gap: 4, marginTop: 4, flexWrap: 'wrap' },
-  tag: { ...Typography.label, color: Colors.onSurfaceVariant },
+  tag: { fontSize: 11, color: Colors.onSurfaceVariant, fontFamily: 'monospace' },
 });

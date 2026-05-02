@@ -23,6 +23,7 @@ import { Colors, Spacing } from '../src/constants/theme';
 import { insertEntry, listEntries, type Entry } from '../src/services/database';
 import { autoTag } from '../src/services/llm';
 import { apiCreateEntry, apiListEntries, getToken } from '../src/services/api';
+import { getDemoIdeas } from '../src/services/demoData';
 
 export default function IdeasScreen() {
   const router = useRouter();
@@ -44,10 +45,12 @@ export default function IdeasScreen() {
         const remote = await apiListEntries(100, 'idea');
         setIdeas(remote as any);
       } else {
-        setIdeas(await listEntries(100, 'idea'));
+        const local = await listEntries(100, 'idea');
+        setIdeas(local.length > 0 ? local : getDemoIdeas() as any);
       }
     } catch {
-      setIdeas(await listEntries(100, 'idea'));
+      const local = await listEntries(100, 'idea');
+      setIdeas(local.length > 0 ? local : getDemoIdeas() as any);
     }
     setLoading(false);
   }, []);

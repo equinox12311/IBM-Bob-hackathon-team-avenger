@@ -1,36 +1,30 @@
 {
   "team_name": "Cortex",
-  "team_lead": "Ahmed Abdullah Farooqi",
+  "team_lead": "Adeel Mukhtar",
   "members": [
     {
+      "name": "Adeel Mukhtar",
+      "registered_contact": "adeel.mukhtar@example.com",
+      "role": "Team Lead · AI Engineer",
+      "specialty": "AI / Bob Extensions",
+      "github": "equinox12311"
+    },
+    {
       "name": "Ahmed Abdullah Farooqi",
-      "registered_contact": "TBD",
-      "role": "Team Lead · Bob/DX Lead",
+      "registered_contact": "ahmed.farooqi@example.com",
+      "role": "Backend Developer · AI Engineer",
       "specialty": "Backend / AI",
-      "github": "TBD"
+      "github": "ahmed-farooqi"
     },
     {
-      "name": "TBD",
-      "registered_contact": "TBD",
-      "role": "Backend Lead",
-      "specialty": "Backend / AI",
-      "github": "TBD"
-    },
-    {
-      "name": "TBD",
-      "registered_contact": "TBD",
-      "role": "Frontend Owner",
-      "specialty": "Frontend",
-      "github": "TBD"
-    },
-    {
-      "name": "TBD",
-      "registered_contact": "TBD",
-      "role": "AI / Integrations Lead",
-      "specialty": "Backend / AI",
-      "github": "TBD"
+      "name": "Fatima Asif",
+      "registered_contact": "fatima.asif@example.com",
+      "role": "Frontend Developer",
+      "specialty": "Frontend / UI/UX",
+      "github": "fatima-asif"
     }
   ],
   "github_repo": "https://github.com/equinox12311/IBM-Bob",
-  "demo_link": "TBD"
+  "demo_link": "TBD",
+  "submission_notes": "100% of Cortex was built using IBM Bob credits. All code generation, security implementation, UI components, and Bob extensions were created with IBM Bob assistance."
 }

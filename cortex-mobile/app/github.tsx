@@ -19,6 +19,7 @@ import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { Colors } from '../src/constants/theme';
 import { listEntries } from '../src/services/database';
 import { apiListEntries, getToken } from '../src/services/api';
+import { getDemoGitHub, getDemoEntries } from '../src/services/demoData';
 
 const RANGES = [7, 30, 90];
 
@@ -63,10 +64,18 @@ export default function GitHubScreen() {
     try {
       const tok = await getToken();
       const entries = tok ? (await apiListEntries(500) as any[]) : await listEntries(500);
-      setContribs(buildHeatmap(entries, days));
+      if (entries.length > 0) {
+        setContribs(buildHeatmap(entries, days));
+      } else {
+        setContribs(getDemoGitHub(days).contributions);
+      }
     } catch {
       const entries = await listEntries(500);
-      setContribs(buildHeatmap(entries, days));
+      if (entries.length > 0) {
+        setContribs(buildHeatmap(entries, days));
+      } else {
+        setContribs(getDemoGitHub(days).contributions);
+      }
     }
     setLoading(false);
   }, [days]);

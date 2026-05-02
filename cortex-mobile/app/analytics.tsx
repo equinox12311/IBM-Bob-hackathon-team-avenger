@@ -18,6 +18,7 @@ import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { Colors, Spacing } from '../src/constants/theme';
 import { listEntries, type Entry } from '../src/services/database';
 import { apiGetSessionAnalytics, apiListEntries, getToken } from '../src/services/api';
+import { getDemoAnalytics, getDemoEntries } from '../src/services/demoData';
 
 const WINDOWS = [{ m: 15, l: '15m' }, { m: 60, l: '1h' }, { m: 90, l: '90m' }, { m: 240, l: '4h' }];
 const KIND_COLOR: Record<string, string> = { idea: '#0f62fe', bug: '#da1e28', insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f' };
@@ -44,17 +45,15 @@ export default function AnalyticsScreen() {
         setRecent(entries as any);
       } else {
         const entries = await listEntries(10);
-        const by_kind: Record<string, number> = {};
-        entries.forEach(e => { by_kind[e.kind] = (by_kind[e.kind] ?? 0) + 1; });
-        setStats({ total: entries.length, by_kind, by_source: {}, files_touched: [] });
-        setRecent(entries);
+        const demo = getDemoAnalytics(windowMin);
+        setStats(demo);
+        setRecent(entries.length > 0 ? entries : getDemoEntries(10) as any);
       }
     } catch {
       const entries = await listEntries(10);
-      const by_kind: Record<string, number> = {};
-      entries.forEach(e => { by_kind[e.kind] = (by_kind[e.kind] ?? 0) + 1; });
-      setStats({ total: entries.length, by_kind, by_source: {}, files_touched: [] });
-      setRecent(entries);
+      const demo = getDemoAnalytics(windowMin);
+      setStats(demo);
+      setRecent(entries.length > 0 ? entries : getDemoEntries(10) as any);
     }
     setLoading(false);
   }, [windowMin]);

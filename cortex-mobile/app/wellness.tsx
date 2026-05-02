@@ -18,6 +18,7 @@ import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { Colors } from '../src/constants/theme';
 import { getWellnessStats, logBreak } from '../src/services/database';
 import { apiGetWellness, apiLogBreak, getToken } from '../src/services/api';
+import { getDemoWellness } from '../src/services/demoData';
 
 const RESETS = [
   { icon: 'body-outline', label: '5-minute stretch' },
@@ -40,13 +41,17 @@ export default function WellnessScreen() {
         setData({ break_due: w.break_due, minutes_since_break: w.minutes_since_break, breaks_today: w.breaks_today, last_break_at: w.last_break_at });
       } else {
         const w = await getWellnessStats();
-        const mins = w.last_break_at ? Math.floor((Date.now() - w.last_break_at) / 60000) : 0;
-        setData({ break_due: mins > 90, minutes_since_break: mins, breaks_today: w.breaks_today, last_break_at: w.last_break_at });
+        if (w.breaks_today > 0 || w.last_break_at) {
+          const mins = w.last_break_at ? Math.floor((Date.now() - w.last_break_at) / 60000) : 0;
+          setData({ break_due: mins > 90, minutes_since_break: mins, breaks_today: w.breaks_today, last_break_at: w.last_break_at });
+        } else {
+          setData(getDemoWellness());
+        }
       }
     } catch {
       const w = await getWellnessStats();
       const mins = w.last_break_at ? Math.floor((Date.now() - w.last_break_at) / 60000) : 0;
-      setData({ break_due: mins > 90, minutes_since_break: mins, breaks_today: w.breaks_today, last_break_at: w.last_break_at });
+      setData(w.breaks_today > 0 ? { break_due: mins > 90, minutes_since_break: mins, breaks_today: w.breaks_today, last_break_at: w.last_break_at } : getDemoWellness());
     }
   }, []);
 

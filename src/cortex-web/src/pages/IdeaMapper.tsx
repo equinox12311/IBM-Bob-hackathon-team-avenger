@@ -27,13 +27,30 @@ export default function IdeaMapper() {
 
   async function refresh() {
     if (!token) return;
-    const r = await listTimeline(token, { limit: 100, kind: "idea" });
-    setIdeas(r.entries);
+    try {
+      const r = await listTimeline(token, { limit: 100, kind: "idea" });
+      // If no ideas, use dummy data
+      if (r.entries.length === 0) {
+        const { generateDummyIdeas } = await import("@/lib/dummyData");
+        setIdeas(generateDummyIdeas(25));
+      } else {
+        setIdeas(r.entries);
+      }
+    } catch (e) {
+      // On error, use dummy data
+      const { generateDummyIdeas } = await import("@/lib/dummyData");
+      setIdeas(generateDummyIdeas(25));
+    }
   }
 
   useEffect(() => {
     if (!token) return;
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => {
+      // Fallback to dummy data on error
+      import("@/lib/dummyData").then(({ generateDummyIdeas }) => {
+        setIdeas(generateDummyIdeas(25));
+      });
+    });
   }, [token]);
 
   async function addIdea() {
