@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from cortex_api import features, storage
+from cortex_api import features, generate, llm, storage
 from cortex_api.auth import AuthDep
 from cortex_api.embeddings import get_provider
 from cortex_api.models import (
@@ -268,3 +268,67 @@ def toggle_automation(automation_id: int, enabled: bool) -> dict[str, bool]:
 def delete_automation(automation_id: int) -> Response:
     storage.delete_automation(automation_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ---------- LLM-backed endpoints (watsonx Granite or local Granite GGUF) ----
+
+
+class ChatRequest(BaseModel):
+    query: str
+    k: int = 5
+
+
+@app.get("/api/v1/llm/info", dependencies=[AuthDep])
+def llm_info() -> dict[str, Any]:
+    p = llm.get_provider()
+    return {"provider": p.name, "available": llm.is_available()}
+
+
+@app.post("/api/v1/chat", dependencies=[AuthDep])
+def chat(req: ChatRequest) -> dict[str, Any]:
+    if not llm.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LLM_PROVIDER is 'off'. Set LLM_PROVIDER=watsonx or local in .env.",
+        )
+    try:
+        return generate.chat(query=req.query, k=req.k)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM call failed: {exc}",
+        )
+
+
+@app.post("/api/v1/generate/summary/{entry_id}", dependencies=[AuthDep])
+def generate_summary(entry_id: int) -> dict[str, str]:
+    if not llm.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LLM_PROVIDER is 'off'.",
+        )
+    try:
+        return {"summary": generate.summarise_entry(entry_id)}
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM call failed: {exc}",
+        )
+
+
+@app.get("/api/v1/generate/report", dependencies=[AuthDep])
+def generate_report(days: int = 1) -> dict[str, Any]:
+    if not llm.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LLM_PROVIDER is 'off'.",
+        )
+    try:
+        return generate.daily_report_narrative(days=days)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM call failed: {exc}",
+        )

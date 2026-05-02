@@ -233,3 +233,54 @@ export async function deleteAutomation(token: string, id: number): Promise<void>
     headers: authHeaders(token),
   });
 }
+
+// ---------- LLM ----------
+
+export interface ChatResponse {
+  answer: string;
+  citations: { id: number; text: string; score: number }[];
+  model: string;
+}
+
+export async function llmInfo(
+  token: string,
+): Promise<{ provider: string; available: boolean }> {
+  const res = await fetch(`${baseURL()}/api/v1/llm/info`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function chatLLM(
+  token: string,
+  query: string,
+  k = 5,
+): Promise<ChatResponse> {
+  const res = await fetch(`${baseURL()}/api/v1/chat`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ query, k }),
+  });
+  return handle(res);
+}
+
+export async function generateSummary(
+  token: string,
+  entryId: number,
+): Promise<{ summary: string }> {
+  const res = await fetch(`${baseURL()}/api/v1/generate/summary/${entryId}`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
+
+export async function generateReportNarrative(
+  token: string,
+  days = 1,
+): Promise<{ narrative: string; total_entries: number; model: string }> {
+  const res = await fetch(`${baseURL()}/api/v1/generate/report?days=${days}`, {
+    headers: authHeaders(token),
+  });
+  return handle(res);
+}
