@@ -31,7 +31,7 @@ DIARY_TOKEN  ?= test
 EMBEDDINGS_PROVIDER ?= local
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev judge install-bob verify-mcp build up down test lint submit clean pair
+.PHONY: help setup start dev judge install-bob verify-mcp build up down test lint submit clean pair stop
 
 help:  ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -64,6 +64,18 @@ install-bob:  ## install Cortex into Bob (~/.bob): mode + skill + commands + rul
 pair:  ## one-click mobile pairing: print a QR with API URL + token
 	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
 	@$(PY) scripts/pair.py
+
+start:  ## one-command boot (mac/linux/windows): install if needed, start API, print QR, start Expo
+	@python3 scripts/start.py 2>/dev/null || python scripts/start.py
+
+stop:  ## stop the background API server started by `make start`
+	@if [ -f .logs/api.pid ]; then \
+		pid=$$(cat .logs/api.pid); \
+		kill $$pid 2>/dev/null && echo "✓ stopped API (PID $$pid)" || echo "API not running"; \
+		rm -f .logs/api.pid; \
+	else \
+		echo "no .logs/api.pid — nothing to stop"; \
+	fi
 
 verify-mcp:  ## launch MCP Inspector against the cortex server (verifies tools without burning Bob coins)
 	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }

@@ -327,30 +327,56 @@ In rough priority order:
 
 ---
 
-## One-click pairing
+## One-command boot (`make start`)
 
-The mobile app reads a QR printed by the backend and auto-configures itself.
+`scripts/start.py` is the cross-platform launcher. It works the same on
+macOS, Linux, and Windows. The Makefile target, `start.bat`, and
+`start.ps1` are all thin shims that call this file.
 
-**Backend:**
-```bash
-make pair          # detects LAN IP, reads .env DIARY_TOKEN, prints QR
-```
+What it does, in order:
+
+1. **Python venv + cortex-api deps** — creates `.venv/` if missing,
+   pip-installs `src/cortex-api/requirements.txt` (croniter, qrcode,
+   fastapi, etc.) if any of those imports fail.
+2. **`.env` bootstrap** — writes default values + a freshly generated
+   `DIARY_TOKEN` (40 chars, alphanumeric) if absent.
+3. **Mobile deps** — runs `npm install --legacy-peer-deps` for
+   `cortex-mobile/` if `node_modules/.bin/expo` is missing.
+4. **Starts the API** — `uvicorn cortex_api.server:app --host 0.0.0.0
+   --port 8080` as a subprocess (`subprocess.Popen`). Stdout/stderr
+   redirected to `.logs/api.log`. PID saved to `.logs/api.pid` so
+   `make stop` can clean up if the launcher dies.
+5. **Waits for `/health`** — polls up to 30 seconds.
+6. **Prints the pairing QR + phone instructions** — calls
+   `scripts/pair.py` and surrounds it with copy explaining: install Expo
+   Go (iOS + Android store links), how to scan the Expo QR, then the
+   pairing flow.
+7. **Starts Expo** — `npx expo start --clear` in the foreground, with
+   `REACT_NATIVE_PACKAGER_HOSTNAME` set to the auto-detected LAN IP.
+
+**Cleanup**: `atexit` + `signal` handlers terminate the uvicorn
+subprocess on Ctrl-C, normal exit, or SIGTERM. On Windows, sends
+`CTRL_BREAK_EVENT`; otherwise `SIGTERM`.
+
+### Pairing payload
 
 The QR encodes:
 ```json
 {"v":1,"url":"http://<lan-ip>:8080","token":"<DIARY_TOKEN>"}
 ```
 
-**Mobile:** Open the app → Settings → "Scan to connect" → point at the QR.
-The app writes both fields to AsyncStorage and runs a health check before
-returning. No copy-paste, no fat-fingering tokens.
+The mobile component is `cortex-mobile/src/components/ScanToConnect.tsx`
+(uses `expo-camera`'s `CameraView` + `useCameraPermissions`). Camera
+permission is declared in `app.json` under the `expo-camera` plugin
+config.
 
-Implementation:
-- Script: `scripts/pair.py` (uses the `qrcode` Python lib).
-- Make target: `pair`.
-- Mobile component: `cortex-mobile/src/components/ScanToConnect.tsx`
-  (uses `expo-camera`'s `CameraView` + `useCameraPermissions`).
-- Camera permission declared in `app.json` under the `expo-camera` plugin.
+### Files
+
+- `scripts/start.py` — the launcher.
+- `scripts/pair.py` — QR printer.
+- `start.bat` — Windows cmd shim.
+- `start.ps1` — Windows PowerShell shim.
+- Makefile targets: `start`, `pair`, `stop`.
 
 ---
 

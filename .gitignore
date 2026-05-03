@@ -38,3 +38,9 @@ data/
 # Bob (do NOT ignore the bob/ directory we ship — only local Bob state)
 .bob/cache/
 .bob/sessions/
+
+# Logs from `make start`
+.logs/
+
+# Archive of pre-cleanup notes — kept locally, never shipped
+__archive/

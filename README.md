@@ -9,27 +9,39 @@
 
 **⚡ Built 100% with IBM Bob Credits** - All code, security features, UI components, and Bob extensions were generated using IBM Bob assistance.
 
-## Quick start (one-click install)
+## One command to run everything
+
+| Platform | Command |
+|---|---|
+| macOS / Linux | `make start` |
+| Windows (cmd) | `start.bat` |
+| Windows (PowerShell) | `.\start.ps1` |
+
+That's it. The launcher is **idempotent**:
+
+1. Creates a Python venv + installs cortex-api deps if missing.
+2. Bootstraps `.env` with a freshly generated `DIARY_TOKEN` if missing.
+3. Runs `npm install --legacy-peer-deps` for `cortex-mobile/` if missing.
+4. Starts FastAPI on `:8080` in the background (logs → `.logs/api.log`).
+5. Waits for `/health`.
+6. Prints a **pairing QR** for the mobile app + step-by-step instructions for which app to install on your phone (Expo Go, with App Store / Play Store links).
+7. Starts the Expo dev server in the foreground. Hit `Ctrl-C` to stop everything (the API is killed automatically).
+
+### To pair your phone
+
+1. Install **Expo Go** on your phone (App Store or Play Store).
+2. When `make start` finishes booting, scan the **Expo QR** (the one Expo prints) with:
+   - **iOS** — built-in Camera app.
+   - **Android** — Expo Go app → "Scan QR code".
+3. Cortex opens. Go to **Settings → Scan to connect** and aim at the **pairing QR** the launcher printed earlier. The app saves the API URL + token, runs a health check, and you're connected.
+
+### For judges — also wire Cortex into Bob
 
 ```bash
-git clone https://github.com/equinox12311/IBM-Bob.git
-cd IBM-Bob
-make setup     # creates venv, installs Python + npm deps, copies .env
-make dev       # starts api on :8080 and web on :5173
+make install-bob    # copies mode + skill + commands + rules + MCP config to ~/.bob
 ```
 
-Then open **http://localhost:5173** and paste `test` as the bearer token.
-
-### For judges — also wire Cortex into Bob (one extra command)
-
-```bash
-make judge     # = make setup + make install-bob (copies extensions + patches MCP config)
-make dev       # then start the stack
-```
-
-`make install-bob` is idempotent: it copies the mode, skill, slash commands, and four mode rules into `~/.bob/`, and registers the `cortex` MCP server in `~/.bob/settings.json` with absolute paths derived from your venv. Restart Bob, switch to the **📓 Cortex** mode, and `/diary-save` will land in the same SQLite the web UI is reading from.
-
-`make setup` is idempotent — safe to re-run if anything changes. The default `.env` uses local sentence-transformers for embeddings (no IBM Cloud creds needed). Switch to `EMBEDDINGS_PROVIDER=watsonx` once you fill in `WATSONX_*` to use IBM watsonx.ai.
+Idempotent. Restart Bob, switch to the **📓 Cortex** mode, and `/diary-save` will land in the same SQLite the mobile app is reading from.
 
 ### Alternative: Docker
 
@@ -37,6 +49,15 @@ make dev       # then start the stack
 docker compose up --build      # api:8080, web:8081, bot
 # or
 make up
+```
+
+### Other useful targets
+
+```
+make pair      # just print the pairing QR (without starting Expo)
+make stop      # stop the background API started by make start
+make test      # 124 backend pytest cases
+make help      # all targets
 ```
 
 ## Problem
