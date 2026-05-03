@@ -1,50 +1,100 @@
-// IBM Design System + Cortex color tokens
+// Cortex v0.3 design tokens — derived from theme.md.
+// Plus Jakarta Sans (UI) + Space Grotesk (mono); soft surfaces, rounded cards.
+
 export const Colors = {
-  primary: '#0f62fe',
-  primaryDark: '#003da9',
-  primaryLight: '#dbe1ff',
-  primaryFixed: '#b4c5ff',
+  // brand
+  primary: "#004cca",
+  primaryContainer: "#0062ff",
+  primaryFixed: "#dbe1ff",
+  primaryFixedDim: "#b4c5ff",
+  onPrimary: "#ffffff",
+  onPrimaryFixed: "#00174b",
+  onPrimaryContainer: "#f3f3ff",
 
-  surface: '#faf8ff',
-  surfaceContainer: '#ecedfa',
-  surfaceContainerLow: '#f2f3ff',
-  surfaceContainerHigh: '#e7e7f4',
-  surfaceContainerLowest: '#ffffff',
-  surfaceContainerHighest: '#e1e1ee',
+  secondary: "#731be5",
+  secondaryContainer: "#8d42ff",
+  secondaryFixed: "#ebdcff",
+  secondaryFixedDim: "#d4bbff",
+  onSecondary: "#ffffff",
+  onSecondaryFixed: "#270058",
+  onSecondaryContainer: "#fdf6ff",
 
-  onSurface: '#191b24',
-  onSurfaceVariant: '#424656',
-  outline: '#737687',
-  outlineVariant: '#c3c6d8',
+  tertiary: "#8e4000",
+  tertiaryContainer: "#b45300",
+  tertiaryFixed: "#ffdbc9",
+  tertiaryFixedDim: "#ffb68c",
+  onTertiary: "#ffffff",
+  onTertiaryFixed: "#321200",
+  onTertiaryContainer: "#fff1ea",
 
-  secondary: '#5d5f5f',
-  secondaryContainer: '#dfe0e0',
+  // surface (light)
+  surface: "#f9f9fe",
+  surfaceBright: "#f9f9fe",
+  surfaceDim: "#d9dade",
+  surfaceContainer: "#ededf2",
+  surfaceContainerLow: "#f3f3f8",
+  surfaceContainerLowest: "#ffffff",
+  surfaceContainerHigh: "#e8e8ed",
+  surfaceContainerHighest: "#e2e2e7",
+  surfaceVariant: "#e2e2e7",
 
-  error: '#ba1a1a',
-  errorContainer: '#ffdad6',
+  onSurface: "#1a1c1f",
+  onSurfaceVariant: "#424656",
+  outline: "#737687",
+  outlineVariant: "#c2c6d9",
 
-  success: '#198038',
-  warning: '#f1c21b',
+  // status
+  background: "#f9f9fe",
+  onBackground: "#1a1c1f",
+  error: "#ba1a1a",
+  errorContainer: "#ffdad6",
+  onError: "#ffffff",
+  onErrorContainer: "#93000a",
+  success: "#198038",
+  warning: "#f1c21b",
 
-  background: '#faf8ff',
-  onBackground: '#191b24',
+  // LLM status indicators
+  llmOnline: "#24a148",
+  llmOffline: "#da1e28",
+  llmLoading: "#f1c21b",
+} as const;
 
-  // LLM status colors
-  llmOnline: '#24a148',
-  llmOffline: '#da1e28',
-  llmLoading: '#f1c21b',
-};
+// Dark mode counterpart (keeps brand colours, swaps surfaces).
+export const ColorsDark = {
+  ...Colors,
+  surface: "#11131c",
+  surfaceBright: "#373943",
+  surfaceDim: "#11131c",
+  surfaceContainer: "#1d1f28",
+  surfaceContainerLow: "#191b24",
+  surfaceContainerLowest: "#0b0e16",
+  surfaceContainerHigh: "#262833",
+  surfaceContainerHighest: "#32343e",
+  surfaceVariant: "#32343e",
+  background: "#11131c",
+  onSurface: "#e1e1ee",
+  onSurfaceVariant: "#c3c6d8",
+  onBackground: "#e1e1ee",
+  outline: "#8b8e9c",
+  outlineVariant: "#424656",
+} as const;
 
 export const Typography = {
-  display: { fontSize: 42, lineHeight: 48, fontWeight: '300' as const, letterSpacing: -0.5 },
-  heading: { fontSize: 20, lineHeight: 26, fontWeight: '600' as const },
-  headingLg: { fontSize: 24, lineHeight: 30, fontWeight: '600' as const },
-  body: { fontSize: 14, lineHeight: 20, fontWeight: '400' as const, letterSpacing: 0.16 },
-  bodyLg: { fontSize: 16, lineHeight: 24, fontWeight: '400' as const },
-  label: { fontSize: 12, lineHeight: 16, fontWeight: '400' as const, letterSpacing: 0.32 },
-  code: { fontSize: 12, lineHeight: 16, fontWeight: '400' as const, fontFamily: 'monospace' as const },
-  codeLg: { fontSize: 14, lineHeight: 20, fontWeight: '400' as const, fontFamily: 'monospace' as const },
-};
+  // Plus Jakarta Sans
+  display: { fontSize: 42, lineHeight: 50, fontWeight: "300" as const, letterSpacing: -0.5 },
+  h1: { fontSize: 40, lineHeight: 48, fontWeight: "700" as const },
+  h2: { fontSize: 32, lineHeight: 38, fontWeight: "700" as const },
+  h3: { fontSize: 24, lineHeight: 32, fontWeight: "600" as const },
+  heading: { fontSize: 20, lineHeight: 26, fontWeight: "600" as const },
+  bodyLg: { fontSize: 18, lineHeight: 28, fontWeight: "400" as const },
+  body: { fontSize: 16, lineHeight: 24, fontWeight: "400" as const },
+  bodySm: { fontSize: 14, lineHeight: 20, fontWeight: "400" as const },
+  label: { fontSize: 14, lineHeight: 20, fontWeight: "600" as const, letterSpacing: 0.28 },
+  labelSm: { fontSize: 12, lineHeight: 16, fontWeight: "600" as const, letterSpacing: 0.32 },
+  // Space Grotesk
+  code: { fontSize: 14, lineHeight: 20, fontFamily: "monospace" as const, fontWeight: "400" as const },
+  codeSm: { fontSize: 12, lineHeight: 16, fontFamily: "monospace" as const, fontWeight: "400" as const },
+} as const;
 
 export const Spacing = {
   xs: 4,
@@ -53,11 +103,49 @@ export const Spacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
-};
+  unit: 8,
+  gutter: 24,
+  containerPadding: 40,
+  stackSm: 12,
+  stackMd: 24,
+  stackLg: 48,
+} as const;
 
 export const Radius = {
   sm: 4,
   md: 8,
   lg: 12,
+  xl: 16,
+  card: 32,    // hero card style
+  input: 12,   // text inputs / buttons
+  chip: 100,   // pill chips
   full: 9999,
-};
+} as const;
+
+// Shared shadow presets (Tailwind-style soft drop shadows from theme.md).
+export const Shadow = {
+  card: {
+    shadowColor: "#000000",
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 30,
+    elevation: 2,
+  },
+  cardPrimary: {
+    shadowColor: "#004cca",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 30,
+    elevation: 2,
+  },
+  cardSecondary: {
+    shadowColor: "#731be5",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 30,
+    elevation: 2,
+  },
+} as const;
+
+// Convenience export for screens that don't need to know about dark mode yet.
+export default { Colors, Typography, Spacing, Radius, Shadow };
