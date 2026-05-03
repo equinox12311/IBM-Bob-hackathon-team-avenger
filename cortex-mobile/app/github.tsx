@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { listEntries } from '../src/services/database';
 import { apiListEntries, getToken } from '../src/services/api';
 import { getDemoGitHub, getDemoEntries } from '../src/services/demoData';
@@ -55,6 +55,8 @@ function calcStreak(contribs: DayContrib[]): number {
 }
 
 export default function GitHubScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const [days, setDays] = useState(30);
   const [contribs, setContribs] = useState<DayContrib[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,7 +198,7 @@ export default function GitHubScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4 },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 
 interface Article {
   id: string;
@@ -43,6 +43,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function NewsScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const router = useRouter();
   const [articles, setArticles] = useState(ARTICLES);
   const [filter, setFilter] = useState('All');
@@ -118,7 +120,7 @@ export default function NewsScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },

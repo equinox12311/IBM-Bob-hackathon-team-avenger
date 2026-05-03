@@ -19,13 +19,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Spacing } from '../src/constants/theme';
+import { Spacing } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { insertEntry, listEntries, type Entry } from '../src/services/database';
 import { autoTag } from '../src/services/llm';
 import { apiCreateEntry, apiListEntries, getToken } from '../src/services/api';
 import { getDemoIdeas } from '../src/services/demoData';
 
 export default function IdeasScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const router = useRouter();
   const [ideas, setIdeas] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,7 +231,7 @@ export default function IdeasScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },

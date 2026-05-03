@@ -22,7 +22,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import { Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import {
   apiAuditLog,
   apiAuditSummary,
@@ -47,7 +48,9 @@ function relTime(ms: number) {
   return `${d}d ago`;
 }
 
-function actionTint(action: string): { bg: string; fg: string } {
+type Palette = ReturnType<typeof useThemeMode>['Colors'];
+
+function actionTint(action: string, Colors: Palette): { bg: string; fg: string } {
   if (action.endsWith('.create')) return { bg: Colors.primaryFixed, fg: Colors.primary };
   if (action.endsWith('.update')) return { bg: Colors.tertiaryFixed, fg: Colors.tertiary };
   if (action.endsWith('.delete')) return { bg: Colors.errorContainer, fg: Colors.error };
@@ -57,6 +60,8 @@ function actionTint(action: string): { bg: string; fg: string } {
 
 export default function SecurityScreen() {
   const router = useRouter();
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const [windowHours, setWindowHours] = useState(24);
   const [summary, setSummary] = useState<{ total: number; by_action: Record<string, number> } | null>(null);
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -165,7 +170,7 @@ export default function SecurityScreen() {
             <Text style={S.cardValue}>{summary.total}</Text>
             <View style={S.bars}>
               {topActions.map(([action, count]) => {
-                const tint = actionTint(action);
+                const tint = actionTint(action, Colors);
                 return (
                   <View key={action} style={S.barRow}>
                     <View style={[S.barPill, { backgroundColor: tint.bg }]}>
@@ -194,7 +199,7 @@ export default function SecurityScreen() {
           <View style={S.card}>
             <Text style={S.cardLabel}>RECENT EVENTS</Text>
             {events.map((e) => {
-              const tint = actionTint(e.action);
+              const tint = actionTint(e.action, Colors);
               return (
                 <View key={e.id} style={S.eventRow}>
                   <View style={[S.eventDot, { backgroundColor: tint.fg }]} />
@@ -220,7 +225,7 @@ export default function SecurityScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: Palette) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',

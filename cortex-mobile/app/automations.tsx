@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { apiCreateEntry, apiListEntries, getToken, apiListAutomations, apiCreateAutomation, apiToggleAutomation, apiDeleteAutomation } from '../src/services/api';
 
 interface Automation { id: number; name: string; trigger_kind: string; action: string; enabled: boolean; }
@@ -52,6 +52,8 @@ async function deleteAutomation(token: string, id: number): Promise<void> {
 }
 
 export default function AutomationsScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const [items, setItems] = useState<Automation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -191,7 +193,7 @@ export default function AutomationsScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },

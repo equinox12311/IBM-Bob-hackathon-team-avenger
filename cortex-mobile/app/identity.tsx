@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { listEntries } from '../src/services/database';
 import { apiGetProfile, apiListEntries, isApiConfigured } from '../src/services/api';
 import { getDemoProfile, getDemoEntries } from '../src/services/demoData';
@@ -30,6 +30,8 @@ function relTime(ts: number) {
 }
 
 export default function IdentityScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [topConcepts, setTopConcepts] = useState<{ name: string; count: number; lastSeen: number }[]>([]);
@@ -208,7 +210,7 @@ export default function IdentityScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },

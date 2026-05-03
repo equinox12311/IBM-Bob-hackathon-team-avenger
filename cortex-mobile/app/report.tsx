@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { listEntries, type Entry } from '../src/services/database';
 import { apiListEntries, getToken } from '../src/services/api';
 import { getDemoReport } from '../src/services/demoData';
@@ -24,6 +24,8 @@ const RANGES = [{ days: 1, label: 'Today' }, { days: 7, label: '7 days' }, { day
 const KIND_COLOR: Record<string, string> = { idea: '#0f62fe', bug: '#da1e28', insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f' };
 
 export default function ReportScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const router = useRouter();
   const [days, setDays] = useState(1);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -134,7 +136,7 @@ export default function ReportScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },

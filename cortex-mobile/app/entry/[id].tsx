@@ -14,12 +14,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, Spacing, Typography } from '../../src/constants/theme';
+import { Spacing, Typography } from '../../src/constants/theme';
+import { useThemeMode } from '../../src/hooks/useThemeMode';
 import { deleteEntry, listEntries, type Entry } from '../../src/services/database';
 import { summariseEntry } from '../../src/services/llm';
 import { apiGetEntry, apiFeedback, apiDeleteEntry, apiGenerateSummary, isApiConfigured, getToken } from '../../src/services/api';
 
 export default function EntryDetailScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [entry, setEntry] = useState<Entry | null>(null);

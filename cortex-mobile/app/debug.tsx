@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { insertEntry } from '../src/services/database';
 import { chat, checkOllamaHealth, getOllamaHost } from '../src/services/llm';
 import { buildLLMContext } from '../src/services/memory';
@@ -41,6 +41,8 @@ const SYSTEM_MSG: ChatMsg = {
 };
 
 export default function DebugScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const router = useRouter();
   const [messages, setMessages] = useState<ChatMsg[]>([SYSTEM_MSG]);
   const [input, setInput] = useState('');
@@ -238,7 +240,7 @@ export default function DebugScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
   headerTitle: { fontSize: 15, fontWeight: '700', color: '#191b24' },

@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Spacing } from '../src/constants/theme';
+import { Spacing } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { listEntries, type Entry } from '../src/services/database';
 import { apiGetSessionAnalytics, apiListEntries, getToken } from '../src/services/api';
 import { getDemoAnalytics, getDemoEntries } from '../src/services/demoData';
@@ -24,6 +25,8 @@ const WINDOWS = [{ m: 15, l: '15m' }, { m: 60, l: '1h' }, { m: 90, l: '90m' }, {
 const KIND_COLOR: Record<string, string> = { idea: '#0f62fe', bug: '#da1e28', insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f' };
 
 export default function AnalyticsScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const [windowMin, setWindowMin] = useState(90);
   const [stats, setStats] = useState<{ total: number; by_kind: Record<string, number>; by_source: Record<string, number>; files_touched: string[] } | null>(null);
   const [recent, setRecent] = useState<Entry[]>([]);
@@ -177,7 +180,7 @@ export default function AnalyticsScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },

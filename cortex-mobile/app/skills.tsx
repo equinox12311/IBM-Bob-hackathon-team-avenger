@@ -22,7 +22,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import { Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import {
   apiCreateSkill,
   apiDeleteSkill,
@@ -36,6 +37,8 @@ import {
 
 export default function SkillsScreen() {
   const router = useRouter();
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
 
   const [skills, setSkills] = useState<SkillSummary[]>([]);
   const [configured, setConfigured] = useState<boolean | null>(null);
@@ -347,7 +350,7 @@ export default function SkillsScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',

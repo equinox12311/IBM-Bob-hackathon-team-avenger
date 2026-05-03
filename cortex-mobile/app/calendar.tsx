@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { getDemoCalendarEvents, type DemoCalendarEvent } from '../src/services/demoData';
 
 const TYPE_META: Record<string, { icon: string; color: string; bg: string; label: string }> = {
@@ -33,6 +33,8 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 export default function CalendarScreen() {
+  const { Colors } = useThemeMode();
+  const S = makeStyles(Colors);
   const router = useRouter();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -231,7 +233,7 @@ export default function CalendarScreen() {
   );
 }
 
-const S = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#f4f5fb' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },
