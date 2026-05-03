@@ -1,0 +1,1473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cortex — Mobile screens (Apple-style)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #004cca;
+    --secondary: #731be5;
+    --tertiary: #8e4000;
+    --success: #198038;
+    --warning: #f1c21b;
+    --error: #ba1a1a;
+    --on-primary: #ffffff;
+    --primary-fixed: #dbe1ff;
+    --secondary-fixed: #ebdcff;
+    --tertiary-fixed: #ffdbc9;
+    --error-container: #ffdad6;
+    --surface: #f9f9fe;
+    --surface-lowest: #ffffff;
+    --surface-container: #ededf2;
+    --surface-container-low: #f3f3f8;
+    --on-surface: #1a1c1f;
+    --on-surface-variant: #424656;
+    --outline: #737687;
+    --outline-variant: #c2c6d9;
+    --on-primary-fixed: #00174b;
+    --display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --mono: 'Space Grotesk', ui-monospace, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { font-family: var(--display); -webkit-font-smoothing: antialiased; }
+  body { background: #0b0e16; color: #e1e1ee; padding: 56px 32px; }
+
+  h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 8px; }
+  .lede { font-size: 18px; color: #8b90a8; margin-bottom: 56px; max-width: 780px; }
+  .legend { display: flex; gap: 28px; margin-bottom: 64px; font-family: var(--mono); font-size: 13px; color: #8b90a8; flex-wrap: wrap; }
+  .legend strong { color: #e1e1ee; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 64px 48px;
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+
+  .screen-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .screen-label { font-family: var(--mono); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: #b4c5ff; }
+  .screen-sub   { font-family: var(--display); font-size: 16px; color: #8b90a8; max-width: 360px; text-align: center; line-height: 1.4; }
+
+  /* ====== Phone frame (iPhone 14, 390x844) ====== */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 56px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #1f2436,
+      0 30px 60px rgba(0,0,0,.6),
+      0 8px 30px rgba(0,76,202,.15);
+    position: relative;
+  }
+  .phone .display {
+    width: 100%; height: 100%;
+    background: var(--surface);
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    color: var(--on-surface);
+  }
+
+  /* iOS notch/dynamic island */
+  .phone .island {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 36px;
+    background: #000;
+    border-radius: 100px;
+    z-index: 10;
+  }
+
+  /* iOS status bar */
+  .status {
+    height: 50px;
+    padding: 18px 28px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--on-surface);
+    z-index: 5;
+    position: relative;
+  }
+  .status .icons { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+  .status .icons svg { width: 16px; height: 16px; fill: var(--on-surface); }
+
+  /* Bottom home indicator */
+  .home-bar {
+    position: absolute;
+    bottom: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 132px; height: 5px;
+    background: var(--on-surface);
+    opacity: .35;
+    border-radius: 100px;
+  }
+
+  /* ====== Tab bar (4 tabs + center FAB) ====== */
+  .tab-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 84px;
+    background: var(--surface-lowest);
+    border-top: 1px solid var(--outline-variant);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 12px;
+    z-index: 4;
+  }
+  .tab { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--outline); }
+  .tab.active { color: var(--primary); }
+  .tab svg { width: 24px; height: 24px; }
+  .fab {
+    width: 52px; height: 52px;
+    background: var(--primary);
+    border-radius: 26px;
+    margin-top: -16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--on-primary);
+    box-shadow: 0 8px 30px rgba(0,76,202,.35);
+  }
+  .fab svg { width: 26px; height: 26px; }
+
+  /* ====== Headers ====== */
+  .header {
+    background: var(--surface-lowest);
+    border-bottom: 1px solid var(--outline-variant);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header .left { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .header .back-btn {
+    width: 36px; height: 36px;
+    background: var(--surface-container);
+    border-radius: 100px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--on-surface);
+  }
+  .header .back-btn svg { width: 20px; height: 20px; }
+  .header .title-block { flex: 1; }
+  .header .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--on-surface-variant); }
+  .header .title { font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--on-surface); line-height: 1.2; }
+  .header .right { display: flex; align-items: center; gap: 8px; }
+  .header .right .icon-btn { width: 36px; height: 36px; border-radius: 18px; background: transparent; display: flex; align-items: center; justify-content: center; color: var(--on-surface-variant); }
+  .header .right .icon-btn svg { width: 20px; height: 20px; }
+
+  /* ====== Screen scroll containers ====== */
+  .scroll {
+    height: calc(100% - 50px - 84px);
+    overflow: hidden;
+    padding: 16px;
+    background: var(--surface);
+  }
+  .scroll.no-tabs { height: calc(100% - 50px); }
+  .scroll.with-header { height: calc(100% - 50px - 84px - 64px); }
+  .scroll.with-header.no-tabs { height: calc(100% - 50px - 64px); }
+
+  /* ====== Cards ====== */
+  .card {
+    background: var(--surface-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: 32px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.04);
+    margin-bottom: 12px;
+  }
+  .card.list { border-radius: 12px; padding: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.04); }
+  .card.primary { background: var(--primary-fixed); border-color: transparent; box-shadow: 0 8px 30px rgba(0,76,202,.06); }
+  .card.secondary { background: var(--secondary-fixed); border-color: transparent; box-shadow: 0 8px 30px rgba(115,27,229,.06); }
+  .card.tertiary { background: var(--tertiary-fixed); border-color: transparent; }
+
+  /* ====== Pills ====== */
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 8px;
+    border-radius: 100px;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    letter-spacing: .03em;
+  }
+  .pill.primary { background: var(--primary-fixed); color: var(--primary); }
+  .pill.secondary { background: var(--secondary-fixed); color: var(--secondary); }
+  .pill.tertiary { background: var(--tertiary-fixed); color: var(--tertiary); }
+  .pill.success { background: #defbe6; color: var(--success); }
+  .pill.warning { background: #fdf6dd; color: var(--warning); }
+  .pill.error { background: var(--error-container); color: var(--error); }
+  .pill.neutral { background: var(--surface-container); color: var(--on-surface-variant); }
+  .pill svg { width: 11px; height: 11px; fill: currentColor; }
+  .pill .dot { width: 6px; height: 6px; border-radius: 3px; background: currentColor; }
+
+  /* ====== Section heading ====== */
+  .section-head {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+    padding: 0 16px;
+    margin: 16px 0 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .section-head .trail { font-family: var(--display); color: var(--primary); font-size: 12px; font-weight: 600; }
+
+  /* ====== Buttons ====== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 24px;
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: 12px;
+    font-family: var(--display); font-size: 14px; font-weight: 600;
+    border: none;
+  }
+  .btn.secondary { background: var(--secondary-fixed); color: var(--secondary); }
+  .btn.outlined { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+  .btn.full { width: 100%; }
+  .btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* ====== Stat tile ====== */
+  .stat-tile {
+    flex: 1; padding: 16px;
+    background: var(--surface-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+  .stat-tile .bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .stat-tile .num { font-family: var(--display); font-size: 32px; font-weight: 300; color: var(--on-surface); margin-top: 6px; letter-spacing: -0.5px; line-height: 1; }
+  .stat-tile .label { font-family: var(--mono); font-size: 11px; color: var(--outline); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+
+  /* ====== Quick chips ====== */
+  .quick-row { display: flex; gap: 8px; padding: 4px 0; overflow-x: hidden; }
+  .quick-chip { padding: 8px; border-radius: 100px; background: var(--surface-lowest); border: 1px solid var(--outline-variant); white-space: nowrap; }
+
+  /* ====== Entry row ====== */
+  .entry-row { display: flex; gap: 8px; align-items: flex-start; }
+  .entry-icon {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: var(--primary-fixed);
+    color: var(--primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .entry-icon svg { width: 16px; height: 16px; }
+  .entry-icon.secondary { background: var(--secondary-fixed); color: var(--secondary); }
+  .entry-icon.tertiary { background: var(--tertiary-fixed); color: var(--tertiary); }
+  .entry-icon.success { background: #defbe6; color: var(--success); }
+  .entry-icon.error { background: var(--error-container); color: var(--error); }
+  .entry-body { flex: 1; min-width: 0; }
+  .entry-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .entry-time { font-family: var(--mono); font-size: 11px; color: var(--outline); }
+  .entry-text { font-family: var(--display); font-size: 14px; color: var(--on-surface); line-height: 1.4; }
+
+  /* ====== Today hero card ====== */
+  .hero {
+    background: var(--primary-fixed);
+    border-radius: 32px;
+    padding: 24px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 30px rgba(0,76,202,.06);
+  }
+  .hero .hero-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--primary); }
+  .hero .hero-greet { font-family: var(--display); font-size: 32px; font-weight: 700; color: var(--on-primary-fixed); letter-spacing: -.02em; margin-top: 6px; }
+  .hero .hero-tag { font-family: var(--display); font-size: 14px; color: var(--on-primary-fixed); opacity: .7; margin-top: 4px; }
+
+  .stats-row { display: flex; gap: 8px; margin-bottom: 16px; }
+
+  /* ====== Jump grid ====== */
+  .jump-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
+  .jump-tile {
+    background: var(--surface-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: 12px;
+    padding: 16px 8px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .jump-tile svg { width: 22px; height: 22px; color: var(--primary); }
+  .jump-tile .label { font-family: var(--display); font-size: 12px; font-weight: 600; color: var(--on-surface); }
+
+  /* ====== Capture textarea ====== */
+  .body-input {
+    width: 100%;
+    min-height: 200px;
+    background: var(--surface-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    font-family: var(--display);
+    font-size: 16px;
+    color: var(--on-surface);
+    line-height: 1.5;
+  }
+  .body-input.placeholder { color: var(--outline); font-style: italic; }
+  .tags-input {
+    flex: 1;
+    background: var(--surface-container);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--outline);
+    font-family: var(--display);
+    font-size: 16px;
+  }
+
+  /* ====== Search bar ====== */
+  .search-bar {
+    background: var(--surface-container);
+    border: 1px solid var(--outline-variant);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-bar svg { width: 18px; height: 18px; color: var(--outline); }
+  .search-bar input { flex: 1; background: transparent; border: none; outline: none; font-family: var(--display); font-size: 16px; color: var(--on-surface); }
+
+  /* ====== Mode chips ====== */
+  .mode-row { display: flex; gap: 4px; margin-top: 8px; margin-bottom: 16px; }
+  .mode-chip {
+    padding: 6px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--outline-variant);
+    background: var(--surface-lowest);
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: var(--on-surface-variant);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .mode-chip.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+  .mode-chip svg { width: 13px; height: 13px; }
+
+  /* ====== Chat bubbles ====== */
+  .bubble {
+    padding: 10px 16px;
+    border-radius: 12px;
+    max-width: 80%;
+    margin-bottom: 8px;
+    font-family: var(--display); font-size: 16px; line-height: 1.4;
+  }
+  .bubble.user { background: var(--primary); color: var(--on-primary); align-self: flex-end; margin-left: auto; }
+  .bubble.ai { background: var(--surface-container); color: var(--on-surface); }
+  .bubble .citation {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface-lowest);
+    color: var(--on-surface-variant);
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-top: 6px;
+  }
+  .bubble-row { display: flex; align-items: flex-end; gap: 8px; max-width: 92%; margin-bottom: 8px; }
+  .bubble-row.user { flex-direction: row-reverse; align-self: flex-end; margin-left: auto; }
+  .ai-avatar { width: 28px; height: 28px; border-radius: 14px; background: var(--primary-fixed); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-avatar svg { width: 14px; height: 14px; }
+
+  /* ====== Quick prompt chips ====== */
+  .qp-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 16px; }
+  .qp-chip { padding: 8px 12px; background: var(--surface-lowest); border: 1px solid var(--outline-variant); border-radius: 100px; font-family: var(--display); font-size: 13px; color: var(--on-surface); }
+
+  /* ====== More tiles (2x2) ====== */
+  .more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px; margin-bottom: 16px; }
+  .more-tile {
+    background: var(--surface-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: 32px;
+    padding: 24px 16px;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.04);
+  }
+  .more-tile .icon-wrap {
+    width: 56px; height: 56px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .more-tile .icon-wrap.primary { background: var(--primary-fixed); color: var(--primary); }
+  .more-tile .icon-wrap.secondary { background: var(--secondary-fixed); color: var(--secondary); }
+  .more-tile .icon-wrap.tertiary { background: var(--tertiary-fixed); color: var(--tertiary); }
+  .more-tile .icon-wrap.neutral { background: var(--surface-container); color: var(--on-surface); }
+  .more-tile .icon-wrap svg { width: 22px; height: 22px; }
+  .more-tile .label { font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--on-surface); }
+
+  /* ====== Skill / Security / Scheduler items ====== */
+  .skill-card { padding: 24px; }
+  .skill-title { font-family: var(--display); font-size: 24px; font-weight: 600; color: var(--on-surface); }
+  .skill-meta { font-family: var(--mono); font-size: 12px; color: var(--outline); margin-top: 4px; }
+  .skill-desc { font-family: var(--display); font-size: 16px; color: var(--on-surface-variant); margin-top: 8px; line-height: 1.4; }
+  .skill-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .skill-btn { padding: 8px 16px; border: 1px solid var(--primary); border-radius: 12px; color: var(--primary); font-family: var(--display); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .skill-btn.danger { border-color: var(--error); color: var(--error); }
+  .skill-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+  /* ====== Bar chart for security ====== */
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .bar-pill { min-width: 110px; padding: 3px 8px; border-radius: 100px; font-family: var(--mono); font-size: 12px; font-weight: 600; text-align: center; }
+  .bar-track { flex: 1; height: 8px; background: var(--surface-container); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-count { font-family: var(--mono); font-size: 14px; min-width: 28px; text-align: right; color: var(--on-surface); }
+
+  /* ====== Onboarding ====== */
+  .onb {
+    height: 100%;
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    padding: 16px 0 32px;
+  }
+  .onb .top { display: flex; justify-content: space-between; padding: 8px 24px 16px; }
+  .onb .top .wm { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--outline); }
+  .onb .top .skip { font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--on-surface-variant); }
+  .onb .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 32px; gap: 24px; text-align: center; }
+  .onb .layer-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--outline); }
+  .onb .icon-wrap {
+    width: 156px; height: 156px;
+    border-radius: 32px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .onb .icon-wrap.primary { background: var(--primary-fixed); color: var(--primary); box-shadow: 0 8px 30px rgba(0,76,202,.06); }
+  .onb .icon-wrap.secondary { background: var(--secondary-fixed); color: var(--secondary); box-shadow: 0 8px 30px rgba(115,27,229,.06); }
+  .onb .icon-wrap.tertiary { background: var(--tertiary-fixed); color: var(--tertiary); }
+  .onb .icon-wrap svg { width: 64px; height: 64px; }
+  .onb .title { font-family: var(--display); font-size: 32px; font-weight: 700; color: var(--on-surface); letter-spacing: -.025em; line-height: 1.05; }
+  .onb .desc { font-family: var(--display); font-size: 18px; color: var(--on-surface-variant); line-height: 1.4; max-width: 320px; }
+  .onb .dots { display: flex; justify-content: center; gap: 8px; padding: 16px 0; }
+  .onb .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--outline-variant); }
+  .onb .dot.active { width: 24px; background: var(--primary); }
+  .onb .cta { margin: 0 24px; padding: 16px; background: var(--primary); color: var(--on-primary); border-radius: 12px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--display); font-weight: 600; }
+  .onb .footer-mark { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--outline); text-align: center; padding-top: 16px; }
+
+  /* ====== Settings ====== */
+  .field-label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--on-surface-variant); margin-bottom: 6px; }
+  .field-input { background: var(--surface-container); border-radius: 12px; padding: 12px; font-family: var(--display); font-size: 16px; color: var(--on-surface); }
+  .field-help { font-family: var(--mono); font-size: 11px; color: var(--outline); margin-top: 4px; }
+
+  /* Dark variant for the "dark mode" screenshot */
+  .dark-screen {
+    --surface: #11131c;
+    --surface-lowest: #0b0e16;
+    --surface-container: #1d1f28;
+    --surface-container-low: #191b24;
+    --on-surface: #e1e1ee;
+    --on-surface-variant: #c3c6d8;
+    --outline: #8b8e9c;
+    --outline-variant: #424656;
+    background: var(--surface);
+    color: var(--on-surface);
+  }
+  .dark-screen .header { background: var(--surface-lowest); }
+  .dark-screen .scroll { background: var(--surface); }
+  .dark-screen .card { background: var(--surface-lowest); }
+  .dark-screen .stat-tile { background: var(--surface-lowest); }
+  .dark-screen .tab-bar { background: var(--surface-lowest); }
+  .dark-screen .status { color: var(--on-surface); }
+  .dark-screen .status .icons svg { fill: var(--on-surface); }
+
+  /* Inline SVG sprite hidden */
+  .sprite { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Cortex — mobile screens</h1>
+<p class="lede">
+  Real screens from the running app, rendered as device-frame mockups for the demo deck. iPhone 14
+  (390 × 844). Same design tokens as <code>cortex-mobile/src/constants/theme.ts</code> and the deck.
+  Each screen contains the actual content the user sees once paired with cortex-api and seeded.
+</p>
+
+<div class="legend">
+  <span><strong>Primary</strong> #004cca</span>
+  <span><strong>Secondary</strong> #731be5</span>
+  <span><strong>Tertiary</strong> #8e4000</span>
+  <span><strong>Display</strong> Plus Jakarta Sans</span>
+  <span><strong>Mono</strong> Space Grotesk</span>
+  <span><strong>Card radius</strong> 32 px</span>
+</div>
+
+<!-- ====== SVG SPRITE — referenced by <use> across the page ====== -->
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" style="position:absolute">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.5 5L5 9.5l5.5 1.5L12 16l1.5-5 5.5-1.5L13.5 8z"/><path d="M5 18l1.5 4L11 23l-4.5 1L5 28"/><path d="M19 4l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/></symbol>
+    <symbol id="i-apps" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9h-1.8A7 7 0 1 0 4 14.9"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M15.09 14a4 4 0 0 0 1.91-3 5 5 0 1 0-10 0 4 4 0 0 0 1.91 3"/></symbol>
+    <symbol id="i-bug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2 6 6h12l-2-4"/><rect x="6" y="6" width="12" height="14" rx="6"/><path d="M3 13h3M18 13h3M3 7h3M18 7h3M3 19h3M18 19h3"/></symbol>
+    <symbol id="i-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9"/><path d="M17.64 15 22 10.64M19.78 12.86 17.61 9.65"/><path d="m20 7-2-2-7 7 2 2"/></symbol>
+    <symbol id="i-git" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.7 14a1 1 0 0 0 1-1V8.5a1 1 0 0 0-1-1H17a1 1 0 0 1-1-1V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v17a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2.5a1 1 0 0 1 1-1z"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/></symbol>
+    <symbol id="i-flash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2c1 1.5 1 7-2 11-4 4-9 5-11 6.5"/></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-bar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5a13 13 0 0 0-7 0C7 2 6 2 6 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 5 9c0 3.5 3 5.5 6 5.5-.4.5-.7 1.1-.8 1.7"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.66A8 8 0 0 1 12 18a8 8 0 0 1 5 2.66"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="5" rx="2"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6M21 13a9 9 0 1 1-3-7"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M15 9h0"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+    <symbol id="i-cloud-done" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0 0-9h-1.8A7 7 0 1 0 4 14.9M9 13l2 2 4-4"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.1H3M21 12.1H3M15.1 18H3"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></symbol>
+    <symbol id="i-cloud-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M5.7 5.7A7 7 0 0 0 4 14.9M9 4.6A7 7 0 0 1 15.7 10h.3a4.5 4.5 0 0 1 4 6.6"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></symbol>
+  </defs>
+  <!-- iOS status bar icons -->
+  <symbol id="i-cellular" viewBox="0 0 16 12"><rect x="0" y="9" width="2" height="3" rx="0.5"/><rect x="3" y="6" width="2" height="6" rx="0.5"/><rect x="6" y="3" width="2" height="9" rx="0.5"/><rect x="9" y="0" width="2" height="12" rx="0.5"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 16 12"><path d="M8 3.6c1.6 0 3 .6 4 1.7l1-1.1A6 6 0 0 0 3 4.2l1 1.1c1-1.1 2.4-1.7 4-1.7zM8 6.7c.7 0 1.4.3 2 .8l1-1.2a4 4 0 0 0-6 0l1 1.2c.6-.5 1.3-.8 2-.8zM8 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2" y="2" width="19" height="8" rx="1.5"/><rect x="23" y="3.5" width="2" height="5" rx="1"/></symbol>
+</svg>
+
+<!-- ============================================================ -->
+<!--  GRID OF SCREENS                                              -->
+<!-- ============================================================ -->
+
+<div class="grid">
+
+  <!-- ====== SCREEN 1 — TODAY ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status">
+          <span>9:41</span>
+          <div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div>
+        </div>
+        <div class="scroll">
+          <!-- hero -->
+          <div class="hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="hero-eyebrow">cortex · sun, may 3</div>
+                <div class="hero-greet">Good morning.</div>
+                <div class="hero-tag">Memory · Reasoning · Action.</div>
+              </div>
+              <div style="width:40px;height:40px;border-radius:20px;background:#ffffff80;display:flex;align-items:center;justify-content:center;color:var(--on-primary-fixed);">
+                <svg style="width:20px;height:20px"><use href="#i-bell"/></svg>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:16px;">
+              <span class="pill success"><svg><use href="#i-cloud-done"/></svg>API connected</span>
+            </div>
+          </div>
+          <!-- stats -->
+          <div class="stats-row">
+            <div class="stat-tile"><div class="bar" style="background:var(--primary)"></div><div class="num">28</div><div class="label">ENTRIES</div></div>
+            <div class="stat-tile"><div class="bar" style="background:var(--secondary)"></div><div class="num">7</div><div class="label">KINDS</div></div>
+            <div class="stat-tile"><div class="bar" style="background:var(--tertiary)"></div><div class="num">5</div><div class="label">TODAY</div></div>
+          </div>
+          <!-- recent -->
+          <div class="section-head">RECENT <span class="trail">See all</span></div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon"><svg><use href="#i-doc"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral">task</span><span class="entry-time">just now</span></div>
+                <div class="entry-text">Run <code style="font-family:var(--mono)">make smoke</code> once more and pair the phone with <code style="font-family:var(--mono)">make pair</code>…</div>
+              </div>
+            </div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon"><svg><use href="#i-bulb"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral">idea</span><span class="entry-time">2h ago</span></div>
+                <div class="entry-text">Future: agentic auto-capture — when Bob completes a task, mode rule 04 proposes a draft entry…</div>
+              </div>
+            </div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon secondary"><svg><use href="#i-text"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral">note</span><span class="entry-time">3h ago</span></div>
+                <div class="entry-text">Hackathon submission deadline: today, May 3 2026. Repo at github.com/equinox12311/IBM-Bob.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- tab bar -->
+        <div class="tab-bar">
+          <div class="tab active"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Today</div>
+    <div class="screen-sub">Hero greeting, stats, recent entries, jump grid. Memory · Reasoning · Action.</div>
+  </div>
+
+  <!-- ====== SCREEN 2 — CAPTURE ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left">
+            <div class="back-btn"><svg><use href="#i-back"/></svg></div>
+            <div class="title-block"><div class="eyebrow">01 · MEMORY · SYNCED</div><div class="title">Capture</div></div>
+          </div>
+        </div>
+        <div class="scroll with-header">
+          <!-- kind chips -->
+          <div style="display:flex; gap:6px; overflow:hidden; padding:4px 0;">
+            <div class="mode-chip"><svg><use href="#i-text"/></svg>Note</div>
+            <div class="mode-chip"><svg><use href="#i-bulb"/></svg>Idea</div>
+            <div class="mode-chip"><svg><use href="#i-bug"/></svg>Bug</div>
+            <div class="mode-chip"><svg><use href="#i-hammer"/></svg>Fix</div>
+            <div class="mode-chip active"><svg><use href="#i-git"/></svg>Decision</div>
+          </div>
+          <!-- body -->
+          <div class="body-input" style="min-height:240px; font-size:16px;">Switched payment provider to Stripe — Adyen latency was hitting 800 ms in the EU region.</div>
+          <!-- tags -->
+          <div style="display:flex; gap:8px; align-items:center; margin-top:12px;">
+            <div class="tags-input">payments, stripe, adyen</div>
+            <div class="btn secondary" style="padding:8px 14px;"><svg style="width:14px"><use href="#i-sparkles"/></svg>Auto</div>
+          </div>
+          <!-- footer -->
+          <div style="display:flex; gap:8px; align-items:center; padding-top:24px;">
+            <span class="pill success"><svg><use href="#i-cloud-done"/></svg>API + local</span>
+            <button class="btn full"><svg><use href="#i-checkmark"/></svg>Save entry</button>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Capture</div>
+    <div class="screen-sub">Kind selector, body, tags, auto-tag. Saves to API + local sqlite.</div>
+  </div>
+
+  <!-- ====== SCREEN 3 — ASK · empty ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="title-block"><div class="eyebrow">GRANITE</div><div class="title">Ask</div></div></div>
+          <div class="right">
+            <span class="pill success"><svg><use href="#i-sparkles"/></svg>Granite RAG</span>
+          </div>
+        </div>
+        <div class="scroll with-header" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px;">
+          <div style="width:72px;height:72px;border-radius:36px;background:var(--primary-fixed);color:var(--primary);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <svg style="width:28px;height:28px"><use href="#i-sparkles"/></svg>
+          </div>
+          <div style="font-family:var(--display); font-size:32px; font-weight:700; letter-spacing:-.02em; color:var(--on-surface); text-align:center; line-height:1.1;">Recall by intent.</div>
+          <div style="font-family:var(--display); font-size:15px; color:var(--on-surface-variant); text-align:center; margin-top:12px; line-height:1.4;">Cortex-api retrieves the relevant entries; Granite answers with citations.</div>
+          <div class="qp-row">
+            <div class="qp-chip">Summarise my recent work</div>
+            <div class="qp-chip">What was I debugging?</div>
+            <div class="qp-chip">List my top ideas</div>
+            <div class="qp-chip">Help me write a commit message</div>
+          </div>
+        </div>
+        <!-- input bar -->
+        <div style="position:absolute; bottom:84px; left:0; right:0; padding:16px; display:flex; gap:8px; align-items:flex-end; background:var(--surface-lowest); border-top:1px solid var(--outline-variant);">
+          <div style="flex:1; padding:10px 16px; background:var(--surface-container); border-radius:12px; color:var(--outline); font-family:var(--display); font-size:16px;">Ask Cortex…</div>
+          <div style="width:40px;height:40px;border-radius:20px;background:var(--surface-container);color:var(--outline);display:flex;align-items:center;justify-content:center;">
+            <svg style="width:18px;height:18px"><use href="#i-arrow-up"/></svg>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab active"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Ask · empty</div>
+    <div class="screen-sub">Headline mirrors the deck: "Recall by intent." Quick-prompt chips kick off the conversation.</div>
+  </div>
+
+  <!-- ====== SCREEN 4 — ASK · conversation ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:42</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="title-block"><div class="eyebrow">GRANITE</div><div class="title">Ask</div></div></div>
+          <div class="right"><span class="pill success"><svg><use href="#i-sparkles"/></svg>Granite RAG</span></div>
+        </div>
+        <div class="scroll with-header" style="display:flex; flex-direction:column; gap:8px;">
+          <div class="bubble user">What did I decide about payments?</div>
+          <div class="bubble-row">
+            <div class="ai-avatar"><svg><use href="#i-sparkles"/></svg></div>
+            <div class="bubble ai">
+              You decided to switch your payment provider from Adyen to Stripe, primarily due to the high latency in the EU region (~800 ms). The decision was made on Friday to enhance overall payment performance.
+              <div class="citation">— citations: #1</div>
+            </div>
+          </div>
+          <div class="bubble user">Anything else recent on payments?</div>
+          <div class="bubble-row">
+            <div class="ai-avatar"><svg><use href="#i-sparkles"/></svg></div>
+            <div class="bubble ai">
+              No follow-up entries yet. The Stripe migration decision is the only payment-related entry in the last 7 days.
+              <div class="citation">no matches</div>
+            </div>
+          </div>
+        </div>
+        <div style="position:absolute; bottom:84px; left:0; right:0; padding:16px; display:flex; gap:8px; align-items:flex-end; background:var(--surface-lowest); border-top:1px solid var(--outline-variant);">
+          <div style="flex:1; padding:10px 16px; background:var(--surface-container); border-radius:12px; color:var(--on-surface); font-family:var(--display); font-size:16px;">Ask Cortex…</div>
+          <div style="width:40px;height:40px;border-radius:20px;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;">
+            <svg style="width:18px;height:18px"><use href="#i-arrow-up"/></svg>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab active"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Ask · conversation</div>
+    <div class="screen-sub">Granite RAG over the diary; inline citation chips show the source entries.</div>
+  </div>
+
+  <!-- ====== SCREEN 5 — SEARCH ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="title-block"><div class="title">Search</div></div></div>
+        </div>
+        <div class="scroll with-header" style="padding-top:8px;">
+          <div class="search-bar">
+            <svg><use href="#i-search"/></svg>
+            <input value="payments" />
+          </div>
+          <div class="mode-row">
+            <div class="mode-chip active"><svg><use href="#i-sparkles"/></svg>Granite</div>
+            <div class="mode-chip"><svg><use href="#i-flash"/></svg>Semantic</div>
+            <div class="mode-chip"><svg><use href="#i-text"/></svg>Keyword</div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon"><svg><use href="#i-git"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-text">Switched payment provider to Stripe — Adyen latency was hitting 800 ms in the EU region.</div>
+                <div class="entry-meta" style="margin-top:6px;"><span class="pill neutral">decision</span><span class="entry-time">score 0.94</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon"><svg><use href="#i-doc"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-text">make smoke = pytest + scripts/smoke.py. Four integration checks pytest can't see.</div>
+                <div class="entry-meta" style="margin-top:6px;"><span class="pill neutral">code</span><span class="entry-time">score 0.31</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab active"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Search</div>
+    <div class="screen-sub">Three search modes: Granite (RAG), Semantic (vector), Keyword (sqlite FTS).</div>
+  </div>
+
+  <!-- ====== SCREEN 6 — MORE ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="title-block"><div class="eyebrow">CORTEX</div><div class="title">More</div></div></div>
+        </div>
+        <div class="scroll with-header" style="padding:0;">
+          <div class="section-head">MEMORY</div>
+          <div class="more-grid">
+            <div class="more-tile"><div class="icon-wrap primary"><svg><use href="#i-clock"/></svg></div><div class="label">Timeline</div></div>
+            <div class="more-tile"><div class="icon-wrap secondary"><svg><use href="#i-cal"/></svg></div><div class="label">Calendar</div></div>
+            <div class="more-tile"><div class="icon-wrap tertiary"><svg><use href="#i-sparkles"/></svg></div><div class="label">Wiki</div></div>
+            <div class="more-tile"><div class="icon-wrap primary"><svg><use href="#i-bulb"/></svg></div><div class="label">Ideas</div></div>
+          </div>
+          <div class="section-head">INTELLIGENCE</div>
+          <div class="more-grid">
+            <div class="more-tile"><div class="icon-wrap primary"><svg><use href="#i-rocket"/></svg></div><div class="label">Workspace</div></div>
+            <div class="more-tile"><div class="icon-wrap secondary"><svg><use href="#i-folder"/></svg></div><div class="label">Codebase</div></div>
+            <div class="more-tile"><div class="icon-wrap tertiary"><svg><use href="#i-puzzle"/></svg></div><div class="label">Skills</div></div>
+            <div class="more-tile"><div class="icon-wrap primary"><svg><use href="#i-flash"/></svg></div><div class="label">Scheduler</div></div>
+          </div>
+          <div class="section-head">SYSTEM</div>
+          <div class="more-grid">
+            <div class="more-tile"><div class="icon-wrap tertiary"><svg><use href="#i-shield"/></svg></div><div class="label">Security</div></div>
+            <div class="more-tile"><div class="icon-wrap neutral"><svg><use href="#i-github"/></svg></div><div class="label">GitHub</div></div>
+            <div class="more-tile"><div class="icon-wrap primary"><svg><use href="#i-person"/></svg></div><div class="label">Profile</div></div>
+            <div class="more-tile"><div class="icon-wrap secondary"><svg><use href="#i-gear"/></svg></div><div class="label">Settings</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab active"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">More</div>
+    <div class="screen-sub">Grouped icon tiles: Memory · Intelligence · Insights · System.</div>
+  </div>
+
+  <!-- ====== SCREEN 7 — SKILLS ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="eyebrow">3 SKILLS</div><div class="title">Skill Creator</div></div></div>
+          <div class="right"><div style="width:34px;height:34px;border-radius:100px;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;"><svg style="width:18px;height:18px"><use href="#i-plus"/></svg></div></div>
+        </div>
+        <div class="scroll with-header">
+          <div class="card skill-card">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div class="skill-title">Cortex</div>
+              <span class="pill neutral"><svg><use href="#i-lock"/></svg>read-only</span>
+            </div>
+            <div class="skill-meta">cortex</div>
+            <div class="skill-desc">Save thoughts, fixes, and decisions to your developer's second brain so you can recall them with proactive context later.</div>
+            <div class="skill-meta">bob/skills/cortex/SKILL.md</div>
+            <div class="skill-actions">
+              <div class="skill-btn"><svg><use href="#i-info"/></svg>View</div>
+            </div>
+          </div>
+          <div class="card skill-card">
+            <div class="skill-title">Weekly Summary</div>
+            <div class="skill-meta">weekly-summary</div>
+            <div class="skill-desc">Generate a weekly summary of what I worked on, grouped by repo, with the top decisions and unfinished tasks called out.</div>
+            <div class="skill-meta">bob/skills/weekly-summary/SKILL.md</div>
+            <div class="skill-actions">
+              <div class="skill-btn"><svg><use href="#i-edit"/></svg>Edit</div>
+              <div class="skill-btn danger"><svg><use href="#i-trash"/></svg>Delete</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Skill Creator</div>
+    <div class="screen-sub">Author Bob skills from your phone. Reserved skills lock; user skills edit/delete.</div>
+  </div>
+
+  <!-- ====== SCREEN 8 — SECURITY ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="title">Security</div></div></div>
+          <div class="right">
+            <div style="display:flex;gap:2px;background:var(--surface-container);padding:2px;border-radius:100px;">
+              <div style="padding:4px 10px;font-family:var(--mono);font-size:11px;font-weight:600;border-radius:100px;color:var(--on-surface-variant);">1h</div>
+              <div style="padding:4px 10px;font-family:var(--mono);font-size:11px;font-weight:600;border-radius:100px;background:var(--primary);color:var(--on-primary);">24h</div>
+              <div style="padding:4px 10px;font-family:var(--mono);font-size:11px;font-weight:600;border-radius:100px;color:var(--on-surface-variant);">7d</div>
+            </div>
+          </div>
+        </div>
+        <div class="scroll with-header">
+          <div class="card primary">
+            <div class="hero-eyebrow">EVENTS · LAST 24h</div>
+            <div style="font-size:42px; font-weight:300; color:var(--on-surface); margin-top:6px; letter-spacing:-1px; line-height:1;">42</div>
+            <div style="margin-top:16px;">
+              <div class="bar-row"><div class="bar-pill" style="background:var(--primary-fixed);color:var(--primary);">skill.create</div><div class="bar-track"><div class="bar-fill" style="background:var(--primary);width:90%;"></div></div><div class="bar-count">18</div></div>
+              <div class="bar-row"><div class="bar-pill" style="background:var(--tertiary-fixed);color:var(--tertiary);">skill.update</div><div class="bar-track"><div class="bar-fill" style="background:var(--tertiary);width:65%;"></div></div><div class="bar-count">13</div></div>
+              <div class="bar-row"><div class="bar-pill" style="background:var(--error-container);color:var(--error);">skill.delete</div><div class="bar-track"><div class="bar-fill" style="background:var(--error);width:30%;"></div></div><div class="bar-count">6</div></div>
+              <div class="bar-row"><div class="bar-pill" style="background:var(--secondary-fixed);color:var(--secondary);">automation.fired</div><div class="bar-track"><div class="bar-fill" style="background:var(--secondary);width:25%;"></div></div><div class="bar-count">5</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="hero-eyebrow" style="margin-bottom:8px;">RECENT EVENTS</div>
+            <div style="display:flex; gap:8px; padding:8px 0; border-top:1px solid var(--surface-container);">
+              <div style="width:8px;height:8px;border-radius:4px;background:var(--primary);margin-top:6px;flex-shrink:0;"></div>
+              <div style="flex:1;">
+                <div style="display:flex; gap:6px;"><span style="font-family:var(--display);font-weight:600;font-size:14px;">skill.create</span><span style="font-family:var(--mono);font-size:11px;color:var(--outline);">weekly-summary</span></div>
+                <div style="font-family:var(--display);font-size:13px;color:var(--on-surface-variant);">user · 2m ago</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; padding:8px 0; border-top:1px solid var(--surface-container);">
+              <div style="width:8px;height:8px;border-radius:4px;background:var(--secondary);margin-top:6px;flex-shrink:0;"></div>
+              <div style="flex:1;">
+                <div style="display:flex; gap:6px;"><span style="font-family:var(--display);font-weight:600;font-size:14px;">automation.fired</span><span style="font-family:var(--mono);font-size:11px;color:var(--outline);">morning recall</span></div>
+                <div style="font-family:var(--display);font-size:13px;color:var(--on-surface-variant);">scheduler · 9h ago · queued recall</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Security · audit</div>
+    <div class="screen-sub">Sliding-window log of every state change. 1h / 24h / 7d toggle, top actions bar chart.</div>
+  </div>
+
+  <!-- ====== SCREEN 9 — SCHEDULER ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="eyebrow">07 · AUTOMATE</div><div class="title">Scheduler</div></div></div>
+          <div class="right"><div style="width:34px;height:34px;border-radius:100px;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;"><svg style="width:18px;height:18px"><use href="#i-plus"/></svg></div></div>
+        </div>
+        <div class="scroll with-header">
+          <div class="card primary">
+            <div class="hero-eyebrow">automate.</div>
+            <div style="font-family:var(--display); font-size:24px; font-weight:600; color:var(--on-primary-fixed); margin-top:4px;">3 automations</div>
+            <div style="display:flex; gap:8px; margin-top:16px;"><div class="btn"><svg><use href="#i-flash"/></svg>Run all due now</div></div>
+          </div>
+          <div class="section-head">AUTOMATIONS</div>
+          <div class="card list">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div class="entry-icon"><svg><use href="#i-sparkles"/></svg></div>
+              <div style="flex:1;">
+                <div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--on-surface);">Morning recall</div>
+                <div style="font-family:var(--mono);font-size:11px;color:var(--outline);">0 9 * * * · recall</div>
+                <div style="font-family:var(--display);font-size:13px;color:var(--on-surface-variant);margin-top:4px;">what did I work on yesterday</div>
+                <div style="display:flex;gap:8px;margin-top:6px;"><span class="pill neutral">12 runs</span><span style="font-family:var(--mono);font-size:11px;color:var(--outline);">last 9h ago</span></div>
+              </div>
+              <div style="width:48px; height:28px; border-radius:14px; background:var(--primary); position:relative;">
+                <div style="position:absolute; right:2px; top:2px; width:24px; height:24px; border-radius:12px; background:white;"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <div class="skill-btn"><svg><use href="#i-play"/></svg>Run now</div>
+              <div class="skill-btn danger"><svg><use href="#i-trash"/></svg>Delete</div>
+            </div>
+          </div>
+          <div class="card list">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div class="entry-icon secondary"><svg><use href="#i-doc"/></svg></div>
+              <div style="flex:1;">
+                <div style="font-family:var(--display);font-weight:600;font-size:14px;color:var(--on-surface);">Daily report</div>
+                <div style="font-family:var(--mono);font-size:11px;color:var(--outline);">0 17 * * * · report</div>
+                <div style="font-family:var(--display);font-size:13px;color:var(--on-surface-variant);margin-top:4px;">summary of today's diary</div>
+              </div>
+              <div style="width:48px; height:28px; border-radius:14px; background:var(--primary); position:relative;">
+                <div style="position:absolute; right:2px; top:2px; width:24px; height:24px; border-radius:12px; background:white;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Scheduler · cron</div>
+    <div class="screen-sub">Real cron expressions. notify / recall / report kinds. Manual "Run now" + Run-all-due.</div>
+  </div>
+
+  <!-- ====== SCREEN 10 — WORKSPACE ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header">
+          <div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="eyebrow">06 · THE HAND-OFF</div><div class="title">Workspace</div></div></div>
+          <div class="right"><span class="pill success"><svg><use href="#i-sparkles"/></svg>Granite RAG</span></div>
+        </div>
+        <div class="scroll with-header">
+          <div class="card primary">
+            <div class="hero-eyebrow">FROM PHONE TO BOB.</div>
+            <div style="font-family:var(--display); font-size:32px; font-weight:700; color:var(--on-primary-fixed); margin-top:6px; letter-spacing:-.025em; line-height:1.0;">In one tap.</div>
+            <div style="font-family:var(--display); font-size:14px; color:var(--on-primary-fixed); opacity:0.8; margin-top:8px; line-height:1.4;">Ask Granite over your diary. When the work needs IBM Bob, queue it with a tap — Bob picks up at the start of its next session.</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:16px;">
+              <div style="padding:8px 12px; background:var(--surface-lowest); border-radius:100px; font-family:var(--display); font-size:13px; font-weight:600; color:var(--primary);">Authentication</div>
+              <div style="padding:8px 12px; background:var(--surface-lowest); border-radius:100px; font-family:var(--display); font-size:13px; font-weight:600; color:var(--primary);">Recent fixes</div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="bubble user">
+              Refactor the payment module to use the new Stripe adapter.
+              <div style="display:inline-flex;align-items:center;gap:4px;background:#0062ff;color:white;padding:4px 12px;border-radius:100px;margin-top:8px;font-family:var(--display);font-size:12px;font-weight:600;">
+                <svg style="width:13px;height:13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 16.5 8.5-8.5L21 16.5"/><path d="m12 21 8.5-8.5"/></svg>
+                Sent to Bob
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Workspace · send to Bob</div>
+    <div class="screen-sub">Per-message escalation. The chip flips to "Sent to Bob" when queued.</div>
+  </div>
+
+  <!-- ====== SCREEN 11 — ONBOARDING ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="onb">
+          <div class="top"><div class="wm">cortex</div><div class="skip">Skip</div></div>
+          <div class="body">
+            <div class="layer-eyebrow">02 · REASONING</div>
+            <div class="icon-wrap secondary"><svg><use href="#i-sparkles"/></svg></div>
+            <div class="title">Recall by<br>intent.</div>
+            <div class="desc">IBM Granite reasons over your own diary, and shows you exactly where the answer came from.</div>
+          </div>
+          <div class="dots"><div class="dot"></div><div class="dot active"></div><div class="dot"></div></div>
+          <div class="cta"><span>Next</span><svg style="width:18px;height:18px;color:white"><use href="#i-chevron"/></svg></div>
+          <div class="footer-mark">Built on IBM Bob · Granite</div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Onboarding · 02</div>
+    <div class="screen-sub">Three slides: Memory · Reasoning · Action. Mirrors the cortex-deck.html narrative.</div>
+  </div>
+
+  <!-- ====== SCREEN 12 — SETTINGS · pair ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header"><div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="title">Settings</div></div></div></div>
+        <div class="scroll with-header">
+          <div class="section-head">CONNECTION</div>
+          <div class="card primary">
+            <div class="hero-eyebrow">ONE-CLICK</div>
+            <div style="font-family:var(--display); font-size:24px; font-weight:600; color:var(--on-primary-fixed); margin-top:4px; letter-spacing:-0.5px;">Scan to connect.</div>
+            <div style="font-family:var(--display); font-size:14px; color:var(--on-primary-fixed); opacity:0.8; margin-top:6px;">Run <code style="font-family:var(--mono)">make pair</code> on your Mac, then scan the QR here.</div>
+            <button class="btn full" style="margin-top:16px;"><svg><use href="#i-qr"/></svg>Open scanner</button>
+          </div>
+          <div class="card">
+            <div style="font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--outline); margin-bottom:8px;">OR ENTER MANUALLY</div>
+            <div class="field-label">API base URL</div>
+            <div class="field-input" style="margin-bottom:4px;">http://192.168.1.213:8080</div>
+            <div class="field-help">Use your computer's LAN IP — not "localhost".</div>
+            <div class="field-label" style="margin-top:16px;">Bearer token</div>
+            <div class="field-input" style="color:var(--outline);">••••••••••••••••</div>
+            <button class="btn full" style="margin-top:16px;"><svg><use href="#i-flash"/></svg>Save & test connection</button>
+            <div style="margin-top:16px; padding:12px; background:#defbe6; border-radius:12px; display:flex; gap:8px; align-items:flex-start;">
+              <svg style="width:20px;height:20px;color:var(--success);flex-shrink:0;"><use href="#i-check-circle"/></svg>
+              <div>
+                <div style="font-family:var(--display); font-weight:600; font-size:14px; color:var(--success);">Connected</div>
+                <div style="font-family:var(--display); font-size:13px; color:var(--success);">Connected · v0.2.0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Settings · connection</div>
+    <div class="screen-sub">Scan to connect (QR) or enter manually. Health check inline.</div>
+  </div>
+
+  <!-- ====== SCREEN 13 — SETTINGS · appearance + about ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header"><div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="title">Settings</div></div></div></div>
+        <div class="scroll with-header">
+          <div class="section-head">APPEARANCE</div>
+          <div class="card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+              <div style="font-family:var(--display); font-size:16px; color:var(--on-surface);">Theme</div>
+              <span class="pill primary">light mode</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <div style="flex:1; padding:10px 12px; background:var(--secondary-fixed); color:var(--secondary); border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; font-family:var(--display); font-weight:600; font-size:13px;"><svg style="width:14px;height:14px;color:currentColor"><use href="#i-phone"/></svg>Auto</div>
+              <div style="flex:1; padding:10px 12px; background:var(--primary); color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; font-family:var(--display); font-weight:600; font-size:13px;"><svg style="width:14px;height:14px;color:currentColor"><use href="#i-sun"/></svg>Light</div>
+              <div style="flex:1; padding:10px 12px; background:var(--secondary-fixed); color:var(--secondary); border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; font-family:var(--display); font-weight:600; font-size:13px;"><svg style="width:14px;height:14px;color:currentColor"><use href="#i-moon"/></svg>Dark</div>
+            </div>
+          </div>
+          <div class="section-head">ABOUT</div>
+          <div class="card">
+            <div style="font-family:var(--display); font-size:24px; font-weight:600; color:var(--on-surface); letter-spacing:-0.5px;">cortex</div>
+            <div style="font-family:var(--display); font-size:14px; color:var(--on-surface-variant); margin-top:2px;">your developer's second brain.</div>
+            <div style="height:1px; background:var(--outline-variant); margin:16px 0;"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;">
+              <div style="font-family:var(--display); font-size:14px; color:var(--on-surface-variant);">Version</div>
+              <div style="font-family:var(--mono); font-size:14px; color:var(--outline);">0.3.0</div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0;">
+              <div style="font-family:var(--display); font-size:14px; color:var(--on-surface-variant);">Built on</div>
+              <div style="font-family:var(--mono); font-size:14px; color:var(--outline);">IBM Bob · Granite</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Settings · appearance & about</div>
+    <div class="screen-sub">Light / Dark / System toggle. About card shows lowercase wordmark + tagline.</div>
+  </div>
+
+  <!-- ====== SCREEN 14 — PROFILE ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header"><div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="title">Profile</div></div></div><div class="right"><div class="icon-btn"><svg><use href="#i-edit"/></svg></div></div></div>
+        <div class="scroll with-header">
+          <div class="card primary">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div style="width:72px;height:72px;border-radius:32px;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:-1px;">AF</div>
+              <div style="flex:1;">
+                <div style="font-family:var(--display);font-size:24px;font-weight:700;color:var(--on-primary-fixed);letter-spacing:-0.5px;">Ahmed Farooqi</div>
+                <div style="font-family:var(--display);font-size:14px;color:var(--on-primary-fixed);opacity:0.7;">@ahmedf</div>
+              </div>
+            </div>
+            <div style="font-family:var(--display);font-size:14px;color:var(--on-primary-fixed);opacity:0.85;margin-top:16px;line-height:1.4;">Frontend lead on Cortex. Mobile-first design system, one-click pairing, demo deck.</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:16px;">
+              <span class="pill success"><svg><use href="#i-cloud-done"/></svg>API connected</span>
+              <span class="pill primary"><svg><use href="#i-leaf"/></svg>2 breaks today</span>
+            </div>
+          </div>
+          <div class="section-head">ACTIVITY</div>
+          <div class="stats-row">
+            <div class="stat-tile"><div class="bar" style="background:var(--primary)"></div><div class="num">28</div><div class="label">ENTRIES</div></div>
+            <div class="stat-tile"><div class="bar" style="background:var(--secondary)"></div><div class="num">7</div><div class="label">KINDS</div></div>
+            <div class="stat-tile"><div class="bar" style="background:var(--tertiary)"></div><div class="num">12</div><div class="label">TAGS</div></div>
+          </div>
+          <div class="section-head">TOP TAGS</div>
+          <div class="card list">
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              <span class="pill primary">#bob</span>
+              <span class="pill primary">#granite</span>
+              <span class="pill primary">#design-system</span>
+              <span class="pill primary">#scheduler</span>
+              <span class="pill primary">#mcp</span>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Profile</div>
+    <div class="screen-sub">Identity card, activity stats, top tags, quick links to Wellness / GitHub / Identity.</div>
+  </div>
+
+  <!-- ====== SCREEN 15 — TIMELINE ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header"><div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="eyebrow">28 ENTRIES</div><div class="title">Timeline</div></div></div></div>
+        <div class="scroll with-header">
+          <!-- chip row -->
+          <div style="display:flex; gap:6px; padding:4px 0; margin-bottom:8px;">
+            <div class="mode-chip active">all</div>
+            <div class="mode-chip">decision</div>
+            <div class="mode-chip">fix</div>
+            <div class="mode-chip">debug</div>
+            <div class="mode-chip">code</div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon"><svg><use href="#i-doc"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral">task</span><span class="entry-time">just now</span></div>
+                <div class="entry-text">Run <code>make smoke</code> once more and pair the phone with <code>make pair</code> before recording the video.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon error"><svg><use href="#i-bug"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral">debug</span><span class="entry-time">2h ago</span></div>
+                <div class="entry-text">scripts/start.py was hanging because EMBEDDINGS_PROVIDER=local loads sentence-transformers which then blocks…</div>
+                <div class="entry-time" style="margin-top:4px;">src/cortex-api/cortex_api/embeddings.py</div>
+                <div style="display:flex; gap:6px; margin-top:6px;"><span style="font-family:var(--mono);font-size:11px;color:var(--primary);">#bug-fix</span><span style="font-family:var(--mono);font-size:11px;color:var(--primary);">#embeddings</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card list">
+            <div class="entry-row">
+              <div class="entry-icon success"><svg><use href="#i-hammer"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral">fix</span><span class="entry-time">3h ago</span></div>
+                <div class="entry-text">ibm-granite/granite-3.1-2b-instruct-GGUF returns 401 — that repo isn't actually published. Switched to lmstudio-community's mirror.</div>
+                <div class="entry-time" style="margin-top:4px;">scripts/start.py</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Timeline</div>
+    <div class="screen-sub">Chronological list with kind filter chips. File paths + tags inline.</div>
+  </div>
+
+  <!-- ====== SCREEN 16 — WIKI ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header"><div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="eyebrow">07 · DOCUMENT</div><div class="title">Wiki</div></div></div></div>
+        <div class="scroll with-header">
+          <div class="card primary">
+            <div class="hero-eyebrow">document.</div>
+            <div style="font-family:var(--display); font-size:32px; font-weight:700; color:var(--on-primary-fixed); margin-top:4px; letter-spacing:-0.025em; line-height:1.05;">Auto-wiki, sourced from your diary.</div>
+            <div style="font-family:var(--display); font-size:13px; color:var(--on-primary-fixed); opacity:0.8; margin-top:8px;">Granite reads diary entries + indexed code, writes a markdown page.</div>
+          </div>
+          <div class="section-head">PAGES <span class="trail">Refresh</span></div>
+          <div class="card list">
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span class="pill primary"><svg><use href="#i-doc"/></svg>Concepts</span><span class="entry-time">2h ago</span></div>
+            <div style="font-family:var(--display);font-size:15px;font-weight:600;color:var(--on-surface);margin-top:6px;">Authentication architecture</div>
+            <div style="font-family:var(--display);font-size:13px;color:var(--on-surface-variant);margin-top:2px;line-height:1.4;">How AuthProvider hoists token state into context for the whole tree, and why hook-local state silently broke logins in v0.1.</div>
+          </div>
+          <div class="card list">
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span class="pill secondary"><svg><use href="#i-flash"/></svg>API Reference</span><span class="entry-time">yesterday</span></div>
+            <div style="font-family:var(--display);font-size:15px;font-weight:600;color:var(--on-surface);margin-top:6px;">POST /api/v1/entries</div>
+            <div style="font-family:var(--display);font-size:13px;color:var(--on-surface-variant);margin-top:2px;line-height:1.4;">Save a journal entry. Body: text, source, kind?, repo?, file?, line_start?, line_end?, tags?</div>
+          </div>
+          <div class="section-head">GENERATE WITH GRANITE</div>
+          <div class="card secondary">
+            <div class="field-input" style="background:var(--surface-lowest); margin-bottom:12px;">Topic — e.g. authentication architecture</div>
+            <button class="btn full"><svg><use href="#i-sparkles"/></svg>Generate</button>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Wiki</div>
+    <div class="screen-sub">Auto-generated markdown pages mirrored to docs/wiki/. Generate by topic.</div>
+  </div>
+
+  <!-- ====== SCREEN 17 — EXPLORER ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="header"><div class="left"><div class="back-btn"><svg><use href="#i-back"/></svg></div><div class="title-block"><div class="eyebrow">42 OF 50 INDEXED</div><div class="title">Codebase</div></div></div><div class="right"><div style="width:36px;height:36px;border-radius:18px;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;justify-content:center;"><svg style="width:18px;height:18px;"><use href="#i-flash"/></svg></div></div></div>
+        <div class="scroll with-header">
+          <div class="search-bar" style="margin-bottom:12px;"><svg><use href="#i-search"/></svg><input placeholder="Filter files…" /></div>
+          <div class="card list" style="padding:12px;">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="pill primary">src</span><div style="flex:1;font-family:var(--mono);font-size:13px;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">src/cortex-api/cortex_api/server.py</div><div style="font-family:var(--mono);font-size:11px;color:var(--outline);">412L</div></div>
+          </div>
+          <div class="card primary" style="padding:12px; border:1px solid var(--primary);">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="pill primary">src</span><div style="flex:1;font-family:var(--mono);font-size:13px;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">src/cortex-api/cortex_api/storage.py</div><div style="font-family:var(--mono);font-size:11px;color:var(--primary);">489L</div></div>
+          </div>
+          <div class="card list" style="padding:12px;">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="pill primary">src</span><div style="flex:1;font-family:var(--mono);font-size:13px;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">src/cortex-api/cortex_api/scheduler.py</div><div style="font-family:var(--mono);font-size:11px;color:var(--outline);">142L</div></div>
+          </div>
+          <div class="card list" style="padding:12px;">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="pill secondary">test</span><div style="flex:1;font-family:var(--mono);font-size:13px;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">tests/test_scheduler.py</div><div style="font-family:var(--mono);font-size:11px;color:var(--outline);">216L</div></div>
+          </div>
+          <div class="card list" style="padding:12px;">
+            <div style="display:flex;align-items:center;gap:8px;"><span class="pill tertiary">config</span><div style="flex:1;font-family:var(--mono);font-size:13px;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Makefile</div><div style="font-family:var(--mono);font-size:11px;color:var(--outline);">105L</div></div>
+          </div>
+        </div>
+        <!-- bottom detail panel -->
+        <div style="position:absolute; bottom:84px; left:0; right:0; padding:16px; background:var(--surface-lowest); border-top:1px solid var(--outline-variant); display:flex; flex-direction:column; gap:8px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--on-surface);">src/cortex-api/cortex_api/storage.py</div>
+          <div style="display:flex; gap:8px;">
+            <div style="flex:1; padding:10px 16px; background:var(--surface-container); border-radius:12px; color:var(--outline); font-family:var(--display); font-size:14px;">Ask Granite about this file…</div>
+            <div style="width:44px;height:44px;border-radius:22px;background:var(--secondary);color:white;display:flex;align-items:center;justify-content:center;"><svg style="width:18px;height:18px;"><use href="#i-sparkles"/></svg></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab"><svg><use href="#i-home"/></svg></div>
+          <div class="tab"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="screen-label">Codebase explorer</div>
+    <div class="screen-sub">Index any repo as embedded chunks. Pick a file, ask Granite scoped questions.</div>
+  </div>
+
+  <!-- ====== SCREEN 18 — TODAY · DARK MODE ====== -->
+  <div class="screen-wrap">
+    <div class="phone">
+      <div class="island"></div>
+      <div class="display dark-screen">
+        <div class="status"><span>9:41</span><div class="icons"><svg><use href="#i-cellular"/></svg><svg><use href="#i-wifi"/></svg><svg style="width:24px"><use href="#i-battery"/></svg></div></div>
+        <div class="scroll">
+          <div class="hero" style="background:#0f1736;">
+            <div class="hero-eyebrow" style="color:#b4c5ff;">cortex · sun, may 3</div>
+            <div class="hero-greet" style="color:#dbe1ff;">Good evening.</div>
+            <div class="hero-tag" style="color:#dbe1ff; opacity:.7;">Memory · Reasoning · Action.</div>
+            <div style="display:flex;gap:6px;margin-top:16px;">
+              <span class="pill success" style="background:rgba(25,128,56,.2); color:#62d491;"><svg><use href="#i-cloud-done"/></svg>API connected</span>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-tile" style="background:#0b0e16; border-color:#424656;"><div class="bar" style="background:var(--primary)"></div><div class="num" style="color:#e1e1ee;">28</div><div class="label" style="color:#8b8e9c;">ENTRIES</div></div>
+            <div class="stat-tile" style="background:#0b0e16; border-color:#424656;"><div class="bar" style="background:var(--secondary)"></div><div class="num" style="color:#e1e1ee;">7</div><div class="label" style="color:#8b8e9c;">KINDS</div></div>
+            <div class="stat-tile" style="background:#0b0e16; border-color:#424656;"><div class="bar" style="background:var(--tertiary)"></div><div class="num" style="color:#e1e1ee;">5</div><div class="label" style="color:#8b8e9c;">TODAY</div></div>
+          </div>
+          <div class="section-head" style="color:#c3c6d8;">RECENT <span class="trail" style="color:#b4c5ff;">See all</span></div>
+          <div class="card list" style="background:#0b0e16; border-color:#424656;">
+            <div class="entry-row">
+              <div class="entry-icon" style="background:rgba(0,76,202,.2);color:#b4c5ff;"><svg><use href="#i-doc"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral" style="background:#1d1f28;color:#c3c6d8;">task</span><span class="entry-time" style="color:#8b8e9c;">just now</span></div>
+                <div class="entry-text" style="color:#e1e1ee;">Run <code style="font-family:var(--mono)">make smoke</code> once more and pair the phone with <code style="font-family:var(--mono)">make pair</code>…</div>
+              </div>
+            </div>
+          </div>
+          <div class="card list" style="background:#0b0e16; border-color:#424656;">
+            <div class="entry-row">
+              <div class="entry-icon" style="background:rgba(115,27,229,.2);color:#d4bbff;"><svg><use href="#i-bulb"/></svg></div>
+              <div class="entry-body">
+                <div class="entry-meta"><span class="pill neutral" style="background:#1d1f28;color:#c3c6d8;">idea</span><span class="entry-time" style="color:#8b8e9c;">2h ago</span></div>
+                <div class="entry-text" style="color:#e1e1ee;">Future: agentic auto-capture — when Bob completes a task, mode rule 04 proposes a draft entry…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar" style="background:#0b0e16; border-top-color:#424656;">
+          <div class="tab active" style="color:var(--primary);"><svg><use href="#i-home"/></svg></div>
+          <div class="tab" style="color:#8b8e9c;"><svg><use href="#i-search"/></svg></div>
+          <div class="fab"><svg><use href="#i-plus"/></svg></div>
+          <div class="tab" style="color:#8b8e9c;"><svg><use href="#i-sparkles"/></svg></div>
+          <div class="tab" style="color:#8b8e9c;"><svg><use href="#i-apps"/></svg></div>
+        </div>
+        <div class="home-bar" style="background:#e1e1ee;"></div>
+      </div>
+    </div>
+    <div class="screen-label">Today · dark mode</div>
+    <div class="screen-sub">Same hierarchy, dark surfaces. Theme toggle in Settings → Appearance.</div>
+  </div>
+
+</div>
+
+</body>
+</html>
