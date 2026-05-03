@@ -2,6 +2,37 @@
 
 > Three-tier agent architecture · backend ↔ frontend sync · new design system from `theme.md`.
 
+## v0.3 status (as of latest commit)
+
+**Tests:** 113 passing (was 56 at the start of v0.3).
+
+| Area | Status | Where |
+|---|---|---|
+| Three-tier escalation queue (mobile → Bob) | ✅ Shipped | `pending_actions` table, 4 endpoints, `diary_pending_actions` MCP tool, `bob/rules-cortex/05-pending-actions.md`, `workspace.tsx` Send-to-Bob button |
+| Codebase indexer | ✅ Shipped | `cortex_api/codebase.py`, `POST /codebase/index`, `GET /codebase/files`, `GET /codebase/file`, `explorer.tsx` wired |
+| Granite `/analyze/code` | ✅ Shipped | `generate.analyze_code`, line-cited responses, fallback to vector recall |
+| Granite `/suggest/next` | ✅ Shipped | `generate.suggest_next`, 3 imperative actions cited by `[#id]` |
+| Wiki generation | ✅ Shipped | `cortex_api/wiki.py`, `POST /wiki/generate` (Granite), `GET /wiki`, `GET /wiki/{slug}`, mirrored to `docs/wiki/`, `wiki.tsx` wired |
+| Calendar aggregation | ✅ Shipped (backend) | `GET /calendar?month=` returns day grid; UI integration deferred (existing `calendar.tsx` is an event scheduler — different model) |
+| Skills CRUD | ✅ Shipped (backend) | `cortex_api/skills.py`, full CRUD, slug validation, reserved-slug protection, 9 endpoints |
+| Security audit log | ✅ Shipped (backend) | `audit_log` table, `GET /security/audit`, `GET /security/summary`, `skill.*` actions audited |
+| New theme tokens | ✅ Shipped | `cortex-mobile/src/constants/theme.ts` with Plus Jakarta Sans, primary `#004cca`, secondary purple `#731be5`, card radius 32, shadow presets |
+| 3 new mobile screens | ✅ Shipped | `app/workspace.tsx` · `app/explorer.tsx` · `app/wiki.tsx` |
+
+**Endpoints added in v0.3** (16 total): `/actions/queue`, `/actions/pending`, `/actions/all`, `DELETE /actions/{id}`, `/codebase/index`, `/codebase/files`, `/codebase/file`, `/analyze/code`, `/suggest/next`, `/wiki`, `/wiki/{slug}`, `/wiki/generate`, `/calendar`, `/skills` (4× CRUD), `/security/audit`, `/security/summary`. New MCP tool: `diary_pending_actions`. New Bob mode rule: `05-pending-actions.md`.
+
+**Mobile screens wired to real backend:** `workspace.tsx` (chat + queue), `explorer.tsx` (index + analyze), `wiki.tsx` (list + generate + view).
+
+**Mobile screens whose backend is now real but UI still shows demo data** (one-shot port pending — backend is the gate; this is a UI swap):
+- `app/skills.tsx` — uses `getDemoSkills` ; should call `apiListSkills/Create/Delete`
+- `app/security.tsx` — static markup ; should call `apiAuditLog/AuditSummary`
+- `app/calendar.tsx` — event scheduler, different data model than `/calendar` aggregation; left alone
+- `app/scheduler.tsx` — covered by existing `automations` CRUD; cron extension still pending
+
+**Phase D (deferred)** — light/dark toggle hook, onboarding carousel, theme refresh of older pages.
+
+
+
 ## 1 · Vision: three-tier agents
 
 ```
