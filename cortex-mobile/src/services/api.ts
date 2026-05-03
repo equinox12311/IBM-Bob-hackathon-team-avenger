@@ -332,6 +332,69 @@ export async function apiGenerateReport(days = 1): Promise<{
   return apiFetch(`/api/v1/generate/report?days=${days}`, {}, 60_000);
 }
 
+// ─── wiki (auto-generated docs) ─────────────────────────────────────────────
+
+export interface WikiPageSummary {
+  slug: string;
+  title: string;
+  updated_at: number;
+  tags: string[];
+  id: number;
+  preview: string;
+}
+
+export interface WikiPage {
+  slug: string;
+  title: string;
+  body: string;
+  updated_at: number;
+  id: number;
+  tags: string[];
+}
+
+export interface WikiGenerateResponse {
+  slug: string;
+  title: string;
+  body: string;
+  id: number;
+  created_at: number;
+  model: string;
+  diary_count: number;
+  code_count: number;
+  disk_path: string;
+}
+
+export async function apiListWiki(): Promise<{ pages: WikiPageSummary[] }> {
+  return apiFetch('/api/v1/wiki');
+}
+
+export async function apiGetWiki(slug: string): Promise<WikiPage> {
+  return apiFetch(`/api/v1/wiki/${encodeURIComponent(slug)}`);
+}
+
+export async function apiGenerateWiki(
+  topic: string,
+  sources?: ('entries' | 'code')[],
+): Promise<WikiGenerateResponse> {
+  return apiFetch('/api/v1/wiki/generate', {
+    method: 'POST',
+    body: JSON.stringify({ topic, sources }),
+  }, 180_000);
+}
+
+// ─── calendar aggregation ───────────────────────────────────────────────────
+
+export interface CalendarDay {
+  date: string;
+  count: number;
+  kinds: Record<string, number>;
+}
+
+export async function apiCalendar(month?: string): Promise<{ month: string; days: CalendarDay[] }> {
+  const q = month ? `?month=${encodeURIComponent(month)}` : '';
+  return apiFetch(`/api/v1/calendar${q}`);
+}
+
 // ─── codebase indexer + Granite analysis ────────────────────────────────────
 
 export interface IndexedFile {

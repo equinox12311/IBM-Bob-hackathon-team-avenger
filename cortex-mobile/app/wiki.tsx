@@ -2,8 +2,10 @@
 // Maps to the "Docs & Resources" mockup in theme.md (lines 1-293).
 
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +17,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TAB_BAR_HEIGHT } from "../src/constants/layout";
 import { Colors, Radius, Shadow, Spacing, Typography } from "../src/constants/theme";
+import {
+  apiGenerateWiki,
+  apiGetWiki,
+  apiListWiki,
+  isApiConfigured,
+  type WikiPageSummary,
+} from "../src/services/api";
 
 interface WikiPage {
   slug: string;
@@ -24,7 +33,24 @@ interface WikiPage {
   updatedRelative: string;
 }
 
-// Demo data until /api/v1/wiki lands.
+function pickCategory(tags: string[] | undefined, title: string): WikiPage["category"] {
+  const t = (tags ?? []).map((x) => x.toLowerCase());
+  if (t.includes("api") || /\bapi\b|endpoint|request/i.test(title)) return "api";
+  if (t.includes("guide") || /\bguide\b|setup|deploy|install/i.test(title)) return "guide";
+  return "wiki";
+}
+
+function relativeFromMs(ms: number): string {
+  const diff = Date.now() - ms;
+  const m = Math.round(diff / 60000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return `${d}d ago`;
+}
+
+// Demo data — replaced once apiListWiki returns real pages.
 const DEMO_PAGES: WikiPage[] = [
   {
     slug: "auth-architecture",
@@ -58,8 +84,81 @@ const CATEGORY_META = {
 export default function WikiScreen() {
   const [search, setSearch] = useState("");
   const [genTopic, setGenTopic] = useState("");
+  const [pages, setPages] = useState<WikiPage[]>(DEMO_PAGES);
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [openSlug, setOpenSlug] = useState<string | null>(null);
+  const [openBody, setOpenBody] = useState<string | null>(null);
 
-  const visible = DEMO_PAGES.filter(
+  useEffect(() => {
+    isApiConfigured().then(setConfigured);
+  }, []);
+
+  async function refresh() {
+    if (!configured) return;
+    try {
+      const r = await apiListWiki();
+      if (r.pages?.length) {
+        setPages(
+          r.pages.map((p: WikiPageSummary) => ({
+            slug: p.slug,
+            title: p.title,
+            category: pickCategory(p.tags, p.title),
+            excerpt: p.preview,
+            updatedRelative: relativeFromMs(p.updated_at),
+          })),
+        );
+      }
+    } catch {
+      /* keep demo */
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+  }, [configured]);
+
+  async function generate() {
+    const topic = genTopic.trim();
+    if (!topic) return;
+    if (!configured) {
+      Alert.alert(
+        "API not configured",
+        "Connect cortex-api in Profile to generate wiki pages with Granite.",
+      );
+      return;
+    }
+    setGenerating(true);
+    try {
+      const r = await apiGenerateWiki(topic);
+      Alert.alert(
+        "Generated",
+        `${r.title} — ${r.diary_count} diary, ${r.code_count} code chunks (${r.model})`,
+      );
+      setGenTopic("");
+      setOpenSlug(r.slug);
+      setOpenBody(r.body);
+      refresh();
+    } catch (e) {
+      Alert.alert("Generate failed", String(e));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function open(slug: string) {
+    setOpenSlug(slug);
+    setOpenBody(null);
+    if (!configured) return;
+    try {
+      const p = await apiGetWiki(slug);
+      setOpenBody(p.body);
+    } catch {
+      setOpenBody("(failed to load page)");
+    }
+  }
+
+  const visible = pages.filter(
     (p) =>
       !search ||
       p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -140,7 +239,11 @@ export default function WikiScreen() {
           {visible.map((p) => {
             const m = CATEGORY_META[p.category];
             return (
-              <TouchableOpacity key={p.slug} style={styles.recentItem}>
+              <TouchableOpacity
+                key={p.slug}
+                style={styles.recentItem}
+                onPress={() => open(p.slug)}
+              >
                 <Ionicons name={m.icon as any} size={20} color={Colors.outline} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.recentItemTitle}>{p.title}</Text>
@@ -175,13 +278,36 @@ export default function WikiScreen() {
             onChangeText={setGenTopic}
           />
           <TouchableOpacity
-            style={[styles.genBtn, !genTopic.trim() && { opacity: 0.4 }]}
-            disabled={!genTopic.trim()}
+            style={[styles.genBtn, (!genTopic.trim() || generating) && { opacity: 0.4 }]}
+            disabled={!genTopic.trim() || generating}
+            onPress={generate}
           >
-            <Ionicons name="sparkles" size={16} color={Colors.onPrimary} />
-            <Text style={styles.genBtnText}>Generate</Text>
+            {generating ? (
+              <ActivityIndicator size="small" color={Colors.onPrimary} />
+            ) : (
+              <Ionicons name="sparkles" size={16} color={Colors.onPrimary} />
+            )}
+            <Text style={styles.genBtnText}>{generating ? "Generating…" : "Generate"}</Text>
           </TouchableOpacity>
         </View>
+
+        {openSlug && (
+          <View style={styles.recent}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.md, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.surfaceVariant }}>
+              <Text style={styles.recentTitle}>{openSlug}</Text>
+              <TouchableOpacity onPress={() => { setOpenSlug(null); setOpenBody(null); }}>
+                <Ionicons name="close" size={20} color={Colors.outline} />
+              </TouchableOpacity>
+            </View>
+            {openBody ? (
+              <Text style={{ ...Typography.body, color: Colors.onSurface }}>
+                {openBody}
+              </Text>
+            ) : (
+              <ActivityIndicator color={Colors.primary} />
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

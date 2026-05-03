@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 
-from cortex_api import codebase, features, generate, llm, storage
+from cortex_api import codebase, features, generate, llm, storage, wiki
 from cortex_api.auth import AuthDep
 from cortex_api.config import settings
 from cortex_api.embeddings import get_provider
@@ -533,6 +533,89 @@ def suggest_next(limit: int = 20) -> dict:
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"LLM call failed: {exc}",
         )
+
+
+# ---------- wiki (auto-generated docs/wiki/) ------------------------------
+
+
+class WikiGenerateRequest(BaseModel):
+    topic: str
+    sources: list[str] | None = None
+
+
+@app.get("/api/v1/wiki", dependencies=[AuthDep])
+def wiki_list() -> dict:
+    return {"pages": wiki.list_pages()}
+
+
+@app.get("/api/v1/wiki/{slug}", dependencies=[AuthDep])
+def wiki_get(slug: str) -> dict:
+    page = wiki.get_page(slug)
+    if page is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"wiki page not found: {slug}")
+    return page
+
+
+@app.post("/api/v1/wiki/generate", dependencies=[AuthDep])
+def wiki_generate(req: WikiGenerateRequest) -> dict:
+    if not req.topic.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="topic required")
+    if not llm.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LLM_PROVIDER is 'off'.",
+        )
+    try:
+        return wiki.generate_page(req.topic.strip(), sources=req.sources)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM call failed: {exc}",
+        )
+
+
+# ---------- calendar aggregation ------------------------------------------
+
+
+@app.get("/api/v1/calendar", dependencies=[AuthDep])
+def calendar(month: str | None = None) -> dict:
+    """Return ``{days: [{date, count, kinds}]}`` for the given month (YYYY-MM)."""
+
+    from collections import Counter as _Counter
+    from datetime import datetime as _dt, timezone as _tz
+
+    today = _dt.now(_tz.utc).date()
+    if month:
+        try:
+            year, mon = (int(p) for p in month.split("-"))
+            if not (1 <= mon <= 12):
+                raise ValueError
+        except (ValueError, AttributeError):
+            raise HTTPException(status_code=400, detail="month must be YYYY-MM")
+    else:
+        year, mon = today.year, today.month
+
+    start = _dt(year, mon, 1, tzinfo=_tz.utc)
+    if mon == 12:
+        end = _dt(year + 1, 1, 1, tzinfo=_tz.utc)
+    else:
+        end = _dt(year, mon + 1, 1, tzinfo=_tz.utc)
+    start_ms = int(start.timestamp() * 1000)
+    end_ms = int(end.timestamp() * 1000)
+
+    entries = storage.list_recent(limit=10_000, since_ms=start_ms)
+    by_day: dict[str, _Counter] = {}
+    for e in entries:
+        if e.created_at >= end_ms:
+            continue
+        day = _dt.fromtimestamp(e.created_at / 1000, tz=_tz.utc).date().isoformat()
+        by_day.setdefault(day, _Counter())[e.kind] += 1
+
+    days = [
+        {"date": d, "count": sum(c.values()), "kinds": dict(c)}
+        for d, c in sorted(by_day.items())
+    ]
+    return {"month": f"{year:04d}-{mon:02d}", "days": days}
 
 
 # ---------- Productivity Metrics endpoints ----------------------------------
