@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from contextlib import asynccontextmanager
 from typing import Any, List
 
@@ -39,6 +40,20 @@ from cortex_api.secrets import detect_secrets
 log = logging.getLogger(__name__)
 
 
+# ─── Error sanitization helper ───────────────────────────────────────────────
+
+def _sanitize_error(exc: Exception, user_message: str) -> str:
+    """Return safe error message for production; log full details internally.
+    
+    In development mode (reload=True), returns full error details.
+    In production mode, returns only the user-friendly message and logs the exception.
+    """
+    log.error(f"{user_message}: {exc}", exc_info=True)
+    if settings.reload:  # Development mode - show full errors
+        return f"{user_message}: {exc}"
+    return user_message  # Production - generic message only
+
+
 # ─── Security headers middleware ─────────────────────────────────────────────
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -65,6 +80,50 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "max-age=31536000; includeSubDomains"
             )
         return response
+
+
+# ─── CSRF protection middleware ──────────────────────────────────────────────
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    """Validate CSRF tokens on state-changing requests (POST, PATCH, DELETE).
+    
+    Skipped in development mode (reload=True) for easier testing.
+    Skipped for safe methods (GET, HEAD, OPTIONS) and health check endpoint.
+    """
+    
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
+        # Skip CSRF validation for safe HTTP methods
+        if request.method in ("GET", "HEAD", "OPTIONS"):
+            return await call_next(request)
+        
+        # Skip health check endpoint
+        if request.url.path == "/health":
+            return await call_next(request)
+        
+        # Skip in development mode for easier testing
+        if settings.reload:
+            return await call_next(request)
+        
+        # Validate CSRF token presence and format
+        csrf_token = request.headers.get("X-CSRF-Token")
+        if not csrf_token:
+            log.warning(f"CSRF token missing for {request.method} {request.url.path} from {_get_client_ip(request)}")
+            return Response(
+                content='{"detail":"CSRF token required for state-changing requests"}',
+                status_code=status.HTTP_403_FORBIDDEN,
+                media_type="application/json"
+            )
+        
+        # Validate token format (alphanumeric, hyphens, underscores, min 32 chars)
+        if len(csrf_token) < 32 or not re.match(r'^[a-zA-Z0-9_-]+$', csrf_token):
+            log.warning(f"Invalid CSRF token format for {request.method} {request.url.path} from {_get_client_ip(request)}")
+            return Response(
+                content='{"detail":"Invalid CSRF token format"}',
+                status_code=status.HTTP_403_FORBIDDEN,
+                media_type="application/json"
+            )
+        
+        return await call_next(request)
 
 
 # ─── Rate limiting (server-side, in-memory sliding window) ───────────────────
@@ -140,6 +199,9 @@ app = FastAPI(title="cortex-api", version="0.2.0", lifespan=lifespan)
 
 # ── Security headers (must be added before CORS) ──────────────────────────────
 app.add_middleware(SecurityHeadersMiddleware)
+
+# ── CSRF protection (must be added before CORS) ───────────────────────────────
+app.add_middleware(CSRFMiddleware)
 
 # ── CORS — tightened for production (OWASP Phase 2) ──────────────────────────
 allowed_origins = ["*"] if settings.reload else [
@@ -1035,9 +1097,10 @@ def chat(req: ChatRequest, request: Request) -> dict[str, Any]:
     try:
         return generate.chat(query=req.query, k=req.k)
     except Exception as exc:
+        detail = _sanitize_error(exc, "LLM service temporarily unavailable")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"LLM call failed: {exc}",
+            detail=detail,
         )
 
 
@@ -1053,9 +1116,10 @@ def generate_summary(entry_id: int) -> dict[str, str]:
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     except Exception as exc:
+        detail = _sanitize_error(exc, "Summary generation failed")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"LLM call failed: {exc}",
+            detail=detail,
         )
 
 
@@ -1069,7 +1133,8 @@ def generate_report(days: int = 1) -> dict[str, Any]:
     try:
         return generate.daily_report_narrative(days=days)
     except Exception as exc:
+        detail = _sanitize_error(exc, "Report generation failed")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"LLM call failed: {exc}",
+            detail=detail,
         )

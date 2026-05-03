@@ -1,9 +1,12 @@
 """Environment-driven configuration for cortex-api."""
 
+import logging
 from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+log = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -19,6 +22,24 @@ class Settings(BaseSettings):
 
     diary_token: str = "replace-me-with-a-long-random-string"
     diary_db_path: Path = Path("data/diary.db")
+    
+    def model_post_init(self, __context) -> None:
+        """Validate security-critical settings after initialization."""
+        # In production mode, reject insecure default token
+        if not self.reload and self.diary_token == "replace-me-with-a-long-random-string":
+            raise ValueError(
+                "DIARY_TOKEN must be changed from default value in production mode. "
+                "Generate a secure token with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
+        
+        # Warn if token is too short (but don't fail - allow for testing)
+        if len(self.diary_token) < 32:
+            log.warning(
+                "DIARY_TOKEN is shorter than recommended 32 characters. "
+                "Current length: %d. Generate a secure token with: "
+                "python -c 'import secrets; print(secrets.token_urlsafe(32))'",
+                len(self.diary_token)
+            )
 
     embeddings_provider: Literal["watsonx", "local", "fake"] = "local"
     llm_provider: Literal["watsonx", "local", "off"] = "off"
