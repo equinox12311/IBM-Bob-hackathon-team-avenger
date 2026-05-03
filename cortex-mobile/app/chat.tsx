@@ -1,9 +1,11 @@
 /**
- * AI Chat — Granite 3.3:2b via Ollama
- * Input bar is OUTSIDE KeyboardAvoidingView so it's always visible on Android.
+ * Ask — Granite chat. Uses cortex-api /chat (RAG with citations) when
+ * connected, otherwise Ollama local fallback. The status pill quietly
+ * tells the user which backend is responding.
  */
+
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,12 +21,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Header, IconButton, Pill } from '../src/components/ui';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Spacing } from '../src/constants/theme';
-import { clearConversation, getConversationHistory } from '../src/services/database';
-import { chat, checkOllamaHealth, getOllamaHost } from '../src/services/llm';
-import { buildLLMContext } from '../src/services/memory';
+import { Radius, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { apiChat, isApiConfigured } from '../src/services/api';
+import { clearConversation, getConversationHistory } from '../src/services/database';
+import { chat, checkOllamaHealth } from '../src/services/llm';
+import { buildLLMContext } from '../src/services/memory';
 
 interface UIMessage {
   id: string;
@@ -41,48 +46,45 @@ const QUICK_PROMPTS = [
 ];
 
 export default function ChatScreen() {
-  const router = useRouter();
+  const { Colors } = useThemeMode();
+
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [llmOnline, setLlmOnline] = useState<boolean | null>(null);
-  const [llmHost, setLlmHost] = useState('');
   const [apiEnabled, setApiEnabled] = useState(false);
-  const [useBackendRag, setUseBackendRag] = useState(false);
+  const [localOnline, setLocalOnline] = useState<boolean | null>(null);
   const flatListRef = useRef<FlatList>(null);
-  const inputRef = useRef<TextInput>(null);
-
-  const checkStatus = useCallback(async () => {
-    const host = await getOllamaHost();
-    setLlmHost(host);
-    if (!host) { setLlmOnline(false); return; }
-    const { online } = await checkOllamaHealth();
-    setLlmOnline(online);
-  }, []);
 
   const loadHistory = useCallback(async () => {
     const history = await getConversationHistory(20);
-    setMessages(history.map(m => ({
-      id: String(m.id),
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    })));
+    setMessages(
+      history.map((m) => ({
+        id: String(m.id),
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+    );
   }, []);
 
-  useFocusEffect(useCallback(() => {
-    loadHistory();
-    checkStatus();
-    isApiConfigured().then(ok => {
-      setApiEnabled(ok);
-      // Use backend RAG if API is configured (better quality with citations)
-      setUseBackendRag(ok);
-    });
-  }, [loadHistory, checkStatus]));
+  const refreshStatus = useCallback(async () => {
+    const ok = await isApiConfigured();
+    setApiEnabled(ok);
+    if (ok) { setLocalOnline(null); return; }
+    const { online } = await checkOllamaHealth();
+    setLocalOnline(online);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadHistory();
+      refreshStatus();
+    }, [loadHistory, refreshStatus]),
+  );
 
   const scrollToBottom = () =>
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
 
-  const sendMessage = async (text?: string) => {
+  const send = async (text?: string) => {
     const userText = (text ?? input).trim();
     if (!userText || isStreaming) return;
     Keyboard.dismiss();
@@ -91,77 +93,103 @@ export default function ChatScreen() {
     const userMsg: UIMessage = { id: `u-${Date.now()}`, role: 'user', content: userText };
     const aId = `a-${Date.now()}`;
     const aMsg: UIMessage = { id: aId, role: 'assistant', content: '', streaming: true };
-
-    setMessages(prev => [...prev, userMsg, aMsg]);
+    setMessages((prev) => [...prev, userMsg, aMsg]);
     setIsStreaming(true);
     scrollToBottom();
 
-    const ctx = await buildLLMContext(userText);
-
-    // Use backend RAG (/api/v1/chat) if API is configured — gives citations
-    if (useBackendRag) {
+    // Backend RAG path (preferred — has citations)
+    if (apiEnabled) {
       try {
         const res = await apiChat(userText, 5);
-        const fullText = res.answer + (res.citations?.length
-          ? '\n\n**Sources:**\n' + res.citations.map(c => `• #${c.id}: ${c.text.slice(0, 60)}…`).join('\n')
-          : '');
-        setMessages(prev => prev.map(m =>
-          m.id === aId ? { ...m, content: fullText, streaming: false } : m
-        ));
+        const cites = res.citations?.length
+          ? '\n\n— citations: ' + res.citations.map((c) => `#${c.id}`).join(', ')
+          : '';
+        const full = res.answer + cites;
+        setMessages((p) => p.map((m) => (m.id === aId ? { ...m, content: full, streaming: false } : m)));
         setIsStreaming(false);
-        setLlmOnline(true);
         return;
-      } catch {
-        // Fall through to Ollama
-      }
+      } catch { /* fall through to local */ }
     }
 
-    // Ollama local chat
+    // Local Ollama fallback
+    const ctx = await buildLLMContext(userText);
     await chat(
       userText, ctx,
-      token => {
-        setMessages(prev => prev.map(m => m.id === aId ? { ...m, content: m.content + token } : m));
+      (token) => {
+        setMessages((p) =>
+          p.map((m) => (m.id === aId ? { ...m, content: m.content + token } : m)),
+        );
         scrollToBottom();
       },
-      _full => {
-        setMessages(prev => prev.map(m => m.id === aId ? { ...m, streaming: false } : m));
+      () => {
+        setMessages((p) => p.map((m) => (m.id === aId ? { ...m, streaming: false } : m)));
         setIsStreaming(false);
-        setLlmOnline(true);
+        setLocalOnline(true);
       },
-      err => {
-        setMessages(prev => prev.map(m =>
-          m.id === aId ? { ...m, content: `⚠️ ${err}\n\nGo to Profile → AI Settings.`, streaming: false } : m
-        ));
+      (err) => {
+        setMessages((p) =>
+          p.map((m) =>
+            m.id === aId
+              ? {
+                  ...m,
+                  content: `Couldn't reach a model.\n\n${err}\n\nConnect cortex-api in Settings, or run a local Ollama with granite3.3:2b.`,
+                  streaming: false,
+                }
+              : m,
+          ),
+        );
         setIsStreaming(false);
-        setLlmOnline(false);
-      }
+        setLocalOnline(false);
+      },
     );
   };
 
-  const handleClear = () =>
-    Alert.alert('Clear chat', 'Delete all history?', [
+  const clearAll = () =>
+    Alert.alert('Clear chat?', 'This deletes all conversation history.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: async () => { await clearConversation(); setMessages([]); } },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: async () => { await clearConversation(); setMessages([]); },
+      },
     ]);
 
-  const statusColor = llmOnline === true ? Colors.llmOnline
-    : llmOnline === false ? Colors.llmOffline : Colors.llmLoading;
+  const statusPill = apiEnabled
+    ? <Pill label="Granite RAG" tone="success" icon="sparkles" />
+    : localOnline === true
+    ? <Pill label="Local · Granite 2B" tone="primary" dot />
+    : localOnline === false
+    ? <Pill label="No model" tone="warning" dot />
+    : <Pill label="Checking…" tone="neutral" />;
 
   const renderMessage = ({ item }: { item: UIMessage }) => {
     const isUser = item.role === 'user';
     return (
-      <View style={[S.row, isUser && S.rowUser]}>
+      <View style={[s.row, isUser && s.rowUser]}>
         {!isUser && (
-          <View style={S.avatar}>
-            <Ionicons name="hardware-chip-outline" size={14} color={Colors.primary} />
+          <View style={[s.avatar, { backgroundColor: Colors.primaryFixed }]}>
+            <Ionicons name="sparkles" size={14} color={Colors.primary} />
           </View>
         )}
-        <View style={[S.bubble, isUser ? S.bubbleUser : S.bubbleAI]}>
+        <View
+          style={[
+            s.bubble,
+            isUser
+              ? { backgroundColor: Colors.primary }
+              : { backgroundColor: Colors.surfaceContainer },
+          ]}
+        >
           {item.streaming && item.content === '' ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
+            <ActivityIndicator size="small" color={isUser ? Colors.onPrimary : Colors.primary} />
           ) : (
-            <Text style={[S.bubbleText, isUser && S.bubbleTextUser]}>
-              {item.content}{item.streaming ? ' ▋' : ''}
+            <Text
+              style={[
+                Typography.body,
+                { color: isUser ? Colors.onPrimary : Colors.onSurface },
+              ]}
+            >
+              {item.content}
+              {item.streaming ? ' ▋' : ''}
             </Text>
           )}
         </View>
@@ -170,61 +198,46 @@ export default function ChatScreen() {
   };
 
   return (
-    // edges={['top']} only — bottom is handled manually so input stays above tab bar
-    <SafeAreaView style={S.safe} edges={['top']}>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top']}>
+      <Header
+        title="Ask"
+        eyebrow="Granite"
+        right={
+          <>
+            {statusPill}
+            <IconButton icon="refresh-outline" onPress={refreshStatus} size="sm" />
+            <IconButton icon="trash-outline" onPress={clearAll} size="sm" />
+          </>
+        }
+      />
 
-      {/* ── Header ── */}
-      <View style={S.header}>
-        <View style={S.hLeft}>
-          <View style={[S.chip2, {
-            backgroundColor: llmOnline ? '#defbe6' : llmOnline === null ? '#fffbeb' : '#fff1f2',
-          }]}>
-            <Ionicons name="hardware-chip-outline" size={16} color={statusColor} />
-          </View>
-          <View>
-            <Text style={S.hTitle}>Granite 3.3:2b</Text>
-            <TouchableOpacity onPress={checkStatus}>
-              <Text style={[S.hStatus, { color: statusColor }]}>
-                {llmOnline === null ? '● Checking…' : llmOnline ? (useBackendRag ? '● RAG via API' : '● Online') : llmHost ? '● Offline' : '● Not configured'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={S.hRight}>
-          <TouchableOpacity onPress={checkStatus} style={S.hBtn}>
-            <Ionicons name="refresh-outline" size={20} color={Colors.onSurfaceVariant} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleClear} style={S.hBtn}>
-            <Ionicons name="trash-outline" size={20} color={Colors.onSurfaceVariant} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ── Offline banner ── */}
-      {llmOnline === false && (
-        <TouchableOpacity style={S.banner} onPress={() => router.push('/profile')} activeOpacity={0.8}>
-          <Ionicons name="warning-outline" size={14} color="#7a3800" />
-          <Text style={S.bannerTxt}>
-            {llmHost ? `Cannot reach ${llmHost}` : 'No host set'} — tap to fix
-          </Text>
-          <Ionicons name="chevron-forward" size={14} color="#7a3800" />
-        </TouchableOpacity>
-      )}
-
-      {/* ── Messages ── fills all space between header and input ── */}
-      <View style={S.msgArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
         {messages.length === 0 ? (
-          <View style={S.empty}>
-            <View style={S.emptyIcon}>
-              <Ionicons name="hardware-chip-outline" size={32} color={Colors.primary} />
+          <View style={s.emptyWrap}>
+            <View style={[s.emptyIcon, { backgroundColor: Colors.primaryFixed }]}>
+              <Ionicons name="sparkles" size={28} color={Colors.primary} />
             </View>
-            <Text style={S.emptyTitle}>Ask Cortex anything</Text>
-            <Text style={S.emptySub}>Granite 3.3:2b · on your local network</Text>
-            <View style={S.quickList}>
-              {QUICK_PROMPTS.map(p => (
-                <TouchableOpacity key={p} style={S.quickItem} onPress={() => sendMessage(p)} activeOpacity={0.75}>
-                  <Ionicons name="flash-outline" size={13} color={Colors.primary} />
-                  <Text style={S.quickTxt}>{p}</Text>
+            <Text style={[Typography.h3, { color: Colors.onSurface, textAlign: 'center' }]}>
+              Ask Granite anything from your diary.
+            </Text>
+            <Text style={[Typography.body, { color: Colors.onSurfaceVariant, textAlign: 'center', maxWidth: 320 }]}>
+              {apiEnabled
+                ? 'Cortex-api will retrieve the relevant entries and Granite will answer with citations.'
+                : 'Connect cortex-api in Settings for grounded answers, or run Granite locally.'}
+            </Text>
+            <View style={s.quickRow}>
+              {QUICK_PROMPTS.map((p) => (
+                <TouchableOpacity
+                  key={p}
+                  activeOpacity={0.85}
+                  onPress={() => send(p)}
+                  style={[s.quickChip, { backgroundColor: Colors.surfaceContainerLowest, borderColor: Colors.outlineVariant }]}
+                >
+                  <Text style={[Typography.bodySm, { color: Colors.onSurface }]}>{p}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -233,148 +246,118 @@ export default function ChatScreen() {
           <FlatList
             ref={flatListRef}
             data={messages}
-            keyExtractor={m => m.id}
             renderItem={renderMessage}
-            contentContainerStyle={S.list}
-            onContentSizeChange={scrollToBottom}
-            showsVerticalScrollIndicator={false}
+            keyExtractor={(i) => i.id}
+            contentContainerStyle={{ padding: Spacing.md, gap: Spacing.sm }}
             keyboardShouldPersistTaps="handled"
           />
         )}
-      </View>
 
-      {/* ── Input bar — FIXED above tab bar, never hidden ── */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? TAB_BAR_HEIGHT + 10 : 0}
-      >
-        <View style={S.inputOuter}>
-          <View style={S.inputInner}>
-            <TextInput
-              ref={inputRef}
-              style={S.input}
-              placeholder="Type a message…"
-              placeholderTextColor="#737687"
-              value={input}
-              onChangeText={setInput}
-              multiline
-              maxLength={2000}
-              returnKeyType="default"
-              blurOnSubmit={false}
-              editable={!isStreaming}
-            />
-            <TouchableOpacity
-              style={[S.sendBtn, (!input.trim() || isStreaming) && S.sendOff]}
-              onPress={() => sendMessage()}
-              disabled={!input.trim() || isStreaming}
-              activeOpacity={0.85}
-            >
-              {isStreaming
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Ionicons name="send" size={18} color="#fff" />
-              }
-            </TouchableOpacity>
-          </View>
+        {/* Input bar */}
+        <View
+          style={[
+            s.inputBar,
+            {
+              backgroundColor: Colors.surfaceContainerLowest,
+              borderTopColor: Colors.outlineVariant,
+              paddingBottom: TAB_BAR_HEIGHT + Spacing.sm,
+            },
+          ]}
+        >
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="Ask Cortex…"
+            placeholderTextColor={Colors.outline}
+            multiline
+            style={[
+              s.input,
+              { backgroundColor: Colors.surfaceContainer, color: Colors.onSurface },
+            ]}
+          />
+          <TouchableOpacity
+            disabled={isStreaming || !input.trim()}
+            onPress={() => send()}
+            style={[
+              s.sendBtn,
+              {
+                backgroundColor: input.trim() ? Colors.primary : Colors.surfaceContainerHigh,
+                opacity: isStreaming ? 0.5 : 1,
+              },
+            ]}
+          >
+            {isStreaming ? (
+              <ActivityIndicator color={Colors.onPrimary} size="small" />
+            ) : (
+              <Ionicons
+                name="arrow-up"
+                size={18}
+                color={input.trim() ? Colors.onPrimary : Colors.outline}
+              />
+            )}
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-
-      {/* Space so content doesn't hide behind tab bar */}
-      <View style={{ height: TAB_BAR_HEIGHT }} />
-
     </SafeAreaView>
   );
 }
 
-const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
+const s = StyleSheet.create({
+  safe: { flex: 1 },
 
-  /* Header */
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#c3c6d8',
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.md,
   },
-  hLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  hRight: { flexDirection: 'row' },
-  chip2: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  hTitle: { fontSize: 14, fontWeight: '700', color: '#191b24' },
-  hStatus: { fontSize: 11, fontWeight: '600', marginTop: 1 },
-  hBtn: { padding: 8 },
-
-  /* Banner */
-  banner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#fff7ed', borderBottomWidth: 1, borderBottomColor: '#fed7aa',
-    paddingHorizontal: 16, paddingVertical: 8,
-  },
-  bannerTxt: { flex: 1, fontSize: 12, color: '#7a3800' },
-
-  /* Message area */
-  msgArea: { flex: 1 },
-  list: { padding: 14, paddingBottom: 8 },
-  row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 10 },
-  rowUser: { flexDirection: 'row-reverse' },
-  avatar: {
-    width: 26, height: 26, borderRadius: 13,
-    backgroundColor: '#dbe1ff', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  bubble: { maxWidth: '78%', borderRadius: 18, paddingVertical: 10, paddingHorizontal: 14 },
-  bubbleUser: { backgroundColor: '#004ccd', borderBottomRightRadius: 4 },
-  bubbleAI: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#c3c6d8', borderBottomLeftRadius: 4 },
-  bubbleText: { fontSize: 14, color: '#191b24', lineHeight: 22 },
-  bubbleTextUser: { color: '#fff' },
-
-  /* Empty state */
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   emptyIcon: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: '#dbe1ff', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+    width: 72, height: 72, borderRadius: 36,
+    alignItems: 'center', justifyContent: 'center',
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },
-  emptySub: { fontSize: 13, color: '#424656', marginTop: 5, textAlign: 'center' },
-  quickList: { marginTop: 18, width: '100%', gap: 8 },
-  quickItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#fff', borderWidth: 1, borderColor: '#c3c6d8',
-    borderRadius: 10, paddingVertical: 11, paddingHorizontal: 14,
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, justifyContent: 'center', marginTop: Spacing.sm },
+  quickChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.chip,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  quickTxt: { fontSize: 14, color: '#004ccd', fontWeight: '500' },
 
-  /* ── Input bar ── */
-  inputOuter: {
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#c3c6d8',
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 10,
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm, maxWidth: '92%' },
+  rowUser: { alignSelf: 'flex-end', flexDirection: 'row-reverse' },
+  avatar: {
+    width: 28, height: 28, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center',
   },
-  inputInner: {
+  bubble: {
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.lg,
+    maxWidth: '88%',
+  },
+
+  inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#f2f3ff',
-    borderRadius: 26,
-    borderWidth: 1,
-    borderColor: '#c3c6d8',
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingVertical: 6,
-    minHeight: 50,
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   input: {
     flex: 1,
-    fontSize: 15,
-    color: '#191b24',
     maxHeight: 120,
-    paddingTop: 6,
-    paddingBottom: 6,
-    lineHeight: 22,
+    minHeight: 40,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.input,
+    ...Typography.body,
   },
   sendBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#004ccd',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-    marginBottom: 1,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sendOff: { opacity: 0.3 },
 });

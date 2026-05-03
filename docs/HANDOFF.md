@@ -254,6 +254,57 @@ apiRunAutomationNow(id), apiTickScheduler()
 
 ---
 
+## Design system — `src/components/ui/`
+
+**This is the path forward.** Every screen should compose from these primitives instead of hand-rolling layouts. They consume `useThemeMode().Colors` internally, so dark mode propagates automatically.
+
+```ts
+import {
+  Screen, Header, Card, Button, Pill,
+  EmptyState, Section, IconButton, StatusBanner,
+} from '../src/components/ui';
+```
+
+| Primitive | What it's for |
+|---|---|
+| `<Screen>` | Page wrapper. SafeArea + tab-bar padding + theme bg + optional pull-to-refresh. |
+| `<Header>` | Top bar with back button, title, eyebrow, right-side actions slot. |
+| `<Card>` | Surfaces. Variants: `surface` `primary` `secondary` `tertiary` `outlined`. Sizes: `hero` (radius 32) / `list` (radius 12). |
+| `<Button>` | Primary / secondary / ghost / danger / outlined. With icon support. |
+| `<Pill>` | Inline status chip. Tones: `primary` `success` `warning` `error` `secondary` `neutral`. |
+| `<EmptyState>` | Friendly empty/blocked state. Always include this when a list could be empty or a feature is gated. |
+| `<Section>` | Labelled vertical group with eyebrow + optional trailing CTA. |
+| `<IconButton>` | Circular icon-only button — for headers, FABs. |
+| `<StatusBanner>` | Inline info/success/warning/error banner with optional CTA. |
+
+### Migration recipe (legacy screen → design system)
+
+For the remaining un-migrated screens (`bob.tsx`, `wellness.tsx`, `analytics.tsx`, `automations.tsx`, `calendar.tsx`, `debug.tsx`, `github.tsx`, `ideas.tsx`, `identity.tsx`, `news.tsx`, `report.tsx`, `scheduler.tsx`, `timeline.tsx`, `wiki.tsx`, `workspace.tsx`, `explorer.tsx`, `entry/[id].tsx`, `profile.tsx`, `skills.tsx`, `security.tsx`, `onboarding.tsx`):
+
+1. **Replace** `import { Colors, ... } from '../src/constants/theme';` →  
+   `import { useThemeMode } from '../src/hooks/useThemeMode';` and read `const { Colors } = useThemeMode();` inside the component.
+2. **Wrap** outer SafeAreaView in `<Screen>` and the header row in `<Header>`.
+3. **Replace** ad-hoc list cards / surfaces with `<Card variant="surface" size="list">`.
+4. **Move** `Colors.x` references out of `StyleSheet.create` (they're captured statically) into inline styles or apply them to elements directly. Static tokens (`Spacing`, `Radius`, `Typography`) can stay in StyleSheet.
+5. **Replace** every "no data / not configured" block with `<EmptyState>`.
+6. **Replace** every status badge with `<Pill>`.
+
+A migrated screen should have **zero** hardcoded hex codes in its file (everything comes from `Colors`), and its StyleSheet should reference *only* `Spacing`, `Radius`, and dimensional values — never colors.
+
+### Already migrated (use as references)
+
+`index.tsx`, `search.tsx`, `more.tsx`, `capture.tsx`, `chat.tsx`, `settings.tsx`. These show the canonical pattern.
+
+### Nav bar
+
+`_layout.tsx` is the source of truth for the tab bar:
+- 4 tabs (Today / Search / Ask / More) — icons-only, no labels.
+- A center FAB (Capture) hangs above the tab bar.
+- All other screens are registered with `href: null` so they're routable but hidden from the tabs.
+- Fonts are loaded with `useFonts` at the root; the layout returns `null` until fonts are ready, which fixes the "upside-down triangle" Ionicons bug.
+
+---
+
 ## What's left (good pickup tasks)
 
 In rough priority order:

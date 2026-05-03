@@ -1,11 +1,14 @@
 /**
- * Capture — create entries with all kinds, AI auto-tag, saves to API + local DB.
+ * Capture — fast entry creation. Hit the FAB → land here → type → save.
+ *
+ * Saves to cortex-api when configured, otherwise local sqlite. Auto-tag is
+ * a one-tap suggestion that uses the local LLM (or watsonx via the API).
  */
+
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -16,36 +19,33 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Spacing, Typography } from '../src/constants/theme';
+
+import { Button, Header, Pill, Screen, Section } from '../src/components/ui';
+import { Radius, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
+import { apiCreateEntry, isApiConfigured } from '../src/services/api';
 import { insertEntry } from '../src/services/database';
 import { autoTag } from '../src/services/llm';
 import { extractAndStoreFacts } from '../src/services/memory';
-import { apiCreateEntry, isApiConfigured } from '../src/services/api';
 
 const KINDS = [
-  { id: 'note',     icon: 'document-text-outline', label: 'Note' },
-  { id: 'idea',     icon: 'bulb-outline',           label: 'Idea' },
-  { id: 'bug',      icon: 'bug-outline',            label: 'Bug' },
-  { id: 'fix',      icon: 'hammer-outline',         label: 'Fix' },
-  { id: 'decision', icon: 'git-branch-outline',     label: 'Decision' },
-  { id: 'insight',  icon: 'flash-outline',          label: 'Insight' },
-  { id: 'snippet',  icon: 'code-slash-outline',     label: 'Snippet' },
-  { id: 'task',     icon: 'checkbox-outline',       label: 'Task' },
+  { id: 'note',     icon: 'document-text' as const, label: 'Note' },
+  { id: 'idea',     icon: 'bulb' as const,          label: 'Idea' },
+  { id: 'bug',      icon: 'bug' as const,           label: 'Bug' },
+  { id: 'fix',      icon: 'hammer' as const,        label: 'Fix' },
+  { id: 'decision', icon: 'git-branch' as const,    label: 'Decision' },
+  { id: 'insight',  icon: 'flash' as const,         label: 'Insight' },
+  { id: 'snippet',  icon: 'code-slash' as const,    label: 'Snippet' },
+  { id: 'task',     icon: 'checkbox' as const,      label: 'Task' },
 ] as const;
 
-type Kind = typeof KINDS[number]['id'];
-
-const KIND_COLOR: Record<Kind, string> = {
-  note: '#5d5f5f', idea: '#0f62fe', bug: '#da1e28',
-  fix: '#198038', decision: '#8a3ffc', insight: '#0f62fe',
-  snippet: '#8a3ffc', task: '#f1c21b',
-};
+type Kind = (typeof KINDS)[number]['id'];
 
 export default function CaptureScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ kind?: string; prefill?: string }>();
+  const { Colors } = useThemeMode();
+
   const [text, setText] = useState(params.prefill ?? '');
   const [kind, setKind] = useState<Kind>((params.kind as Kind) ?? 'note');
   const [tags, setTags] = useState('');
@@ -58,6 +58,8 @@ export default function CaptureScreen() {
 
   useEffect(() => {
     isApiConfigured().then(setApiEnabled);
+    // Auto-focus the textarea when the screen opens
+    setTimeout(() => textRef.current?.focus(), 200);
   }, []);
 
   const handleAutoTag = async () => {
@@ -66,11 +68,11 @@ export default function CaptureScreen() {
     try {
       const suggested = await autoTag(text);
       if (suggested.length > 0) {
-        const existing = tags.split(',').map(t => t.trim()).filter(Boolean);
+        const existing = tags.split(',').map((t) => t.trim()).filter(Boolean);
         const merged = Array.from(new Set([...existing, ...suggested]));
         setTags(merged.join(', '));
       }
-    } catch {}
+    } catch { /* silent */ }
     setAutoTagging(false);
   };
 
@@ -81,30 +83,23 @@ export default function CaptureScreen() {
     }
     setSaving(true);
     try {
-      const parsedTags = tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
-      const entryData = {
+      const parsedTags = tags
+        .split(',')
+        .map((t) => t.trim().replace(/^#/, ''))
+        .filter(Boolean);
+      const data = {
         text: text.trim(),
         kind,
         source: 'mobile' as const,
         tags: parsedTags,
         file: file.trim() || undefined,
       };
-
-      // Save to API if configured, otherwise local only
       if (apiEnabled) {
-        try {
-          await apiCreateEntry(entryData);
-        } catch {
-          // Fall back to local if API fails
-          await insertEntry(entryData);
-        }
+        try { await apiCreateEntry(data); } catch { await insertEntry(data); }
       } else {
-        await insertEntry(entryData);
+        await insertEntry(data);
       }
-
-      // Background: extract facts for memory layer
       extractAndStoreFacts(text.trim()).catch(() => {});
-
       router.back();
     } catch (e: any) {
       Alert.alert('Save failed', e?.message ?? 'Unknown error');
@@ -114,146 +109,183 @@ export default function CaptureScreen() {
   };
 
   return (
-    <SafeAreaView style={S.container} edges={['top']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Header */}
-        <View style={S.header}>
-          <TouchableOpacity onPress={() => router.back()} style={S.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={Colors.onSurface} />
+    <>
+      <Header
+        title="Capture"
+        eyebrow={apiEnabled ? 'syncing to cortex-api' : 'local only'}
+        back
+        right={
+          <TouchableOpacity onPress={() => setShowAdvanced(v => !v)} hitSlop={8}>
+            <Ionicons
+              name={showAdvanced ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color={Colors.outline}
+            />
           </TouchableOpacity>
-          <Text style={S.headerTitle}>Capture</Text>
-          <View style={S.headerRight}>
-            {apiEnabled && (
-              <View style={S.syncBadge}>
-                <Ionicons name="cloud-outline" size={12} color={Colors.llmOnline} />
-                <Text style={S.syncText}>Sync</Text>
-              </View>
-            )}
-            <TouchableOpacity
-              style={[S.saveBtn, (!text.trim() || saving) && S.saveBtnDisabled]}
-              onPress={handleSave}
-              disabled={saving || !text.trim()}
-            >
-              {saving
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Text style={S.saveBtnText}>Save</Text>
-              }
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <ScrollView style={S.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        }
+      />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Screen padding={Spacing.md} scroll={false}>
           {/* Kind selector */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={S.kindScroll} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
-            {KINDS.map(k => (
-              <TouchableOpacity
-                key={k.id}
-                style={[S.kindChip, kind === k.id && { backgroundColor: KIND_COLOR[k.id], borderColor: KIND_COLOR[k.id] }]}
-                onPress={() => setKind(k.id)}
-              >
-                <Ionicons name={k.icon as any} size={13} color={kind === k.id ? '#fff' : Colors.onSurfaceVariant} />
-                <Text style={[S.kindChipText, kind === k.id && { color: '#fff' }]}>{k.label}</Text>
-              </TouchableOpacity>
-            ))}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.kindRow}
+          >
+            {KINDS.map((k) => {
+              const active = k.id === kind;
+              return (
+                <TouchableOpacity
+                  key={k.id}
+                  activeOpacity={0.85}
+                  onPress={() => setKind(k.id)}
+                  style={[
+                    s.kindChip,
+                    {
+                      backgroundColor: active ? Colors.primary : Colors.surfaceContainerLowest,
+                      borderColor: active ? Colors.primary : Colors.outlineVariant,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={k.icon}
+                    size={14}
+                    color={active ? Colors.onPrimary : Colors.onSurfaceVariant}
+                  />
+                  <Text
+                    style={[
+                      Typography.labelSm,
+                      { color: active ? Colors.onPrimary : Colors.onSurfaceVariant },
+                    ]}
+                  >
+                    {k.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
 
-          {/* Main text */}
-          <View style={S.textBox}>
-            <TextInput
-              ref={textRef}
-              style={S.textInput}
-              placeholder={`What's on your mind? Capture a ${kind}…`}
-              placeholderTextColor={Colors.outline}
-              multiline
-              autoFocus
-              value={text}
-              onChangeText={setText}
-              textAlignVertical="top"
-            />
-          </View>
+          {/* Body */}
+          <TextInput
+            ref={textRef}
+            multiline
+            value={text}
+            onChangeText={setText}
+            placeholder={`What's the ${kind}?`}
+            placeholderTextColor={Colors.outline}
+            style={[
+              s.body,
+              {
+                backgroundColor: Colors.surfaceContainerLowest,
+                borderColor: Colors.outlineVariant,
+                color: Colors.onSurface,
+              },
+            ]}
+          />
 
-          {/* Tags row */}
-          <View style={S.fieldRow}>
-            <Ionicons name="pricetag-outline" size={16} color={Colors.onSurfaceVariant} style={{ marginLeft: 8 }} />
+          {/* Tags */}
+          <View style={s.tagsRow}>
             <TextInput
-              style={S.fieldInput}
-              placeholder="tags, comma-separated"
-              placeholderTextColor={Colors.outline}
               value={tags}
               onChangeText={setTags}
+              placeholder="tags (comma separated)"
+              placeholderTextColor={Colors.outline}
               autoCapitalize="none"
+              style={[
+                s.tagsInput,
+                {
+                  backgroundColor: Colors.surfaceContainer,
+                  color: Colors.onSurface,
+                },
+              ]}
             />
-            <TouchableOpacity
-              style={[S.aiTagBtn, (autoTagging || !text.trim()) && { opacity: 0.4 }]}
+            <Button
+              label={autoTagging ? '…' : 'Auto'}
+              icon="sparkles"
+              variant="secondary"
+              size="sm"
               onPress={handleAutoTag}
-              disabled={autoTagging || !text.trim()}
-            >
-              {autoTagging
-                ? <ActivityIndicator size="small" color={Colors.primary} />
-                : <><Ionicons name="sparkles-outline" size={13} color={Colors.primary} /><Text style={S.aiTagText}>AI Tag</Text></>
-              }
-            </TouchableOpacity>
+              loading={autoTagging}
+            />
           </View>
 
-          {/* Advanced toggle */}
-          <TouchableOpacity style={S.advToggle} onPress={() => setShowAdvanced(!showAdvanced)}>
-            <Text style={S.advToggleText}>{showAdvanced ? 'Hide' : 'Show'} advanced fields</Text>
-            <Ionicons name={showAdvanced ? 'chevron-up' : 'chevron-down'} size={14} color={Colors.onSurfaceVariant} />
-          </TouchableOpacity>
-
+          {/* Advanced */}
           {showAdvanced && (
-            <View style={S.fieldRow}>
-              <Ionicons name="document-outline" size={16} color={Colors.onSurfaceVariant} style={{ marginLeft: 8 }} />
+            <Section title="Advanced">
               <TextInput
-                style={S.fieldInput}
-                placeholder="file path (e.g. src/auth/login.ts)"
-                placeholderTextColor={Colors.outline}
                 value={file}
                 onChangeText={setFile}
+                placeholder="file path (optional)"
+                placeholderTextColor={Colors.outline}
                 autoCapitalize="none"
+                style={[
+                  s.advanced,
+                  {
+                    backgroundColor: Colors.surfaceContainer,
+                    color: Colors.onSurface,
+                  },
+                ]}
               />
-            </View>
+            </Section>
           )}
 
-          {/* Tips */}
-          <View style={S.tips}>
-            <Text style={S.tipsTitle}>Tips</Text>
-            <Text style={S.tipText}>• Tap "AI Tag" to auto-generate tags with Granite 3.3</Text>
-            <Text style={S.tipText}>• Use "Fix" for resolved bugs, "Decision" for architecture choices</Text>
-            <Text style={S.tipText}>• {apiEnabled ? '☁️ Syncing to cortex-api' : '📱 Saving locally (configure API in Profile)'}</Text>
-          </View>
+          <View style={{ flex: 1 }} />
 
-          <View style={{ height: TAB_BAR_HEIGHT + 16 }} />
-        </ScrollView>
+          {/* Footer with sync hint + save */}
+          <View style={s.footer}>
+            <Pill
+              label={apiEnabled ? 'API + local' : 'local only'}
+              tone={apiEnabled ? 'success' : 'neutral'}
+              icon={apiEnabled ? 'cloud-done' : 'phone-portrait'}
+            />
+            <Button
+              label={saving ? 'Saving…' : 'Save entry'}
+              icon="checkmark"
+              onPress={handleSave}
+              loading={saving}
+              fullWidth
+              style={{ flex: 1 }}
+            />
+          </View>
+        </Screen>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </>
   );
 }
 
-const S = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant, backgroundColor: Colors.surfaceContainerLowest },
-  backBtn: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.onSurface },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  syncBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#defbe6', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 10 },
-  syncText: { fontSize: 10, fontWeight: '700', color: Colors.llmOnline },
-  saveBtn: { backgroundColor: Colors.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, minWidth: 60, alignItems: 'center' },
-  saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
-  scroll: { flex: 1 },
-  kindScroll: { maxHeight: 44, marginVertical: 10 },
-  kindChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: Colors.surfaceContainerLowest, marginRight: 6 },
-  kindChipText: { fontSize: 12, fontWeight: '600', color: Colors.onSurfaceVariant },
-  textBox: { marginHorizontal: 16, marginBottom: 10, backgroundColor: Colors.surfaceContainerLowest, borderWidth: 1, borderColor: Colors.outlineVariant, borderRadius: 10, minHeight: 180 },
-  textInput: { fontSize: 16, color: Colors.onSurface, padding: 14, minHeight: 180, lineHeight: 24 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: Colors.surfaceContainerLowest, borderWidth: 1, borderColor: Colors.outlineVariant, borderRadius: 10, paddingVertical: 4 },
-  fieldInput: { flex: 1, fontSize: 14, color: Colors.onSurface, paddingVertical: 8, paddingHorizontal: 8 },
-  aiTagBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, borderWidth: 1, borderColor: Colors.primary, marginRight: 6, minWidth: 72, justifyContent: 'center' },
-  aiTagText: { fontSize: 12, fontWeight: '600', color: Colors.primary },
-  advToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16, paddingVertical: 10 },
-  advToggleText: { fontSize: 12, color: Colors.onSurfaceVariant },
-  tips: { marginHorizontal: 16, padding: 14, backgroundColor: Colors.surfaceContainerLow, borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant },
-  tipsTitle: { fontSize: 11, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
-  tipText: { fontSize: 12, color: Colors.onSurfaceVariant, marginBottom: 4, lineHeight: 18 },
+const s = StyleSheet.create({
+  kindRow: { gap: Spacing.xs, paddingVertical: Spacing.xs },
+  kindChip: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.xs,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    borderRadius: Radius.chip, borderWidth: StyleSheet.hairlineWidth,
+  },
+  body: {
+    minHeight: 200,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radius.lg,
+    textAlignVertical: 'top',
+    ...Typography.body,
+  },
+  tagsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.sm },
+  tagsInput: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: Radius.input,
+    ...Typography.body,
+  },
+  advanced: {
+    padding: Spacing.md,
+    borderRadius: Radius.input,
+    ...Typography.body,
+  },
+  footer: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingTop: Spacing.md,
+  },
 });

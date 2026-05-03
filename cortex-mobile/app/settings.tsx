@@ -1,340 +1,188 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
-import { Colors } from '../src/constants/theme';
-import { useThemeMode, type ThemeMode } from '../src/hooks/useThemeMode';
-import { getApiBase, setApiBase, getToken, setToken, checkApiHealth } from '../src/services/api';
+/**
+ * Settings — connection, appearance, about. Theme-aware.
+ *
+ * Three sections:
+ *   1. Connection — API base URL + bearer token + Test button
+ *   2. Appearance — light / dark / system
+ *   3. About — version, links
+ */
 
-export default function SettingsPage() {
+import { useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import {
+  Button,
+  Card,
+  Header,
+  Pill,
+  Screen,
+  Section,
+  StatusBanner,
+} from '../src/components/ui';
+import { Radius, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode, type ThemeMode } from '../src/hooks/useThemeMode';
+import { checkApiHealth, getApiBase, getToken, setApiBase, setToken } from '../src/services/api';
+
+export default function SettingsScreen() {
+  const { Colors, mode: themeMode, scheme, setMode } = useThemeMode();
+
   const [apiBaseInput, setApiBaseInput] = useState('');
   const [tokenInput, setTokenInput] = useState('');
-  const [healthStatus, setHealthStatus] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
   const [healthOk, setHealthOk] = useState<boolean | null>(null);
-  const { mode: themeMode, scheme, setMode } = useThemeMode();
+  const [healthMsg, setHealthMsg] = useState<string>('');
 
   useEffect(() => {
-    loadSettings();
+    (async () => {
+      setApiBaseInput(await getApiBase());
+      setTokenInput(await getToken());
+    })();
   }, []);
 
-  const loadSettings = async () => {
-    const base = await getApiBase();
-    const tok = await getToken();
-    setApiBaseInput(base);
-    setTokenInput(tok);
-  };
-
-  const saveApiBase = async () => {
-    try {
-      const trimmed = apiBaseInput.trim();
-      if (!trimmed) {
-        Alert.alert('Error', 'API base URL cannot be empty');
-        return;
-      }
-      await setApiBase(trimmed);
-      Alert.alert('Success', 'API base URL saved');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save API base URL');
+  async function saveAndTest() {
+    const base = apiBaseInput.trim();
+    const tok = tokenInput.trim();
+    if (!base || !tok) {
+      Alert.alert('Missing fields', 'Both API URL and token are required.');
+      return;
     }
-  };
-
-  const saveToken = async () => {
-    try {
-      const trimmed = tokenInput.trim();
-      if (!trimmed) {
-        Alert.alert('Error', 'Token cannot be empty');
-        return;
-      }
-      await setToken(trimmed);
-      Alert.alert('Success', 'Token saved');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save token');
-    }
-  };
-
-  const testConnection = async () => {
-    setHealthStatus(null);
+    await setApiBase(base);
+    await setToken(tok);
+    setTesting(true);
     setHealthOk(null);
+    setHealthMsg('');
     try {
-      const result = await checkApiHealth();
+      const r = await checkApiHealth();
       setHealthOk(true);
-      setHealthStatus(`✅ Connected - ${result.status} (v${result.version})`);
-    } catch (error) {
+      setHealthMsg(`Connected · v${r.version}`);
+    } catch (e: any) {
       setHealthOk(false);
-      setHealthStatus(`❌ Failed: ${error}`);
+      setHealthMsg(String(e?.message ?? e));
+    } finally {
+      setTesting(false);
     }
+  }
+
+  const inputBase = {
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: Radius.input,
+    padding: Spacing.md,
+    color: Colors.onSurface,
+    ...Typography.body,
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>⚙️ Settings</Text>
-        <Text style={styles.subtitle}>Configure your Cortex connection</Text>
-      </View>
+    <>
+      <Header title="Settings" back />
+      <Screen padding={Spacing.md}>
+        {/* Connection ---------------------------------------------------- */}
+        <Section title="Connection">
+          <Card variant="surface" padding="lg" size="hero">
+            <View style={s.fieldGroup}>
+              <Text style={[Typography.labelSm, { color: Colors.onSurfaceVariant, textTransform: 'uppercase' }]}>
+                API base URL
+              </Text>
+              <TextInput
+                value={apiBaseInput}
+                onChangeText={setApiBaseInput}
+                placeholder="http://192.168.1.213:8080"
+                placeholderTextColor={Colors.outline}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                style={inputBase}
+              />
+              <Text style={[Typography.codeSm, { color: Colors.outline }]}>
+                Use your computer's LAN IP — not "localhost".
+              </Text>
+            </View>
 
-      {/* API Base URL Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>API Configuration</Text>
-        
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>API Base URL</Text>
-          <TextInput
-            style={styles.input}
-            value={apiBaseInput}
-            onChangeText={setApiBaseInput}
-            placeholder="http://192.168.10.8:8080"
-            placeholderTextColor={Colors.outline}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Text style={styles.helperText}>
-            Your local network IP address and port
-          </Text>
-        </View>
+            <View style={s.fieldGroup}>
+              <Text style={[Typography.labelSm, { color: Colors.onSurfaceVariant, textTransform: 'uppercase' }]}>
+                Bearer token
+              </Text>
+              <TextInput
+                value={tokenInput}
+                onChangeText={setTokenInput}
+                placeholder="DIARY_TOKEN from your .env"
+                placeholderTextColor={Colors.outline}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={inputBase}
+              />
+            </View>
 
-        <TouchableOpacity style={styles.primaryButton} onPress={saveApiBase}>
-          <Text style={styles.primaryButtonText}>💾 Save API URL</Text>
-        </TouchableOpacity>
+            <Button
+              label={testing ? 'Testing…' : 'Save & test connection'}
+              icon="flash"
+              onPress={saveAndTest}
+              loading={testing}
+              fullWidth
+              style={{ marginTop: Spacing.sm }}
+            />
 
-        <TouchableOpacity style={styles.secondaryButton} onPress={testConnection}>
-          <Text style={styles.secondaryButtonText}>🔍 Test Connection</Text>
-        </TouchableOpacity>
+            {healthOk !== null && (
+              <View style={{ marginTop: Spacing.md }}>
+                <StatusBanner
+                  tone={healthOk ? 'success' : 'error'}
+                  title={healthOk ? 'Connected' : 'Could not connect'}
+                  body={healthMsg}
+                />
+              </View>
+            )}
+          </Card>
+        </Section>
 
-        {healthStatus && (
-          <View style={[
-            styles.statusBox,
-            { backgroundColor: healthOk ? '#e8f5e9' : Colors.errorContainer }
-          ]}>
-            <Text style={[
-              styles.statusText,
-              { color: healthOk ? Colors.success : Colors.error }
-            ]}>
-              {healthStatus}
-            </Text>
-          </View>
-        )}
-      </View>
+        {/* Appearance ---------------------------------------------------- */}
+        <Section title="Appearance">
+          <Card variant="surface" padding="md" size="hero">
+            <View style={s.appearanceHeader}>
+              <Text style={[Typography.body, { color: Colors.onSurface }]}>Theme</Text>
+              <Pill label={`${scheme} mode`} tone="primary" />
+            </View>
+            <View style={s.modeRow}>
+              {(['system', 'light', 'dark'] as ThemeMode[]).map((m) => {
+                const active = themeMode === m;
+                return (
+                  <Button
+                    key={m}
+                    label={m === 'system' ? 'Auto' : m === 'light' ? 'Light' : 'Dark'}
+                    onPress={() => setMode(m)}
+                    variant={active ? 'primary' : 'secondary'}
+                    size="sm"
+                    icon={m === 'system' ? 'phone-portrait' : m === 'light' ? 'sunny' : 'moon'}
+                  />
+                );
+              })}
+            </View>
+          </Card>
+        </Section>
 
-      {/* Appearance */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Appearance</Text>
-        <Text style={styles.helperText}>
-          Currently rendering in {scheme} mode.
-        </Text>
-        <View style={appearanceStyles.row}>
-          {(['system', 'light', 'dark'] as ThemeMode[]).map((m) => {
-            const active = themeMode === m;
-            return (
-              <TouchableOpacity
-                key={m}
-                style={[
-                  appearanceStyles.btn,
-                  active && appearanceStyles.btnActive,
-                ]}
-                onPress={() => setMode(m)}
-              >
-                <Text
-                  style={[
-                    appearanceStyles.btnText,
-                    active && appearanceStyles.btnTextActive,
-                  ]}
-                >
-                  {m === 'system' ? 'Match system' : m === 'light' ? 'Light' : 'Dark'}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      {/* Token Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Authentication</Text>
-        
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Bearer Token</Text>
-          <TextInput
-            style={styles.input}
-            value={tokenInput}
-            onChangeText={setTokenInput}
-            placeholder="Enter your DIARY_TOKEN"
-            placeholderTextColor={Colors.outline}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Text style={styles.helperText}>
-            Get this from your .env file (DIARY_TOKEN)
-          </Text>
-        </View>
-
-        <TouchableOpacity style={styles.primaryButton} onPress={saveToken}>
-          <Text style={styles.primaryButtonText}>🔐 Save Token</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Info Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>ℹ️ Setup Instructions</Text>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            1. Start the API server on your PC:{'\n'}
-            <Text style={styles.codeText}>cd src/cortex-api && python -m cortex_api</Text>
-          </Text>
-          <Text style={styles.infoText}>
-            {'\n'}2. Find your PC's local IP:{'\n'}
-            <Text style={styles.codeText}>ipconfig (Windows) or ifconfig (Mac/Linux)</Text>
-          </Text>
-          <Text style={styles.infoText}>
-            {'\n'}3. Enter the IP and port above (e.g., http://192.168.10.8:8080)
-          </Text>
-          <Text style={styles.infoText}>
-            {'\n'}4. Get your token from the .env file and enter it above
-          </Text>
-          <Text style={styles.infoText}>
-            {'\n'}5. Test the connection to verify everything works
-          </Text>
-        </View>
-      </View>
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        {/* About --------------------------------------------------------- */}
+        <Section title="About">
+          <Card variant="surface" padding="md" size="hero">
+            <View style={s.aboutRow}>
+              <Text style={[Typography.body, { color: Colors.onSurface }]}>Cortex</Text>
+              <Text style={[Typography.code, { color: Colors.outline }]}>v0.3</Text>
+            </View>
+            <View style={s.aboutRow}>
+              <Text style={[Typography.body, { color: Colors.onSurfaceVariant }]}>Built on</Text>
+              <Text style={[Typography.code, { color: Colors.outline }]}>IBM Bob · Granite</Text>
+            </View>
+          </Card>
+        </Section>
+      </Screen>
+    </>
   );
 }
 
-const appearanceStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  btn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
-    backgroundColor: Colors.surfaceContainerLowest,
-    alignItems: 'center',
-  },
-  btnActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  btnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.onSurfaceVariant,
-  },
-  btnTextActive: { color: '#fff' },
-});
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: Colors.primary,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: 'white',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-  },
-  section: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.outlineVariant,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.onSurface,
-    marginBottom: 16,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.onSurface,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.outlineVariant,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: Colors.onSurface,
-  },
-  helperText: {
-    fontSize: 12,
-    color: Colors.onSurfaceVariant,
-    marginTop: 4,
-  },
-  primaryButton: {
-    backgroundColor: Colors.primary,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  primaryButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  secondaryButtonText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  statusBox: {
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  infoBox: {
-    backgroundColor: Colors.surface,
-    padding: 16,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-  },
-  infoText: {
-    fontSize: 14,
-    color: Colors.onSurface,
-    lineHeight: 22,
-  },
-  codeText: {
-    fontFamily: 'monospace',
-    fontSize: 12,
-    color: Colors.primary,
-    backgroundColor: 'rgba(15, 98, 254, 0.1)',
-    padding: 2,
+const s = StyleSheet.create({
+  fieldGroup: { gap: Spacing.xs, marginBottom: Spacing.md },
+  appearanceHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.md },
+  modeRow: { flexDirection: 'row', gap: Spacing.sm },
+  aboutRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: Spacing.xs,
   },
 });
-
-// Made with Bob

@@ -82,21 +82,32 @@ export const ColorsDark = {
   outlineVariant: "#424656",
 } as const;
 
+// Font family names — must match the keys passed to useFonts() in _layout.tsx.
+// Use these instead of fontWeight, since RN won't render the right weight from
+// a custom font without the explicit family name.
+const FONT = {
+  regular:   "PlusJakartaSans-Regular",
+  semibold:  "PlusJakartaSans-SemiBold",
+  bold:      "PlusJakartaSans-Bold",
+  mono:      "SpaceGrotesk-Regular",
+  monoMd:    "SpaceGrotesk-Medium",
+} as const;
+
 export const Typography = {
   // Plus Jakarta Sans
-  display: { fontSize: 42, lineHeight: 50, fontWeight: "300" as const, letterSpacing: -0.5 },
-  h1: { fontSize: 40, lineHeight: 48, fontWeight: "700" as const },
-  h2: { fontSize: 32, lineHeight: 38, fontWeight: "700" as const },
-  h3: { fontSize: 24, lineHeight: 32, fontWeight: "600" as const },
-  heading: { fontSize: 20, lineHeight: 26, fontWeight: "600" as const },
-  bodyLg: { fontSize: 18, lineHeight: 28, fontWeight: "400" as const },
-  body: { fontSize: 16, lineHeight: 24, fontWeight: "400" as const },
-  bodySm: { fontSize: 14, lineHeight: 20, fontWeight: "400" as const },
-  label: { fontSize: 14, lineHeight: 20, fontWeight: "600" as const, letterSpacing: 0.28 },
-  labelSm: { fontSize: 12, lineHeight: 16, fontWeight: "600" as const, letterSpacing: 0.32 },
+  display: { fontSize: 42, lineHeight: 50, fontFamily: FONT.regular,  letterSpacing: -0.5 },
+  h1:      { fontSize: 40, lineHeight: 48, fontFamily: FONT.bold },
+  h2:      { fontSize: 32, lineHeight: 38, fontFamily: FONT.bold },
+  h3:      { fontSize: 24, lineHeight: 32, fontFamily: FONT.semibold },
+  heading: { fontSize: 20, lineHeight: 26, fontFamily: FONT.semibold },
+  bodyLg:  { fontSize: 18, lineHeight: 28, fontFamily: FONT.regular },
+  body:    { fontSize: 16, lineHeight: 24, fontFamily: FONT.regular },
+  bodySm:  { fontSize: 14, lineHeight: 20, fontFamily: FONT.regular },
+  label:   { fontSize: 14, lineHeight: 20, fontFamily: FONT.semibold, letterSpacing: 0.28 },
+  labelSm: { fontSize: 12, lineHeight: 16, fontFamily: FONT.semibold, letterSpacing: 0.32 },
   // Space Grotesk
-  code: { fontSize: 14, lineHeight: 20, fontFamily: "monospace" as const, fontWeight: "400" as const },
-  codeSm: { fontSize: 12, lineHeight: 16, fontFamily: "monospace" as const, fontWeight: "400" as const },
+  code:    { fontSize: 14, lineHeight: 20, fontFamily: FONT.mono },
+  codeSm:  { fontSize: 12, lineHeight: 16, fontFamily: FONT.mono },
 } as const;
 
 export const Spacing = {
