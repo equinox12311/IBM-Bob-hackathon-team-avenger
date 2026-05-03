@@ -36,9 +36,15 @@ class Settings(BaseSettings):
     # (the original `ibm-granite/...-GGUF` repo isn't published; lmstudio-community
     # mirrors it as a Q4_K_M / Q6_K / Q8_0 set.)
     local_llm_gguf_path: Path = Path("models/granite-3.1-2b-instruct-Q4_K_M.gguf")
-    local_llm_n_ctx: int = 4096
+    # Granite 3.1 2B trains at 128K context. 4096 was llama.cpp's old default
+    # and shows up as a "n_ctx_seq < n_ctx_train" warning at boot. 16K is a
+    # generous middle ground — covers a long RAG prompt + headroom on
+    # ~16 GB Macs without ballooning RSS. Bump to 32768 if you've got the RAM.
+    local_llm_n_ctx: int = 16384
     local_llm_n_threads: int = 0  # 0 = auto from CPU count
-    local_llm_max_tokens: int = 512
+    # Max tokens to *generate* per response (not the input ctx). 1024 lets
+    # Granite finish a paragraph or two without truncating mid-thought.
+    local_llm_max_tokens: int = 1024
 
 
 settings = Settings()

@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-EntrySource = Literal["bob", "telegram-text", "telegram-voice", "web"]
+EntrySource = Literal["bob", "telegram-text", "telegram-voice", "web", "mobile", "cli"]
 FeedbackSignal = Literal["boost", "flag"]
 EntryKind = Literal[
     "note",          # default — generic dev journal entry
