@@ -38,6 +38,31 @@ interface CodeFile {
   indexed: boolean;
 }
 
+/**
+ * Each entry in /api/v1/codebase/files corresponds to ONE chunk
+ * (the indexer splits files at 200 lines). The same path may appear
+ * many times — we want one CodeFile per path, with `chunks` summed
+ * and `lines` aggregated, so React's reconciler stays happy.
+ */
+function dedupeByPath(files: IndexedFile[]): CodeFile[] {
+  const byPath = new Map<string, { chunks: number; lines: number }>();
+  for (const f of files) {
+    const cur = byPath.get(f.path);
+    if (cur) {
+      cur.chunks += (f.chunks ?? 1);
+      cur.lines = Math.max(cur.lines, f.lines || 0);
+    } else {
+      byPath.set(f.path, { chunks: f.chunks ?? 1, lines: f.lines || 0 });
+    }
+  }
+  return Array.from(byPath.entries()).map(([path, agg]) => ({
+    path,
+    kind: classifyKind(path),
+    lines: agg.lines,
+    indexed: true,
+  }));
+}
+
 function classifyKind(path: string): CodeFile['kind'] {
   const lower = path.toLowerCase();
   if (lower.startsWith('tests/') || lower.includes('__tests__') || lower.includes('.test.') || lower.includes('.spec.')) return 'test';
@@ -71,14 +96,7 @@ export default function ExplorerScreen() {
     apiListIndexedFiles()
       .then((res) => {
         if (!res.files?.length) return;
-        setFiles(
-          res.files.map((f: IndexedFile) => ({
-            path: f.path,
-            kind: classifyKind(f.path),
-            lines: f.lines || 0,
-            indexed: true,
-          })),
-        );
+        setFiles(dedupeByPath(res.files));
       })
       .catch(() => undefined);
   }, [configured]);
@@ -101,14 +119,7 @@ export default function ExplorerScreen() {
           const summary = await apiIndexCodebase(path, { max_files: 200 });
           Alert.alert('Indexed', `${summary.indexed} files (${summary.skipped_existing} skipped, ${summary.errors} errors).`);
           const res = await apiListIndexedFiles();
-          setFiles(
-            (res.files ?? []).map((f: IndexedFile) => ({
-              path: f.path,
-              kind: classifyKind(f.path),
-              lines: f.lines || 0,
-              indexed: true,
-            })),
-          );
+          setFiles(dedupeByPath(res.files ?? []));
         } catch (e) {
           Alert.alert('Index failed', String(e));
         } finally {
