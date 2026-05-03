@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 
-from cortex_api import features, generate, llm, storage
+from cortex_api import codebase, features, generate, llm, storage
 from cortex_api.auth import AuthDep
 from cortex_api.config import settings
 from cortex_api.embeddings import get_provider
@@ -443,6 +443,96 @@ def all_actions(limit: int = 100) -> dict:
 def delete_action(action_id: int) -> Response:
     storage.delete_pending_action(action_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ---------- codebase indexer + Granite analysis ---------------------------
+
+
+class IndexRequest(BaseModel):
+    path: str
+    max_files: int = 200
+    skip_existing: bool = True
+
+
+@app.post("/api/v1/codebase/index", dependencies=[AuthDep])
+def codebase_index(req: IndexRequest) -> dict:
+    """Walk ``path``, embed source files as kind=code entries, return a summary."""
+
+    try:
+        return codebase.index_path(
+            req.path,
+            max_files=req.max_files,
+            skip_existing=req.skip_existing,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"index failed: {exc}",
+        )
+
+
+@app.get("/api/v1/codebase/files", dependencies=[AuthDep])
+def codebase_files(repo: str | None = None) -> dict:
+    """List files that have been indexed (optionally filter by repo path)."""
+
+    return {"files": codebase.list_indexed_files(repo)}
+
+
+@app.get("/api/v1/codebase/file", dependencies=[AuthDep])
+def codebase_file(repo: str, path: str) -> dict:
+    """Reassemble an indexed file's contents from its chunks."""
+
+    result = codebase.get_indexed_file(repo, path)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"file not indexed under {repo}: {path}",
+        )
+    return result
+
+
+class AnalyzeCodeRequest(BaseModel):
+    file: str
+    question: str
+    k: int = 8
+
+
+@app.post("/api/v1/analyze/code", dependencies=[AuthDep])
+def analyze_code(req: AnalyzeCodeRequest) -> dict:
+    """Granite answers a question grounded in indexed code chunks."""
+
+    if not llm.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LLM_PROVIDER is 'off'.",
+        )
+    try:
+        return generate.analyze_code(file=req.file, question=req.question, k=req.k)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM call failed: {exc}",
+        )
+
+
+@app.get("/api/v1/suggest/next", dependencies=[AuthDep])
+def suggest_next(limit: int = 20) -> dict:
+    """Granite suggests the developer's next 3 actions from recent entries."""
+
+    if not llm.is_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LLM_PROVIDER is 'off'.",
+        )
+    try:
+        return generate.suggest_next(limit=limit)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"LLM call failed: {exc}",
+        )
 
 
 # ---------- Productivity Metrics endpoints ----------------------------------

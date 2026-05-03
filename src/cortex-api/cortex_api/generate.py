@@ -1,4 +1,5 @@
-"""LLM-backed flows: chat (RAG), summarise, and report-narrate.
+"""LLM-backed flows: chat (RAG), summarise, report-narrate, code analysis,
+next-step suggestions.
 
 Each function composes the right prompt around real diary context so the
 LLM grounds its output in the user's actual entries instead of hallucinating.
@@ -6,6 +7,7 @@ LLM grounds its output in the user's actual entries instead of hallucinating.
 
 from __future__ import annotations
 
+from collections import Counter
 from datetime import datetime, timezone
 
 from cortex_api import features, storage
@@ -110,7 +112,117 @@ def daily_report_narrative(days: int = 1, max_sentences: int = 4) -> dict:
     }
 
 
+# ---------- code analysis (kind="code" RAG) -------------------------------
+
+
+def analyze_code(file: str, question: str, k: int = 8) -> dict:
+    """Answer a question about a specific source file.
+
+    Pulls the indexed chunks for ``file`` (kind="code"), grounds Granite in
+    them, and returns answer + line-cited citations. If the file is not
+    indexed, falls back to a semantic search of the file path + question.
+    """
+
+    all_code = storage.list_recent(limit=10_000, kind="code")
+    chunks = [e for e in all_code if e.file == file]
+
+    if not chunks:
+        # Fallback: vector recall using the question + path so we still try
+        chunks = recall(query=f"{file} {question}", k=k)
+        fallback_used = True
+    else:
+        chunks.sort(key=lambda e: e.line_start or 0)
+        chunks = chunks[:k]
+        fallback_used = False
+
+    context = _format_code_chunks(chunks)
+    user_prompt = (
+        f"You are reviewing the file `{file}`. Source chunks (with line numbers):\n\n"
+        f"{context}\n\n"
+        f"Question: {question}\n\n"
+        f"Answer in 3-6 sentences. Cite line numbers like `L42-L70` for any specific claim. "
+        f"If the chunks don't contain enough information to answer, say so clearly."
+    )
+
+    provider = get_provider()
+    answer = provider.complete(
+        [
+            Message(role="system", content=SYSTEM_PROMPT),
+            Message(role="user", content=user_prompt),
+        ],
+        max_tokens=500,
+        temperature=0.2,
+    )
+    return {
+        "file": file,
+        "answer": answer.strip(),
+        "fallback_used": fallback_used,
+        "citations": [
+            {
+                "id": e.id,
+                "lines": f"L{e.line_start}-L{e.line_end}" if e.line_start else None,
+                "snippet": e.text[:200],
+            }
+            for e in chunks
+        ],
+        "model": provider.name,
+    }
+
+
+# ---------- next-step suggestions -----------------------------------------
+
+
+def suggest_next(limit: int = 20) -> dict:
+    """Suggest the developer's next 3 actions based on recent activity."""
+
+    recent = storage.list_recent(limit=limit)
+    if not recent:
+        return {
+            "suggestions": "No recent activity yet — capture your first insight to bootstrap suggestions.",
+            "based_on_count": 0,
+            "model": "n/a",
+        }
+
+    by_kind = Counter(e.kind for e in recent)
+    bullets = "\n".join(
+        f"- [#{e.id}] ({e.kind}) {e.text[:200]}" for e in recent[:8]
+    )
+    user_prompt = (
+        f"Recent journal activity ({len(recent)} entries; counts by kind: {dict(by_kind)}):\n"
+        f"{bullets}\n\n"
+        f"Suggest exactly 3 specific next actions for the developer. "
+        f"Each action: one short imperative sentence, with [#N] citations to relevant entries. "
+        f"Skip generic advice; be concrete to what they're working on."
+    )
+
+    provider = get_provider()
+    answer = provider.complete(
+        [
+            Message(role="system", content=SYSTEM_PROMPT),
+            Message(role="user", content=user_prompt),
+        ],
+        max_tokens=300,
+        temperature=0.3,
+    )
+    return {
+        "suggestions": answer.strip(),
+        "based_on_count": len(recent),
+        "by_kind": {k: int(v) for k, v in by_kind.items()},
+        "model": provider.name,
+    }
+
+
 # ---------- helpers --------------------------------------------------------
+
+
+def _format_code_chunks(chunks: list[Entry]) -> str:
+    if not chunks:
+        return "(no code chunks indexed for this file)"
+    parts = []
+    for c in chunks:
+        ref = f"L{c.line_start}-L{c.line_end}" if c.line_start else "?"
+        parts.append(f"```{(c.tags or [''])[0]} {ref}\n{c.text}\n```")
+    return "\n\n".join(parts)
 
 
 def _format_hits_for_prompt(hits: list[Entry]) -> str:

@@ -332,6 +332,82 @@ export async function apiGenerateReport(days = 1): Promise<{
   return apiFetch(`/api/v1/generate/report?days=${days}`, {}, 60_000);
 }
 
+// ─── codebase indexer + Granite analysis ────────────────────────────────────
+
+export interface IndexedFile {
+  path: string;
+  repo: string;
+  chunks: number;
+  lines: number;
+}
+
+export interface IndexSummary {
+  root: string;
+  indexed: number;
+  skipped_large: number;
+  skipped_existing: number;
+  errors: number;
+  by_extension: Record<string, number>;
+  files: string[];
+}
+
+export async function apiIndexCodebase(
+  path: string,
+  options: { max_files?: number; skip_existing?: boolean } = {},
+): Promise<IndexSummary> {
+  return apiFetch('/api/v1/codebase/index', {
+    method: 'POST',
+    body: JSON.stringify({ path, ...options }),
+  }, 300_000);
+}
+
+export async function apiListIndexedFiles(repo?: string): Promise<{ files: IndexedFile[] }> {
+  const q = repo ? `?repo=${encodeURIComponent(repo)}` : '';
+  return apiFetch(`/api/v1/codebase/files${q}`);
+}
+
+export async function apiGetIndexedFile(repo: string, path: string): Promise<{
+  path: string;
+  repo: string;
+  lines: number;
+  chunks: number;
+  body: string;
+}> {
+  return apiFetch(
+    `/api/v1/codebase/file?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`,
+  );
+}
+
+export interface AnalyzeCodeResponse {
+  file: string;
+  answer: string;
+  fallback_used: boolean;
+  citations: { id: number; lines: string | null; snippet: string }[];
+  model: string;
+}
+
+export async function apiAnalyzeCode(
+  file: string,
+  question: string,
+  k = 8,
+): Promise<AnalyzeCodeResponse> {
+  return apiFetch('/api/v1/analyze/code', {
+    method: 'POST',
+    body: JSON.stringify({ file, question, k }),
+  }, 120_000);
+}
+
+export interface SuggestNextResponse {
+  suggestions: string;
+  based_on_count: number;
+  by_kind?: Record<string, number>;
+  model: string;
+}
+
+export async function apiSuggestNext(limit = 20): Promise<SuggestNextResponse> {
+  return apiFetch(`/api/v1/suggest/next?limit=${limit}`, {}, 60_000);
+}
+
 // ─── pending_actions (Bob escalation queue) ──────────────────────────────────
 
 export interface PendingAction {

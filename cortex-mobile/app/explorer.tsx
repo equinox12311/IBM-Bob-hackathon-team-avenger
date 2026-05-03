@@ -2,8 +2,10 @@
 // Maps to "Code Explorer - IBM Bob" mockup (Untitled (1).txt).
 
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,12 +17,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TAB_BAR_HEIGHT } from "../src/constants/layout";
 import { Colors, Radius, Shadow, Spacing, Typography } from "../src/constants/theme";
+import {
+  apiAnalyzeCode,
+  apiIndexCodebase,
+  apiListIndexedFiles,
+  isApiConfigured,
+  type IndexedFile,
+} from "../src/services/api";
 
 interface CodeFile {
   path: string;
   kind: "source" | "test" | "config" | "doc";
   lines: number;
   indexed: boolean;
+}
+
+function classifyKind(path: string): CodeFile["kind"] {
+  const lower = path.toLowerCase();
+  if (lower.startsWith("tests/") || lower.includes("__tests__") || lower.includes(".test.") || lower.includes(".spec.")) return "test";
+  if (lower.startsWith("docs/") || lower.endsWith(".md") || lower === "readme") return "doc";
+  if (lower === "makefile" || lower === "dockerfile" || lower.endsWith(".yml") || lower.endsWith(".yaml") || lower.endsWith(".toml") || lower.endsWith(".json")) return "config";
+  return "source";
 }
 
 const KIND_META = {
@@ -51,29 +68,104 @@ export default function ExplorerScreen() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [indexing, setIndexing] = useState(false);
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [indexedRepo, setIndexedRepo] = useState<string | null>(null);
   const [files, setFiles] = useState<CodeFile[]>(DEMO_FILES);
+
+  useEffect(() => {
+    isApiConfigured().then(setConfigured);
+  }, []);
+
+  // On mount, if the API is reachable, replace demo data with whatever is
+  // already indexed. Failures fall back silently to the demo list.
+  useEffect(() => {
+    if (!configured) return;
+    apiListIndexedFiles()
+      .then((res) => {
+        if (!res.files || res.files.length === 0) return;
+        const real: CodeFile[] = res.files.map((f: IndexedFile) => ({
+          path: f.path,
+          kind: classifyKind(f.path),
+          lines: f.lines || 0,
+          indexed: true,
+        }));
+        setFiles(real);
+        if (res.files[0]?.repo) setIndexedRepo(res.files[0].repo);
+      })
+      .catch(() => undefined);
+  }, [configured]);
 
   const indexedCount = files.filter((f) => f.indexed).length;
   const visible = files.filter(
     (f) => !filter || f.path.toLowerCase().includes(filter.toLowerCase()),
   );
 
-  function indexAll() {
-    // TODO Phase C: POST /api/v1/codebase/index { path: cwd }
-    setFiles((fs) => fs.map((f) => ({ ...f, indexed: true })));
+  async function indexAll() {
+    if (!configured) {
+      Alert.alert(
+        "API not configured",
+        "Set the cortex-api base URL and bearer token in Profile to enable real indexing.",
+      );
+      return;
+    }
+    // No path picker on mobile; let the user paste, defaulting to the api's cwd.
+    Alert.prompt?.(
+      "Index repo",
+      "Absolute path of the repo to index (defaults to cortex-api cwd)",
+      async (input) => {
+        const path = (input ?? "").trim() || ".";
+        setIndexing(true);
+        try {
+          const summary = await apiIndexCodebase(path, { max_files: 200 });
+          Alert.alert(
+            "Indexed",
+            `${summary.indexed} files (skipped ${summary.skipped_existing} existing, ${summary.skipped_large} large, ${summary.errors} errors).`,
+          );
+          // Refresh the list
+          const res = await apiListIndexedFiles();
+          if (res.files?.length) {
+            setFiles(res.files.map((f: IndexedFile) => ({
+              path: f.path,
+              kind: classifyKind(f.path),
+              lines: f.lines || 0,
+              indexed: true,
+            })));
+            if (res.files[0]?.repo) setIndexedRepo(res.files[0].repo);
+          }
+        } catch (e) {
+          Alert.alert("Index failed", String(e));
+        } finally {
+          setIndexing(false);
+        }
+      },
+    );
   }
 
   async function ask() {
     if (!selected || !question.trim()) return;
-    setBusy(true);
-    // TODO Phase C: POST /api/v1/analyze/code { file, question }
-    setTimeout(() => {
+    if (!configured) {
       setAnswer(
-        `(Granite would answer here, grounded in indexed contents of ${selected.path}. ` +
-        `Endpoint /api/v1/analyze/code is not yet wired — see docs/V0_3_PLAN.md.)`,
+        "(API not configured — connect cortex-api in Profile to enable real Granite analysis.)",
       );
+      return;
+    }
+    setBusy(true);
+    setAnswer(null);
+    try {
+      const r = await apiAnalyzeCode(selected.path, question.trim(), 8);
+      const cites = r.citations
+        .slice(0, 4)
+        .map((c) => (c.lines ? `\`${c.lines}\`` : `#${c.id}`))
+        .join(", ");
+      setAnswer(
+        `${r.answer}\n\n_(${r.model}${r.fallback_used ? " · vector fallback" : ""}; cited ${cites || "no chunks"})_`,
+      );
+    } catch (e) {
+      setAnswer(`(Granite call failed: ${String(e)})`);
+    } finally {
       setBusy(false);
-    }, 600);
+    }
   }
 
   return (
@@ -97,9 +189,17 @@ export default function ExplorerScreen() {
             onChangeText={setFilter}
           />
         </View>
-        <TouchableOpacity style={styles.indexBtn} onPress={indexAll}>
-          <Ionicons name="sync" size={16} color={Colors.onPrimary} />
-          <Text style={styles.indexBtnText}>Index all</Text>
+        <TouchableOpacity
+          style={[styles.indexBtn, indexing && { opacity: 0.6 }]}
+          onPress={indexAll}
+          disabled={indexing}
+        >
+          {indexing ? (
+            <ActivityIndicator size="small" color={Colors.onPrimary} />
+          ) : (
+            <Ionicons name="sync" size={16} color={Colors.onPrimary} />
+          )}
+          <Text style={styles.indexBtnText}>{indexing ? "Indexing…" : "Index"}</Text>
         </TouchableOpacity>
       </View>
 

@@ -16,6 +16,8 @@ EntryKind = Literal[
     "report",        # daily_report
     "wellness",      # touch_grass_wellness
     "client",        # client_discussion_prep
+    "code",          # codebase indexer chunks (v0.3)
+    "wiki",          # auto-generated docs (v0.3)
 ]
 
 
