@@ -1,9 +1,8 @@
 /**
  * Onboarding — three-card carousel shown on first launch.
  *
- * Once the user taps "Get started" we set a SecureStore flag so the screen
- * never shows again. The Today screen (app/index.tsx) checks the flag on
- * mount and pushes here if unseen.
+ * Mirrors the cortex-deck.html narrative: Memory · Reasoning · Action.
+ * Theme-aware via useThemeMode (palette flips with light/dark/system).
  */
 
 import { Ionicons } from '@expo/vector-icons';
@@ -22,35 +21,45 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors, Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import { Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 
 const { width } = Dimensions.get('window');
 export const ONBOARDING_KEY = 'cortex.onboarding_seen';
 
-const SLIDES = [
+type Slide = {
+  number: string;
+  layer: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  accent: 'primary' | 'secondary' | 'tertiary';
+  title: string;
+  body: string;
+};
+
+const SLIDES: Slide[] = [
   {
-    icon: 'cloud-upload' as const,
-    accent: Colors.primary,
-    accentBg: Colors.primaryFixed,
-    title: 'Capture without breaking flow',
-    body:
-      'Drop a thought, a fix, or a snippet from your phone, your terminal, or Telegram. Cortex tags and embeds it the moment it lands.',
+    number: '01',
+    layer: 'Memory',
+    icon: 'archive',
+    accent: 'primary',
+    title: 'Capture without\nbreaking flow.',
+    body: 'Phone. Terminal. Telegram. Tagged, embedded, and indexed in milliseconds — on-device.',
   },
   {
-    icon: 'search' as const,
-    accent: Colors.secondary,
-    accentBg: Colors.secondaryFixed,
-    title: 'Recall by intent, not keywords',
-    body:
-      'Ask Cortex what you decided last sprint or which file you were debugging. Granite reasons over your own diary, with citations.',
+    number: '02',
+    layer: 'Reasoning',
+    icon: 'sparkles',
+    accent: 'secondary',
+    title: 'Recall by\nintent.',
+    body: 'IBM Granite reasons over your own diary, and shows you exactly where the answer came from.',
   },
   {
-    icon: 'sparkles' as const,
-    accent: Colors.tertiary,
-    accentBg: Colors.tertiaryFixed,
-    title: 'Hand off to IBM Bob',
-    body:
-      "When Cortex isn't sure, it queues the question for Bob. Bob picks it up at the start of its next session and replies with full context.",
+    number: '03',
+    layer: 'Action',
+    icon: 'arrow-redo',
+    accent: 'tertiary',
+    title: 'From phone\nto Bob.',
+    body: 'When the work needs more than an answer, Cortex hands the task — with full context — to IBM Bob.',
   },
 ];
 
@@ -58,20 +67,19 @@ export async function hasSeenOnboarding(): Promise<boolean> {
   try {
     return (await SecureStore.getItemAsync(ONBOARDING_KEY)) === 'true';
   } catch {
-    return true; // be safe: don't trap users on web/no-store envs
+    return true;
   }
 }
 
 export async function markOnboardingSeen(): Promise<void> {
   try {
     await SecureStore.setItemAsync(ONBOARDING_KEY, 'true');
-  } catch {
-    /* ignore */
-  }
+  } catch { /* ignore */ }
 }
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { Colors } = useThemeMode();
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
 
@@ -94,10 +102,13 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView style={S.safe}>
-      <View style={S.skipRow}>
-        <TouchableOpacity onPress={finish}>
-          <Text style={S.skip}>Skip</Text>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+      <View style={s.topBar}>
+        <Text style={[Typography.codeSm, { color: Colors.outline, letterSpacing: 2, textTransform: 'uppercase' }]}>
+          cortex
+        </Text>
+        <TouchableOpacity onPress={finish} hitSlop={8}>
+          <Text style={[Typography.label, { color: Colors.onSurfaceVariant }]}>Skip</Text>
         </TouchableOpacity>
       </View>
 
@@ -110,37 +121,49 @@ export default function OnboardingScreen() {
         scrollEventThrottle={16}
         style={{ flex: 1 }}
       >
-        {SLIDES.map((s) => (
-          <View key={s.title} style={[S.slide, { width }]}>
-            <View
-              style={[
-                S.iconWrap,
-                Shadow.cardPrimary,
-                { backgroundColor: s.accentBg },
-              ]}
-            >
-              <Ionicons name={s.icon} size={56} color={s.accent} />
+        {SLIDES.map((slide) => {
+          const accent = {
+            primary:   { bg: Colors.primaryFixed,   fg: Colors.primary,   shadow: Shadow.cardPrimary },
+            secondary: { bg: Colors.secondaryFixed, fg: Colors.secondary, shadow: Shadow.cardSecondary },
+            tertiary:  { bg: Colors.tertiaryFixed,  fg: Colors.tertiary,  shadow: Shadow.card },
+          }[slide.accent];
+
+          return (
+            <View key={slide.number} style={[s.slide, { width }]}>
+              <Text style={[Typography.codeSm, { color: Colors.outline, letterSpacing: 2, textTransform: 'uppercase' }]}>
+                {slide.number} · {slide.layer}
+              </Text>
+
+              <View style={[s.iconWrap, { backgroundColor: accent.bg }, accent.shadow]}>
+                <Ionicons name={slide.icon} size={64} color={accent.fg} />
+              </View>
+
+              <Text style={[s.title, { color: Colors.onSurface }]}>{slide.title}</Text>
+              <Text style={[s.body, { color: Colors.onSurfaceVariant }]}>{slide.body}</Text>
             </View>
-            <Text style={S.title}>{s.title}</Text>
-            <Text style={S.body}>{s.body}</Text>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
-      <View style={S.dots}>
+      <View style={s.dots}>
         {SLIDES.map((_, i) => (
           <View
             key={i}
             style={[
-              S.dot,
-              i === page && S.dotActive,
+              s.dot,
+              { backgroundColor: Colors.outlineVariant },
+              i === page && { width: 24, backgroundColor: Colors.primary },
             ]}
           />
         ))}
       </View>
 
-      <TouchableOpacity style={S.cta} onPress={next}>
-        <Text style={S.ctaText}>
+      <TouchableOpacity
+        style={[s.cta, { backgroundColor: Colors.primary }]}
+        onPress={next}
+        activeOpacity={0.85}
+      >
+        <Text style={[Typography.label, { color: Colors.onPrimary }]}>
           {page === SLIDES.length - 1 ? 'Get started' : 'Next'}
         </Text>
         <Ionicons
@@ -149,18 +172,24 @@ export default function OnboardingScreen() {
           color={Colors.onPrimary}
         />
       </TouchableOpacity>
+
+      <Text style={[s.footer, { color: Colors.outline }]}>
+        Built on IBM Bob · Granite
+      </Text>
     </SafeAreaView>
   );
 }
 
-const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  skipRow: {
+const s = StyleSheet.create({
+  safe: { flex: 1 },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
-    alignItems: 'flex-end',
+    paddingBottom: Spacing.md,
   },
-  skip: { ...Typography.label, color: Colors.onSurfaceVariant },
   slide: {
     flex: 1,
     alignItems: 'center',
@@ -169,50 +198,43 @@ const S = StyleSheet.create({
     gap: Spacing.lg,
   },
   iconWrap: {
-    width: 140,
-    height: 140,
+    width: 156, height: 156,
     borderRadius: Radius.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
   title: {
     ...Typography.h2,
-    color: Colors.onSurface,
     textAlign: 'center',
     paddingHorizontal: Spacing.md,
   },
   body: {
     ...Typography.bodyLg,
-    color: Colors.onSurfaceVariant,
     textAlign: 'center',
     paddingHorizontal: Spacing.md,
+    maxWidth: 400,
   },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.outlineVariant,
-  },
-  dotActive: {
-    width: 24,
-    backgroundColor: Colors.primary,
-  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
     marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.primary,
     borderRadius: Radius.input,
   },
-  ctaText: { ...Typography.label, color: Colors.onPrimary },
+  footer: {
+    ...Typography.codeSm,
+    textAlign: 'center',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    paddingBottom: Spacing.lg,
+  },
 });

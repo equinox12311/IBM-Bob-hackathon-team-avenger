@@ -112,7 +112,7 @@ export default function CaptureScreen() {
     <>
       <Header
         title="Capture"
-        eyebrow={apiEnabled ? 'syncing to cortex-api' : 'local only'}
+        eyebrow={apiEnabled ? '01 · memory · synced' : '01 · memory · local'}
         back
         right={
           <TouchableOpacity onPress={() => setShowAdvanced(v => !v)} hitSlop={8}>

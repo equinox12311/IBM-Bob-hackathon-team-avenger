@@ -1,13 +1,13 @@
 /**
- * Timeline — full chronological list of all entries with filter by kind.
+ * Timeline — chronological list of all entries with kind filter.
  */
+
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,20 +15,27 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Card, EmptyState, Header, Pill } from '../src/components/ui';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors, Spacing } from '../src/constants/theme';
-import { listEntries, type Entry } from '../src/services/database';
+import { Radius, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
 import { apiListEntries, getToken } from '../src/services/api';
+import { listEntries, type Entry } from '../src/services/database';
 import { getDemoEntries } from '../src/services/demoData';
 
-const KINDS = ['all', 'note', 'idea', 'bug', 'insight', 'snippet'] as const;
-const KIND_COLOR: Record<string, string> = {
-  idea: '#0f62fe', bug: '#da1e28', insight: '#198038',
-  snippet: '#8a3ffc', note: '#5d5f5f',
+const KINDS = ['all', 'note', 'idea', 'bug', 'fix', 'decision', 'insight', 'snippet'] as const;
+
+const KIND_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+  idea: 'bulb', bug: 'bug', fix: 'hammer', insight: 'flash',
+  snippet: 'code-slash', note: 'document-text', decision: 'git-branch',
+  task: 'checkbox',
 };
 
 export default function TimelineScreen() {
   const router = useRouter();
+  const { Colors } = useThemeMode();
+
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,119 +45,168 @@ export default function TimelineScreen() {
     try {
       const tok = await getToken();
       if (tok) {
-        const remote = await apiListEntries(100);
-        setEntries(remote as any);
+        setEntries((await apiListEntries(100)) as any);
       } else {
         const local = await listEntries(100);
-        setEntries(local.length > 0 ? local : getDemoEntries(50) as any);
+        setEntries(local.length > 0 ? local : (getDemoEntries(50) as any));
       }
     } catch {
       const local = await listEntries(100);
-      setEntries(local.length > 0 ? local : getDemoEntries(50) as any);
+      setEntries(local.length > 0 ? local : (getDemoEntries(50) as any));
     }
     setLoading(false);
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
-
-  const filtered = filter === 'all' ? entries : entries.filter(e => e.kind === filter);
-
-  const renderEntry = ({ item: e }: { item: Entry }) => {
-    const color = KIND_COLOR[e.kind] ?? Colors.secondary;
-    return (
-      <TouchableOpacity
-        style={S.card}
-        onPress={() => router.push({ pathname: '/entry/[id]', params: { id: e.id } })}
-        activeOpacity={0.75}
-      >
-        <View style={[S.kindBar, { backgroundColor: color }]} />
-        <View style={S.cardBody}>
-          <View style={S.cardTop}>
-            <View style={[S.kindPill, { backgroundColor: color + '20' }]}>
-              <Text style={[S.kindPillText, { color }]}>{e.kind}</Text>
-            </View>
-            <Text style={S.cardTime}>
-              {new Date(e.created_at).toLocaleDateString()} · {new Date(e.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
-          <Text style={S.cardText} numberOfLines={3}>{e.text}</Text>
-          {e.file && <Text style={S.cardFile}>📍 {e.file}{e.line_start ? `:${e.line_start}` : ''}</Text>}
-          {e.tags.length > 0 && (
-            <View style={S.tagsRow}>
-              {e.tags.slice(0, 4).map(t => <Text key={t} style={S.tag}>#{t}</Text>)}
-            </View>
-          )}
-        </View>
-        <Ionicons name="chevron-forward" size={14} color={Colors.outlineVariant} style={{ alignSelf: 'center', marginRight: 8 }} />
-      </TouchableOpacity>
-    );
+  const onRefresh = async () => {
+    setRefreshing(true); await load(); setRefreshing(false);
   };
 
+  const filtered = filter === 'all' ? entries : entries.filter((e) => e.kind === filter);
+
   return (
-    <SafeAreaView style={S.safe} edges={['top']}>
-      <View style={S.header}>
-        <Text style={S.headerTitle}>Timeline</Text>
-        <Text style={S.headerCount}>{filtered.length} entries</Text>
-      </View>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top']}>
+      <Header
+        title="Timeline"
+        eyebrow={`${filtered.length} entries`}
+        back
+      />
 
       {/* Kind filter chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={S.chips} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
-        {KINDS.map(k => (
-          <TouchableOpacity
-            key={k}
-            style={[S.chip, filter === k && S.chipActive]}
-            onPress={() => setFilter(k)}
-          >
-            <Text style={[S.chipText, filter === k && S.chipTextActive]}>{k}</Text>
-          </TouchableOpacity>
-        ))}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={s.chipRow}
+      >
+        {KINDS.map((k) => {
+          const active = filter === k;
+          return (
+            <TouchableOpacity
+              key={k}
+              activeOpacity={0.85}
+              onPress={() => setFilter(k)}
+              style={[
+                s.chip,
+                {
+                  backgroundColor: active ? Colors.primary : Colors.surfaceContainerLowest,
+                  borderColor: active ? Colors.primary : Colors.outlineVariant,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  Typography.labelSm,
+                  { color: active ? Colors.onPrimary : Colors.onSurfaceVariant, textTransform: 'capitalize' },
+                ]}
+              >
+                {k}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       {loading ? (
-        <View style={S.center}><ActivityIndicator color={Colors.primary} /></View>
+        <View style={s.loading}>
+          <ActivityIndicator color={Colors.primary} />
+        </View>
+      ) : filtered.length === 0 ? (
+        <View style={{ padding: Spacing.md }}>
+          <EmptyState
+            icon="time-outline"
+            title="No entries match"
+            body={filter === 'all' ? 'Capture your first thought to see it here.' : `Try a different filter or capture a "${filter}".`}
+            ctaLabel="Capture"
+            onCta={() => router.push('/capture')}
+            tone="primary"
+          />
+        </View>
       ) : (
         <FlatList
           data={filtered}
-          keyExtractor={e => String(e.id)}
-          renderItem={renderEntry}
-          contentContainerStyle={{ padding: 16, paddingBottom: TAB_BAR_HEIGHT + 16 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={S.center}>
-              <Ionicons name="time-outline" size={40} color={Colors.outlineVariant} />
-              <Text style={S.emptyText}>No entries{filter !== 'all' ? ` of kind "${filter}"` : ''}</Text>
-            </View>
-          }
+          keyExtractor={(e) => String(e.id)}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          contentContainerStyle={{ padding: Spacing.md, paddingBottom: TAB_BAR_HEIGHT + Spacing.lg, gap: Spacing.sm }}
+          renderItem={({ item: e }) => (
+            <Card
+              variant="surface"
+              size="list"
+              padding="md"
+              onPress={() => router.push({ pathname: '/entry/[id]', params: { id: e.id } } as any)}
+            >
+              <View style={s.row}>
+                <View style={[s.icon, { backgroundColor: Colors.primaryFixed }]}>
+                  <Ionicons
+                    name={KIND_ICON[e.kind] ?? 'document-text'}
+                    size={16}
+                    color={Colors.primary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={s.metaTop}>
+                    <Pill label={e.kind} tone="neutral" />
+                    <Text style={[Typography.codeSm, { color: Colors.outline }]}>
+                      {relTime(e.created_at)}
+                    </Text>
+                  </View>
+                  <Text numberOfLines={3} style={[Typography.body, { color: Colors.onSurface, marginTop: 4 }]}>
+                    {e.text}
+                  </Text>
+                  {e.file ? (
+                    <Text style={[Typography.codeSm, { color: Colors.outline, marginTop: 4 }]}>
+                      {e.file}
+                      {e.line_start ? `:${e.line_start}` : ''}
+                    </Text>
+                  ) : null}
+                  {e.tags?.length ? (
+                    <View style={s.tags}>
+                      {e.tags.slice(0, 5).map((t) => (
+                        <Text key={t} style={[Typography.codeSm, { color: Colors.primary }]}>
+                          #{t}
+                        </Text>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+            </Card>
+          )}
         />
       )}
     </SafeAreaView>
   );
 }
 
-const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },
-  headerCount: { fontSize: 12, fontWeight: '600', color: Colors.primary, backgroundColor: '#dbe1ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  chips: { maxHeight: 44, marginBottom: 4 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff', marginRight: 6 },
-  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: 12, fontWeight: '600', color: Colors.onSurfaceVariant, textTransform: 'capitalize' },
-  chipTextActive: { color: '#fff' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 8 },
-  emptyText: { fontSize: 14, color: Colors.onSurfaceVariant },
-  card: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, marginBottom: 8, overflow: 'hidden' },
-  kindBar: { width: 4 },
-  cardBody: { flex: 1, padding: 10 },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
-  kindPill: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 20 },
-  kindPillText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
-  cardTime: { fontSize: 11, color: Colors.outline },
-  cardText: { fontSize: 14, color: '#191b24', lineHeight: 20 },
-  cardFile: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 4, fontFamily: 'monospace' },
-  tagsRow: { flexDirection: 'row', gap: 6, marginTop: 4, flexWrap: 'wrap' },
-  tag: { fontSize: 11, color: Colors.onSurfaceVariant, fontFamily: 'monospace' },
+function relTime(ms: number): string {
+  if (!ms) return 'just now';
+  const diff = Date.now() - ms;
+  const m = Math.round(diff / 60_000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return `${d}d ago`;
+}
+
+const s = StyleSheet.create({
+  safe: { flex: 1 },
+  chipRow: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  chip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.chip,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  loading: { paddingTop: Spacing.xxl, alignItems: 'center' },
+  row: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'flex-start' },
+  icon: { width: 36, height: 36, borderRadius: Radius.lg, alignItems: 'center', justifyContent: 'center' },
+  metaTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: 6 },
 });

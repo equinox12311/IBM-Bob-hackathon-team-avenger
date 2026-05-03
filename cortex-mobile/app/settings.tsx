@@ -161,13 +161,20 @@ export default function SettingsScreen() {
 
         {/* About --------------------------------------------------------- */}
         <Section title="About">
-          <Card variant="surface" padding="md" size="hero">
+          <Card variant="surface" padding="lg" size="hero">
+            <Text style={[Typography.h3, { color: Colors.onSurface, letterSpacing: -0.5 }]}>
+              cortex
+            </Text>
+            <Text style={[Typography.bodySm, { color: Colors.onSurfaceVariant, marginTop: 2 }]}>
+              your developer's second brain.
+            </Text>
+            <View style={[s.divider, { backgroundColor: Colors.outlineVariant }]} />
             <View style={s.aboutRow}>
-              <Text style={[Typography.body, { color: Colors.onSurface }]}>Cortex</Text>
-              <Text style={[Typography.code, { color: Colors.outline }]}>v0.3</Text>
+              <Text style={[Typography.bodySm, { color: Colors.onSurfaceVariant }]}>Version</Text>
+              <Text style={[Typography.code, { color: Colors.outline }]}>0.3.0</Text>
             </View>
             <View style={s.aboutRow}>
-              <Text style={[Typography.body, { color: Colors.onSurfaceVariant }]}>Built on</Text>
+              <Text style={[Typography.bodySm, { color: Colors.onSurfaceVariant }]}>Built on</Text>
               <Text style={[Typography.code, { color: Colors.outline }]}>IBM Bob · Granite</Text>
             </View>
           </Card>
@@ -184,5 +191,9 @@ const s = StyleSheet.create({
   aboutRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: Spacing.xs,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: Spacing.md,
   },
 });

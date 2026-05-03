@@ -221,8 +221,8 @@ export default function ChatScreen() {
             <View style={[s.emptyIcon, { backgroundColor: Colors.primaryFixed }]}>
               <Ionicons name="sparkles" size={28} color={Colors.primary} />
             </View>
-            <Text style={[Typography.h3, { color: Colors.onSurface, textAlign: 'center' }]}>
-              Ask Granite anything from your diary.
+            <Text style={[Typography.h2, { color: Colors.onSurface, textAlign: 'center', letterSpacing: -0.5 }]}>
+              Recall by intent.
             </Text>
             <Text style={[Typography.body, { color: Colors.onSurfaceVariant, textAlign: 'center', maxWidth: 320 }]}>
               {apiEnabled

@@ -130,11 +130,14 @@ export default function TodayScreen() {
       <Card variant="primary" size="hero" padding="lg" style={{ marginBottom: Spacing.md }}>
         <View style={s.heroTop}>
           <View style={{ flex: 1 }}>
-            <Text style={[Typography.bodySm, { color: Colors.onPrimaryFixed, opacity: 0.7 }]}>
-              {today}
+            <Text style={[Typography.codeSm, { color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase' }]}>
+              cortex · {today}
             </Text>
-            <Text style={[Typography.h2, { color: Colors.onPrimaryFixed, marginTop: 4 }]}>
+            <Text style={[Typography.h2, { color: Colors.onPrimaryFixed, marginTop: 6 }]}>
               {greeting}.
+            </Text>
+            <Text style={[Typography.bodySm, { color: Colors.onPrimaryFixed, opacity: 0.7, marginTop: 4 }]}>
+              Memory · Reasoning · Action.
             </Text>
           </View>
           <IconButton
@@ -189,7 +192,7 @@ export default function TodayScreen() {
         {entries.length === 0 ? (
           <EmptyState
             icon="document-text-outline"
-            title="Nothing captured yet"
+            title="Capture without breaking flow."
             body="Tap the + button to log your first thought, fix, or decision."
             ctaLabel="Capture"
             onCta={() => router.push('/capture')}

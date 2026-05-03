@@ -1,335 +1,269 @@
-// Workspace — Granite chat over diary + escalation to IBM Bob.
-// Maps to "AI Workspace - IBM Bob" mockup in theme.md (lines 295-584).
+/**
+ * Workspace — Granite chat over diary, with explicit "Send to Bob" escalation.
+ *
+ * Same data flow as before: search recent entries, surface the top match,
+ * optionally queue the prompt to Bob via /actions/queue.
+ */
 
-import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { TAB_BAR_HEIGHT } from "../src/constants/layout";
-import { Colors, Radius, Shadow, Spacing, Typography } from "../src/constants/theme";
-import {
-  apiCreateEntry,
-  apiQueueAction,
-  apiSearchEntries,
-  isApiConfigured,
-} from "../src/services/api";
+import { Card, Header, Pill } from '../src/components/ui';
+import { TAB_BAR_HEIGHT } from '../src/constants/layout';
+import { Radius, Spacing, Typography } from '../src/constants/theme';
+import { useThemeMode } from '../src/hooks/useThemeMode';
+import { apiCreateEntry, apiQueueAction, apiSearchEntries, isApiConfigured } from '../src/services/api';
 
-interface Citation {
-  id: number;
-  text: string;
-  score: number;
-}
-
+interface Citation { id: number; text: string; score: number; }
 interface ChatMessage {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   text: string;
   citations?: Citation[];
-  timestamp: number;
+  ts: number;
   escalated?: boolean;
 }
 
 const SUGGESTED = [
-  { label: "Authentication", bg: Colors.primaryFixed, fg: Colors.onPrimaryFixed },
-  { label: "Recent fixes", bg: Colors.secondaryFixed, fg: Colors.onSecondaryFixed },
-  { label: "Today's decisions", bg: Colors.tertiaryFixed, fg: Colors.onTertiaryFixed },
+  'Authentication',
+  'Recent fixes',
+  "Today's decisions",
 ];
 
 export default function WorkspaceScreen() {
+  const { Colors } = useThemeMode();
+  const scrollRef = useRef<ScrollView>(null);
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [configured, setConfigured] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    isApiConfigured().then(setConfigured);
-  }, []);
+  useEffect(() => { isApiConfigured().then(setConfigured); }, []);
 
   async function send() {
     const text = input.trim();
     if (!text || busy) return;
-    setInput("");
-    setBusy(true);
-    setMessages((m) => [...m, { role: "user", text, timestamp: Date.now() }]);
+    setInput(''); setBusy(true);
+    setMessages((m) => [...m, { role: 'user', text, ts: Date.now() }]);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
 
     try {
-      let answer = "";
+      let answer = '';
       const citations: Citation[] = [];
-
       if (configured) {
-        // Save context, then recall — Granite RAG path lands when /chat is wired.
-        await apiCreateEntry({ text, source: "mobile", kind: "note" });
+        await apiCreateEntry({ text, source: 'mobile', kind: 'note' });
         const hits = await apiSearchEntries(text, 5);
         if (hits.length > 0) {
           answer =
-            `Found ${hits.length} related ${hits.length === 1 ? "entry" : "entries"}. ` +
-            `Top match: "${hits[0].text.slice(0, 200)}${hits[0].text.length > 200 ? "…" : ""}"`;
-          for (const h of hits) {
-            citations.push({ id: h.id, text: h.text, score: h.score });
-          }
+            `Found ${hits.length} related ${hits.length === 1 ? 'entry' : 'entries'}.\n\n` +
+            `Top match: "${hits[0].text.slice(0, 200)}${hits[0].text.length > 200 ? '…' : ''}"`;
+          for (const h of hits) citations.push({ id: h.id, text: h.text, score: h.score });
         } else {
-          answer = "No related entries yet. Save your insights as you discover them.";
+          answer = 'No related entries yet — save your insights as you discover them.';
         }
       } else {
-        answer =
-          "Granite is offline (API not configured). Configure cortex-api in Profile to enable RAG chat.";
+        answer = 'Granite is offline (cortex-api not configured). Connect in Settings to enable RAG.';
       }
-
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", text: answer, citations, timestamp: Date.now() },
-      ]);
+      setMessages((m) => [...m, { role: 'assistant', text: answer, citations, ts: Date.now() }]);
     } catch (e) {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", text: `Error: ${String(e)}`, timestamp: Date.now() },
-      ]);
+      setMessages((m) => [...m, { role: 'assistant', text: `Error: ${String(e)}`, ts: Date.now() }]);
     } finally {
       setBusy(false);
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
     }
   }
 
   async function escalateLast() {
-    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
     if (!lastUser) return;
-    // Optimistic UI
-    setMessages((m) =>
-      m.map((msg) => (msg === lastUser ? { ...msg, escalated: true } : msg)),
-    );
+    setMessages((m) => m.map((msg) => (msg === lastUser ? { ...msg, escalated: true } : msg)));
     if (!configured) return;
     try {
-      await apiQueueAction("free", { prompt: lastUser.text });
+      await apiQueueAction('free', { prompt: lastUser.text });
     } catch {
-      // Roll back the chip if the queue rejected it
-      setMessages((m) =>
-        m.map((msg) => (msg === lastUser ? { ...msg, escalated: false } : msg)),
-      );
+      setMessages((m) => m.map((msg) => (msg === lastUser ? { ...msg, escalated: false } : msg)));
     }
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="rocket" size={22} color={Colors.primary} />
-          <Text style={styles.headerTitle}>Workspace</Text>
-        </View>
-        <View style={styles.statusPill}>
-          <View
-            style={[
-              styles.statusDot,
-              { backgroundColor: configured ? Colors.llmOnline : Colors.llmOffline },
-            ]}
-          />
-          <Text style={styles.statusText}>
-            {configured ? "Granite online" : "Offline"}
-          </Text>
-        </View>
-      </View>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top']}>
+      <Header
+        title="Workspace"
+        eyebrow="06 · the hand-off"
+        back
+        right={
+          configured === null ? null
+            : configured
+              ? <Pill label="Granite RAG" tone="success" icon="sparkles" />
+              : <Pill label="API offline" tone="neutral" icon="cloud-offline" />
+        }
+      />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {messages.length === 0 ? (
-          <View style={styles.hero}>
-            <Text style={styles.heroH1}>How can I help you build today?</Text>
-            <Text style={styles.heroSub}>Ask Granite. Powered by your Cortex history.</Text>
-            <View style={styles.chips}>
-              {SUGGESTED.map((s) => (
-                <TouchableOpacity
-                  key={s.label}
-                  style={[styles.chip, { backgroundColor: s.bg }]}
-                  onPress={() => setInput(s.label)}
-                >
-                  <Text style={[styles.chipText, { color: s.fg }]}>{s.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        ) : (
-          messages.map((m, i) => (
-            <View
-              key={i}
-              style={[
-                styles.bubble,
-                m.role === "user" ? styles.bubbleUser : styles.bubbleAssistant,
-              ]}
-            >
-              <Text style={[styles.bubbleText, m.role === "user" && { color: Colors.onPrimary }]}>
-                {m.text}
-              </Text>
-              {m.citations && m.citations.length > 0 && (
-                <View style={styles.citations}>
-                  {m.citations.map((c) => (
-                    <View key={c.id} style={styles.citation}>
-                      <Text style={styles.citationText}>
-                        #{c.id} · score {c.score.toFixed(2)}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {m.role === "user" && (
-                <TouchableOpacity
-                  onPress={escalateLast}
-                  style={styles.escalate}
-                  disabled={m.escalated}
-                >
-                  <Ionicons
-                    name={m.escalated ? "checkmark-circle" : "rocket-outline"}
-                    size={14}
-                    color={Colors.onPrimary}
-                  />
-                  <Text style={styles.escalateText}>
-                    {m.escalated ? "Sent to Bob" : "Send to Bob"}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))
-        )}
-        {busy && (
-          <View style={styles.busy}>
-            <ActivityIndicator color={Colors.primary} />
-            <Text style={styles.busyText}>Granite is thinking…</Text>
-          </View>
-        )}
-      </ScrollView>
-
-      <View style={styles.composer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask Bob…"
-          placeholderTextColor={Colors.outline}
-          value={input}
-          onChangeText={setInput}
-          multiline
-          onSubmitEditing={send}
-        />
-        <TouchableOpacity
-          style={[styles.sendBtn, !input.trim() && { opacity: 0.4 }]}
-          onPress={send}
-          disabled={!input.trim() || busy}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={{ padding: Spacing.md, paddingBottom: TAB_BAR_HEIGHT + Spacing.lg, gap: Spacing.sm }}
         >
-          <Ionicons name="arrow-up" size={20} color={Colors.onPrimary} />
-        </TouchableOpacity>
-      </View>
+          {messages.length === 0 ? (
+            <Card variant="primary" size="hero" padding="lg">
+              <Text style={[Typography.codeSm, { color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase' }]}>
+                from phone to bob.
+              </Text>
+              <Text style={[Typography.h2, { color: Colors.onPrimaryFixed, marginTop: 6, letterSpacing: -0.5 }]}>
+                In one tap.
+              </Text>
+              <Text style={[Typography.bodyLg, { color: Colors.onPrimaryFixed, opacity: 0.8, marginTop: Spacing.sm }]}>
+                Ask Granite over your diary. When the work needs IBM Bob, queue it with a tap — Bob picks up at the start of its next session.
+              </Text>
+              <View style={s.suggested}>
+                {SUGGESTED.map((sug) => (
+                  <TouchableOpacity
+                    key={sug}
+                    activeOpacity={0.85}
+                    onPress={() => setInput(sug)}
+                    style={[s.sugChip, { backgroundColor: Colors.surfaceContainerLowest }]}
+                  >
+                    <Text style={[Typography.labelSm, { color: Colors.primary }]}>{sug}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </Card>
+          ) : (
+            messages.map((m, i) => {
+              const isUser = m.role === 'user';
+              return (
+                <View
+                  key={i}
+                  style={[
+                    s.bubble,
+                    isUser
+                      ? { alignSelf: 'flex-end', backgroundColor: Colors.primary }
+                      : { alignSelf: 'flex-start', backgroundColor: Colors.surfaceContainerLowest, borderColor: Colors.outlineVariant, borderWidth: StyleSheet.hairlineWidth },
+                  ]}
+                >
+                  <Text style={[Typography.body, { color: isUser ? Colors.onPrimary : Colors.onSurface }]}>
+                    {m.text}
+                  </Text>
+                  {m.citations?.length ? (
+                    <View style={s.citations}>
+                      {m.citations.map((c) => (
+                        <View key={c.id} style={[s.citation, { backgroundColor: Colors.surfaceContainer }]}>
+                          <Text style={[Typography.codeSm, { color: Colors.onSurfaceVariant }]}>
+                            #{c.id} · {c.score.toFixed(2)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+                  {isUser && (
+                    <TouchableOpacity
+                      onPress={escalateLast}
+                      activeOpacity={0.85}
+                      disabled={m.escalated}
+                      style={[s.escalate, { backgroundColor: m.escalated ? Colors.success : Colors.primaryContainer }]}
+                    >
+                      <Ionicons
+                        name={m.escalated ? 'checkmark-circle' : 'rocket'}
+                        size={13}
+                        color={Colors.onPrimary}
+                      />
+                      <Text style={[Typography.labelSm, { color: Colors.onPrimary }]}>
+                        {m.escalated ? 'Sent to Bob' : 'Send to Bob'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })
+          )}
+
+          {busy && (
+            <View style={s.busy}>
+              <ActivityIndicator color={Colors.primary} />
+              <Text style={[Typography.bodySm, { color: Colors.onSurfaceVariant }]}>
+                Granite is thinking…
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+
+        <View
+          style={[
+            s.composer,
+            {
+              backgroundColor: Colors.surfaceContainerLowest,
+              borderTopColor: Colors.outlineVariant,
+              paddingBottom: TAB_BAR_HEIGHT + Spacing.sm,
+            },
+          ]}
+        >
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="Ask Bob…"
+            placeholderTextColor={Colors.outline}
+            multiline
+            style={[s.input, { backgroundColor: Colors.surfaceContainer, color: Colors.onSurface }]}
+          />
+          <TouchableOpacity
+            disabled={!input.trim() || busy}
+            onPress={send}
+            style={[s.sendBtn, { backgroundColor: input.trim() ? Colors.primary : Colors.surfaceContainerHigh }]}
+          >
+            <Ionicons name="arrow-up" size={20} color={input.trim() ? Colors.onPrimary : Colors.outline} />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.surfaceVariant,
-    backgroundColor: Colors.surfaceContainerLowest,
-  },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  headerTitle: { ...Typography.heading, color: Colors.onSurface },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.chip,
-    backgroundColor: Colors.surfaceContainer,
-  },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { ...Typography.labelSm, color: Colors.onSurfaceVariant },
+const s = StyleSheet.create({
+  safe: { flex: 1 },
+  suggested: { flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.md, flexWrap: 'wrap' },
+  sugChip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.chip },
 
-  scroll: { flex: 1 },
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    paddingBottom: TAB_BAR_HEIGHT + Spacing.xl,
-    gap: Spacing.md,
+  bubble: {
+    maxWidth: '88%',
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
   },
-
-  hero: { alignItems: "center", paddingVertical: Spacing.xl, gap: Spacing.md },
-  heroH1: { ...Typography.h2, color: Colors.onSurface, textAlign: "center" },
-  heroSub: { ...Typography.bodyLg, color: Colors.onSurfaceVariant, textAlign: "center" },
-  chips: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap", justifyContent: "center" },
-  chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.chip },
-  chipText: { ...Typography.labelSm },
-
-  bubble: { maxWidth: "85%", padding: Spacing.md, borderRadius: Radius.card, ...Shadow.card },
-  bubbleUser: {
-    alignSelf: "flex-end",
-    backgroundColor: Colors.primary,
-    borderBottomRightRadius: Radius.lg,
-  },
-  bubbleAssistant: {
-    alignSelf: "flex-start",
-    backgroundColor: Colors.surfaceContainerLowest,
-    borderWidth: 1,
-    borderColor: Colors.surfaceVariant,
-    borderBottomLeftRadius: Radius.lg,
-  },
-  bubbleText: { ...Typography.body, color: Colors.onSurface },
-  citations: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginTop: Spacing.sm },
-  citation: {
-    backgroundColor: Colors.surfaceContainer,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: Radius.chip,
-  },
-  citationText: { ...Typography.codeSm, color: Colors.onSurfaceVariant },
+  citations: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.sm },
+  citation: { paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radius.chip },
   escalate: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.xs,
     marginTop: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    backgroundColor: Colors.primaryContainer,
-    borderRadius: Radius.chip,
-    alignSelf: "flex-start",
+    paddingHorizontal: Spacing.md, paddingVertical: 6,
+    borderRadius: Radius.chip, alignSelf: 'flex-start',
   },
-  escalateText: { ...Typography.labelSm, color: Colors.onPrimary },
 
-  busy: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, paddingVertical: Spacing.md },
-  busyText: { ...Typography.bodySm, color: Colors.onSurfaceVariant },
+  busy: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.md },
 
   composer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.surfaceVariant,
-    backgroundColor: Colors.surfaceContainerLowest,
+    flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm,
+    padding: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.surfaceContainer,
+    flex: 1, minHeight: 44, maxHeight: 120,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
     borderRadius: Radius.input,
     ...Typography.body,
-    color: Colors.onSurface,
   },
   sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center',
   },
 });
