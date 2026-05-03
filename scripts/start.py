@@ -170,6 +170,23 @@ def ensure_env() -> None:
     if gguf.exists() and "LLM_PROVIDER=off" in text:
         env_path.write_text(text.replace("LLM_PROVIDER=off", "LLM_PROVIDER=local"))
         ok("Local Granite GGUF detected — flipping LLM_PROVIDER=local")
+        text = env_path.read_text()
+    # Migrate legacy .env files that still default to the slow sentence-
+    # transformers boot. We default to `fake` for the demo path; users who
+    # need real semantic search can put EMBEDDINGS_PROVIDER=watsonx (or
+    # local, knowing it costs ~90s of cold start) themselves.
+    if "EMBEDDINGS_PROVIDER=local" in text:
+        env_path.write_text(text.replace("EMBEDDINGS_PROVIDER=local", "EMBEDDINGS_PROVIDER=fake"))
+        ok("Migrated EMBEDDINGS_PROVIDER=local → fake (instant boot)")
+        text = env_path.read_text()
+    # Belt-and-braces: ensure HF_HUB_OFFLINE=1 is set so any stray
+    # huggingface call doesn't stall startup behind a DNS check.
+    if "HF_HUB_OFFLINE=" not in text:
+        with env_path.open("a") as f:
+            if not text.endswith("\n"):
+                f.write("\n")
+            f.write("HF_HUB_OFFLINE=1\n")
+        ok("Added HF_HUB_OFFLINE=1 to .env")
     (REPO_ROOT / "data").mkdir(exist_ok=True)
     ok(".env ready")
 
@@ -237,16 +254,19 @@ def start_api() -> None:
     )
     API_PIDFILE.write_text(str(_api_proc.pid))
 
-    # Wait up to 30s for /health
-    for _ in range(30):
+    # Wait up to 120s for /health — Granite GGUF cold-load can take ~60s
+    # on first boot. Print progress every 10s so the user knows we're alive.
+    for i in range(120):
         if health_ok(API_PORT):
             ok(f"API up (PID {_api_proc.pid})")
             return
         if _api_proc.poll() is not None:
             warn(f"API process exited early — check {API_LOG}")
             return
+        if i and i % 10 == 0:
+            dim(f"  still loading… ({i}s)")
         time.sleep(1)
-    warn(f"API didn't respond within 30s — check {API_LOG}")
+    warn(f"API didn't respond within 120s — check {API_LOG}")
 
 
 def cleanup() -> None:
