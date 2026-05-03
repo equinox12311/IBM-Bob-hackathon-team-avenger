@@ -3,7 +3,7 @@
  */
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator, Alert, ScrollView, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
@@ -12,7 +12,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
 import { useThemeMode } from '../src/hooks/useThemeMode';
 import { getDemoBobSkills } from '../src/services/demoData';
-import { apiCreateEntry, apiSearchEntries, isApiConfigured } from '../src/services/api';
+import {
+  apiBobImpact,
+  apiBobSessions,
+  apiCreateEntry,
+  apiSearchEntries,
+  isApiConfigured,
+  type BobImpact,
+  type BobSession,
+} from '../src/services/api';
 
 // Categorical, theme-independent palette per Bob tool.
 const BOB_TOOLS = [
@@ -39,6 +47,20 @@ export default function BobScreen() {
   const [input, setInput] = useState('');
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<InvokeResult[]>([]);
+  // Live IBM Bob impact (sessions + coin usage) from /api/v1/bob/{impact,sessions}
+  const [impact, setImpact] = useState<BobImpact | null>(null);
+  const [sessions, setSessions] = useState<BobSession[]>([]);
+
+  useEffect(() => {
+    isApiConfigured().then(async (ok) => {
+      if (!ok) return;
+      try {
+        const [imp, sess] = await Promise.all([apiBobImpact(), apiBobSessions()]);
+        setImpact(imp);
+        setSessions(sess);
+      } catch { /* leave null — show static fallback */ }
+    });
+  }, []);
   const [skills] = useState(getDemoBobSkills());
 
   const invokeTool = async () => {
@@ -130,6 +152,60 @@ export default function BobScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + 16 }}>
+        {/* Live IBM Bob impact — pulled from /api/v1/bob/{impact,sessions} */}
+        {impact && (
+          <View style={S.section}>
+            <Text style={S.sectionTitle}>Bob impact · this hackathon</Text>
+            <View style={{ backgroundColor: Colors.primaryFixed, borderRadius: 32, padding: 24, marginTop: 8 }}>
+              <Text style={{ fontFamily: 'SpaceGrotesk-Regular', fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: Colors.primary }}>
+                IBM BOB
+              </Text>
+              <Text style={{ fontFamily: 'PlusJakartaSans-Bold', fontSize: 32, color: Colors.onPrimaryFixed, marginTop: 6, letterSpacing: -0.5 }}>
+                {impact.total_coins_used} coins · {impact.total_time_saved_hours.toFixed(1)} h saved
+              </Text>
+              <Text style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: Colors.onPrimaryFixed, opacity: 0.75, marginTop: 6 }}>
+                Across {impact.total_sessions} sessions · {impact.files_touched} files touched · ~{Math.round(impact.avg_time_saved_per_session)} min saved per session
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
+                {Object.entries(impact.tools_usage).slice(0, 5).map(([tool, count]) => (
+                  <View key={tool} style={{ backgroundColor: Colors.surfaceContainerLowest, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 }}>
+                    <Text style={{ fontFamily: 'SpaceGrotesk-Regular', fontSize: 11, color: Colors.primary, fontWeight: '600' }}>
+                      {tool} · {count}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Recent Bob sessions */}
+        {sessions.length > 0 && (
+          <View style={S.section}>
+            <Text style={S.sectionTitle}>Recent sessions</Text>
+            {sessions.slice(0, 3).map((sess) => (
+              <View key={sess.id} style={{ backgroundColor: Colors.surfaceContainerLowest, borderColor: Colors.outlineVariant, borderWidth: 1, borderRadius: 12, padding: 16, marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontFamily: 'SpaceGrotesk-Regular', fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: Colors.outline }}>
+                    {sess.mode || 'cortex'} · {new Date(sess.timestamp).toLocaleDateString()}
+                  </Text>
+                  <Text style={{ fontFamily: 'SpaceGrotesk-Medium', fontSize: 12, color: Colors.primary, fontWeight: '600' }}>
+                    {sess.coins_used} coins
+                  </Text>
+                </View>
+                <Text numberOfLines={2} style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 14, color: Colors.onSurface, lineHeight: 20 }}>
+                  {sess.task_description}
+                </Text>
+                {sess.time_saved_minutes ? (
+                  <Text style={{ fontFamily: 'SpaceGrotesk-Regular', fontSize: 11, color: Colors.outline, marginTop: 4 }}>
+                    saved ~{sess.time_saved_minutes} min · {(sess.tools_used || []).slice(0, 3).join(', ')}
+                  </Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Tool selector */}
         <View style={S.section}>
           <Text style={S.sectionTitle}>MCP Tools</Text>

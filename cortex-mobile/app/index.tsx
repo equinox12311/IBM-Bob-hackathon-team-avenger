@@ -19,7 +19,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { Button, Card, EmptyState, IconButton, Pill, Screen, Section } from '../src/components/ui';
 import { Radius, Spacing, Typography } from '../src/constants/theme';
 import { useThemeMode } from '../src/hooks/useThemeMode';
-import { apiGetToday, isApiConfigured } from '../src/services/api';
+import { apiGetToday, apiPendingActions, isApiConfigured } from '../src/services/api';
 import { listEntries } from '../src/services/database';
 import { hasSeenOnboarding } from './onboarding';
 import { checkOllamaHealth } from '../src/services/llm';
@@ -60,7 +60,8 @@ export default function TodayScreen() {
   const [apiOnline, setApiOnline] = useState(false);
   const [llmStatus, setLlmStatus] = useState<'checking' | 'online' | 'offline' | 'na'>('checking');
   const [refreshing, setRefreshing] = useState(false);
-  const [unreadNotifs] = useState(getDemoNotifications().filter(n => !n.read).length);
+  // Real notification count = unconsumed pending_actions queued for Bob
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // First-launch onboarding gate
@@ -99,6 +100,14 @@ export default function TodayScreen() {
     setEntries(demo);
     setStats({ total: demo.length, byKind });
   }, []);
+
+  // Pull live pending-actions count for the notification bell badge.
+  useEffect(() => {
+    if (!apiOnline) { setUnreadNotifs(0); return; }
+    apiPendingActions(false, 50)
+      .then((r) => setUnreadNotifs(r.actions?.length ?? 0))
+      .catch(() => setUnreadNotifs(0));
+  }, [apiOnline]);
 
   // Only check Ollama when API isn't connected — otherwise the pill is noise.
   const checkLLM = useCallback(async () => {

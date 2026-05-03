@@ -596,3 +596,48 @@ export async function apiAllActions(limit = 100): Promise<{ actions: PendingActi
 export async function apiDeleteAction(id: number): Promise<void> {
   await apiFetch(`/api/v1/actions/${id}`, { method: 'DELETE' });
 }
+
+// ─── Bob analytics (sessions, impact) ─────────────────────────────────────────
+
+export interface BobSession {
+  id: number;
+  timestamp: number;
+  mode: string;
+  task_description: string;
+  tools_used: string[];
+  files_touched: string[];
+  coins_used: number;
+  time_saved_minutes?: number;
+  outcome?: string;
+}
+
+export async function apiBobSessions(): Promise<BobSession[]> {
+  return apiFetch<BobSession[]>('/api/v1/bob/sessions');
+}
+
+export interface BobImpact {
+  total_sessions: number;
+  total_time_saved_hours: number;
+  total_coins_used: number;
+  tools_usage: Record<string, number>;
+  modes_usage: Record<string, number>;
+  files_touched: number;
+  avg_time_saved_per_session: number;
+}
+
+export async function apiBobImpact(): Promise<BobImpact> {
+  return apiFetch<BobImpact>('/api/v1/bob/impact');
+}
+
+// ─── Productivity metrics ─────────────────────────────────────────────────────
+
+export interface ProductivityMetrics {
+  metrics: Record<string, number>;
+  comparisons: Record<string, { before: number; after: number; delta_pct: number }>;
+  monthly_roi: { hours_saved: number; coins_used: number; value_per_coin: number; net_value_usd: number };
+  period_days: number;
+}
+
+export async function apiProductivity(days = 7): Promise<ProductivityMetrics> {
+  return apiFetch<ProductivityMetrics>(`/api/v1/metrics/productivity?days=${days}`);
+}
