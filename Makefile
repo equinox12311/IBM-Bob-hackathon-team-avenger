@@ -31,7 +31,7 @@ DIARY_TOKEN  ?= test
 EMBEDDINGS_PROVIDER ?= local
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start dev judge install-bob verify-mcp build up down test lint submit clean pair stop
+.PHONY: help setup start dev judge install-bob verify-mcp build up down test lint submit clean pair stop smoke
 
 help:  ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -67,6 +67,13 @@ pair:  ## one-click mobile pairing: print a QR with API URL + token
 
 start:  ## one-command boot (mac/linux/windows): install if needed, start API, print QR, start Expo
 	@python3 scripts/start.py 2>/dev/null || python scripts/start.py
+
+smoke:  ## end-to-end Tier 1 smoke: pytest + integration checks (~60s)
+	@command -v $(PY) > /dev/null || { echo "Run 'make setup' or 'make start' first."; exit 1; }
+	@echo "▶ Backend pytest"
+	@$(PY) -m pytest -q
+	@echo
+	@$(PY) scripts/smoke.py
 
 stop:  ## stop the background API server started by `make start`
 	@if [ -f .logs/api.pid ]; then \
