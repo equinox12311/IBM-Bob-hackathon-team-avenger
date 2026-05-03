@@ -30,9 +30,12 @@ const NAV: NavItem[] = [
   { to: "/debug", label: "Debug", icon: "bug_report" },
   { to: "/report", label: "Report", icon: "summarize" },
   { to: "/analytics", label: "Analytics", icon: "monitoring" },
+  { to: "/productivity", label: "ROI", icon: "savings" },
   { to: "/github", label: "GitHub", icon: "code" },
   { to: "/automations", label: "Automations", icon: "bolt" },
   { to: "/wellness", label: "Wellness", icon: "spa" },
+  { to: "/identity", label: "Identity", icon: "account_tree" },
+  { to: "/news", label: "News", icon: "newspaper" },
   { to: "/profile", label: "Profile", icon: "person", primary: true },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
