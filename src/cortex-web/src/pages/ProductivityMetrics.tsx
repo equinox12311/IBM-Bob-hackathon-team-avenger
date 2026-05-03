@@ -32,28 +32,29 @@ interface MetricsData {
 }
 
 export default function ProductivityMetrics() {
+  const { token } = useAuth();
   const [data, setData] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(7);
 
   useEffect(() => {
-    loadMetrics();
-  }, [days]);
-
-  const loadMetrics = async () => {
-    const { token } = useAuth();
     if (!token) return;
-    
-    try {
-      setLoading(true);
-      const response = await getProductivityMetrics(token, days);
-      setData(response);
-    } catch (error) {
-      console.error('Failed to load metrics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    let cancelled = false;
+    setLoading(true);
+    getProductivityMetrics(token, days)
+      .then((response) => {
+        if (!cancelled) setData(response);
+      })
+      .catch((error) => {
+        if (!cancelled) console.error("Failed to load metrics:", error);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, days]);
 
   if (loading) {
     return (

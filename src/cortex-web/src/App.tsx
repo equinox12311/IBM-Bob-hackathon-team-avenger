@@ -12,6 +12,7 @@ import GitHubActivityPage from "@/pages/GitHubActivityPage";
 import IdeaMapper from "@/pages/IdeaMapper";
 import InSessionAnalytics from "@/pages/InSessionAnalytics";
 import Login from "@/pages/Login";
+import ProductivityMetrics from "@/pages/ProductivityMetrics";
 import Search from "@/pages/Search";
 import Settings from "@/pages/Settings";
 import Timeline from "@/pages/Timeline";
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/profile" element={<UserProfilePage />} />
         <Route path="/identity" element={<DeveloperIdentity />} />
         <Route path="/news" element={<DeveloperNews />} />
+        <Route path="/productivity" element={<ProductivityMetrics />} />
         <Route path="/entry/:id" element={<EntryDetail />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/today" replace />} />
