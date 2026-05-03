@@ -1,6 +1,9 @@
 # Cortex
 
 > A developer's second brain, integrated as a first-class IBM Bob extension via MCP, custom mode, skill, slash commands, and mode rules.
+>
+> **Primary client:** [`cortex-mobile/`](cortex-mobile/) — Expo (iOS · Android · Web).
+> [`src/cortex-web/`](src/cortex-web/) is kept as a legacy fallback web demo; not the focus.
 
 **🏆 IBM Bob Dev Day Hackathon Submission** | May 1–3, 2026
 
