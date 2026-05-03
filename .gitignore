@@ -44,3 +44,6 @@ data/
 
 # Archive of pre-cleanup notes — kept locally, never shipped
 __archive/
+
+# Local LLM weights (~1.5 GB each — never ship)
+models/

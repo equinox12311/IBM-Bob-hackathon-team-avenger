@@ -142,13 +142,20 @@ def ensure_python() -> None:
 
 def ensure_env() -> None:
     env_path = REPO_ROOT / ".env"
+    # Default to `fake` embeddings — instant boot, no 90-second sentence-
+    # transformers cold-start (the demo doesn't need real vector quality
+    # to show every UI surface). Override with EMBEDDINGS_PROVIDER=local or
+    # =watsonx in .env when you actually need it.
+    gguf = REPO_ROOT / "models" / "granite-3.1-2b-instruct-Q4_K_M.gguf"
+    llm_provider = "local" if gguf.exists() else "off"
     if not env_path.exists():
         b("▶ Bootstrapping .env")
         env_path.write_text(
-            "LLM_PROVIDER=local\n"
-            "EMBEDDINGS_PROVIDER=local\n"
+            f"LLM_PROVIDER={llm_provider}\n"
+            "EMBEDDINGS_PROVIDER=fake\n"
             "DIARY_DB_PATH=data/cortex.db\n"
             "RELOAD=false\n"
+            "HF_HUB_OFFLINE=1\n"
         )
     text = env_path.read_text()
     if "DIARY_TOKEN=" not in text:
@@ -158,6 +165,11 @@ def ensure_env() -> None:
                 f.write("\n")
             f.write(f"DIARY_TOKEN={token}\n")
         ok("Generated DIARY_TOKEN")
+    # If the GGUF showed up after first boot, flip LLM_PROVIDER on automatically.
+    text = env_path.read_text()
+    if gguf.exists() and "LLM_PROVIDER=off" in text:
+        env_path.write_text(text.replace("LLM_PROVIDER=off", "LLM_PROVIDER=local"))
+        ok("Local Granite GGUF detected — flipping LLM_PROVIDER=local")
     (REPO_ROOT / "data").mkdir(exist_ok=True)
     ok(".env ready")
 

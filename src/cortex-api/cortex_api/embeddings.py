@@ -82,8 +82,37 @@ class WatsonxEmbeddings(EmbeddingsProvider):
         return [float(x) for x in embedding]
 
 
+class FakeEmbeddings(EmbeddingsProvider):
+    """Deterministic hash-bucket embeddings — for demos & cold starts.
+
+    Real demos don't need vector quality; they need the lifespan to come
+    up *now* without spending 90 s loading sentence-transformers. Token
+    hashes get bucketed into a 384-dim float vector so search still
+    returns *something*. Set ``EMBEDDINGS_PROVIDER=fake`` to enable.
+    """
+
+    dim = 384
+    name = "fake:hash-bucket"
+
+    def embed(self, text: str) -> list[float]:
+        import hashlib
+
+        vec = [0.0] * self.dim
+        # Token-level hashing: each token maps to one bucket; counts → magnitude.
+        for tok in (text or "").lower().split():
+            h = int(hashlib.blake2b(tok.encode("utf-8"), digest_size=4).hexdigest(), 16)
+            vec[h % self.dim] += 1.0
+        # L2-normalise so cosine vs sqlite-vec stays comparable.
+        norm = sum(x * x for x in vec) ** 0.5
+        if norm > 0:
+            vec = [x / norm for x in vec]
+        return vec
+
+
 @lru_cache(maxsize=1)
 def get_provider() -> EmbeddingsProvider:
+    if settings.embeddings_provider == "fake":
+        return FakeEmbeddings()
     if settings.embeddings_provider == "watsonx":
         try:
             return WatsonxEmbeddings()

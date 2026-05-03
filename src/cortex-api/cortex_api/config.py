@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     diary_token: str = "replace-me-with-a-long-random-string"
     diary_db_path: Path = Path("data/diary.db")
 
-    embeddings_provider: Literal["watsonx", "local"] = "local"
+    embeddings_provider: Literal["watsonx", "local", "fake"] = "local"
     llm_provider: Literal["watsonx", "local", "off"] = "off"
 
     watsonx_api_key: str = ""
@@ -31,8 +31,10 @@ class Settings(BaseSettings):
 
     # Local LLM (when LLM_PROVIDER=local) — IBM Granite 2B as GGUF, run via
     # llama-cpp-python. ~1.6GB, ~30 tok/s on a laptop CPU.
-    # Download: huggingface-cli download ibm-granite/granite-3.1-2b-instruct-GGUF \
+    # Download: huggingface-cli download lmstudio-community/granite-3.1-2b-instruct-GGUF \
     #   granite-3.1-2b-instruct-Q4_K_M.gguf -d models/
+    # (the original `ibm-granite/...-GGUF` repo isn't published; lmstudio-community
+    # mirrors it as a Q4_K_M / Q6_K / Q8_0 set.)
     local_llm_gguf_path: Path = Path("models/granite-3.1-2b-instruct-Q4_K_M.gguf")
     local_llm_n_ctx: int = 4096
     local_llm_n_threads: int = 0  # 0 = auto from CPU count

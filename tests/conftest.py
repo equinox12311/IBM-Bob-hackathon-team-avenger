@@ -30,12 +30,18 @@ def _isolated_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DIARY_DB_PATH", str(db_path))
     monkeypatch.setenv("DIARY_TOKEN", "test-token")
     monkeypatch.setenv("EMBEDDINGS_PROVIDER", "local")
+    # Force LLM off in tests — otherwise the local Granite GGUF, when
+    # present on disk, would silently turn the "503 when llm off" tests
+    # into 200s. Tests that want LLM on can set settings.llm_provider
+    # in their own scope.
+    monkeypatch.setenv("LLM_PROVIDER", "off")
 
     from cortex_api.config import settings
 
     monkeypatch.setattr(settings, "diary_db_path", db_path)
     monkeypatch.setattr(settings, "diary_token", "test-token")
     monkeypatch.setattr(settings, "embeddings_provider", "local")
+    monkeypatch.setattr(settings, "llm_provider", "off")
 
     # Reset the embeddings provider singleton so the fake_embed fixture (or a
     # fresh local model) is picked up next time get_provider() is called.
