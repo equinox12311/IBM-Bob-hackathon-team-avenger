@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
 import { Colors } from '../src/constants/theme';
+import { useThemeMode, type ThemeMode } from '../src/hooks/useThemeMode';
 import { getApiBase, setApiBase, getToken, setToken, checkApiHealth } from '../src/services/api';
 
 export default function SettingsPage() {
@@ -8,6 +9,7 @@ export default function SettingsPage() {
   const [tokenInput, setTokenInput] = useState('');
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
   const [healthOk, setHealthOk] = useState<boolean | null>(null);
+  const { mode: themeMode, scheme, setMode } = useThemeMode();
 
   useEffect(() => {
     loadSettings();
@@ -111,6 +113,38 @@ export default function SettingsPage() {
         )}
       </View>
 
+      {/* Appearance */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.helperText}>
+          Currently rendering in {scheme} mode.
+        </Text>
+        <View style={appearanceStyles.row}>
+          {(['system', 'light', 'dark'] as ThemeMode[]).map((m) => {
+            const active = themeMode === m;
+            return (
+              <TouchableOpacity
+                key={m}
+                style={[
+                  appearanceStyles.btn,
+                  active && appearanceStyles.btnActive,
+                ]}
+                onPress={() => setMode(m)}
+              >
+                <Text
+                  style={[
+                    appearanceStyles.btnText,
+                    active && appearanceStyles.btnTextActive,
+                  ]}
+                >
+                  {m === 'system' ? 'Match system' : m === 'light' ? 'Light' : 'Dark'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       {/* Token Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Authentication</Text>
@@ -165,6 +199,33 @@ export default function SettingsPage() {
     </ScrollView>
   );
 }
+
+const appearanceStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  btn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+    backgroundColor: Colors.surfaceContainerLowest,
+    alignItems: 'center',
+  },
+  btnActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  btnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.onSurfaceVariant,
+  },
+  btnTextActive: { color: '#fff' },
+});
 
 const styles = StyleSheet.create({
   container: {

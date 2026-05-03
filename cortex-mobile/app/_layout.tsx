@@ -4,11 +4,20 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../src/constants/theme';
+import { ThemeProvider, useThemeMode } from '../src/hooks/useThemeMode';
 import { getDB } from '../src/services/database';
 
 export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutInner />
+    </ThemeProvider>
+  );
+}
+
+function RootLayoutInner() {
   const insets = useSafeAreaInsets();
+  const { Colors, scheme } = useThemeMode();
 
   useEffect(() => {
     try { getDB(); } catch (e) { console.error('DB init failed:', e); }
@@ -19,7 +28,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="dark" backgroundColor={Colors.surfaceContainerLowest} />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} backgroundColor={Colors.surfaceContainerLowest} />
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -115,6 +124,7 @@ export default function RootLayout() {
         <Tabs.Screen name="security"    options={{ href: null }} />
         <Tabs.Screen name="profile"     options={{ href: null }} />
         <Tabs.Screen name="entry/[id]"  options={{ href: null }} />
+        <Tabs.Screen name="onboarding"  options={{ href: null, tabBarStyle: { display: 'none' } }} />
       </Tabs>
     </>
   );

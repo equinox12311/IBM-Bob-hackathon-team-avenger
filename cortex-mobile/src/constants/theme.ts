@@ -7,6 +7,7 @@ export const Colors = {
   primaryContainer: "#0062ff",
   primaryFixed: "#dbe1ff",
   primaryFixedDim: "#b4c5ff",
+  primaryLight: "#dbe1ff",   // alias for legacy screens (= primaryFixed)
   onPrimary: "#ffffff",
   onPrimaryFixed: "#00174b",
   onPrimaryContainer: "#f3f3ff",
@@ -15,6 +16,7 @@ export const Colors = {
   secondaryContainer: "#8d42ff",
   secondaryFixed: "#ebdcff",
   secondaryFixedDim: "#d4bbff",
+  secondaryLight: "#ebdcff", // alias for legacy screens
   onSecondary: "#ffffff",
   onSecondaryFixed: "#270058",
   onSecondaryContainer: "#fdf6ff",
@@ -23,6 +25,7 @@ export const Colors = {
   tertiaryContainer: "#b45300",
   tertiaryFixed: "#ffdbc9",
   tertiaryFixedDim: "#ffb68c",
+  tertiaryLight: "#ffdbc9",  // alias for legacy screens
   onTertiary: "#ffffff",
   onTertiaryFixed: "#321200",
   onTertiaryContainer: "#fff1ea",

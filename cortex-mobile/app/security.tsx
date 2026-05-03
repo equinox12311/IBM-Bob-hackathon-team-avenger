@@ -100,10 +100,14 @@ export default function SecurityScreen() {
     setRefreshing(false);
   }
 
-  const topActions = summary
-    ? Object.entries(summary.by_action).sort((a, b) => b[1] - a[1]).slice(0, 6)
+  const topActions: [string, number][] = summary
+    ? (Object.entries(summary.by_action) as [string, number][])
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
     : [];
-  const maxCount = topActions.length ? Math.max(...topActions.map(([, n]) => n), 1) : 1;
+  const maxCount = topActions.length
+    ? Math.max(...topActions.map(([, n]) => n), 1)
+    : 1;
 
   return (
     <SafeAreaView style={S.safe} edges={['top']}>

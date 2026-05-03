@@ -63,6 +63,19 @@ export default function TodayScreen() {
   const [showNotifs, setShowNotifs] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // First-launch onboarding redirect.
+  useEffect(() => {
+    let cancelled = false;
+    import('./onboarding').then(({ hasSeenOnboarding }) => {
+      hasSeenOnboarding().then((seen) => {
+        if (!seen && !cancelled) router.replace('/onboarding');
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
   const load = useCallback(async () => {
     const configured = await isApiConfigured();
     setApiOnline(configured);
