@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Knowledge Graph</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-surface": "#e1e1ee",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#474746",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "on-surface-variant": "#c3c6d8",
+                      "error-container": "#93000a",
+                      "surface-container-lowest": "#0b0e16",
+                      "tertiary-fixed": "#ffdbd0",
+                      "surface-dim": "#11131c",
+                      "on-primary-fixed-variant": "#003da9",
+                      "inverse-on-surface": "#2e303a",
+                      "primary-fixed": "#dbe1ff",
+                      "on-tertiary-fixed-variant": "#832700",
+                      "on-background": "#e1e1ee",
+                      "secondary-fixed": "#e5e2e1",
+                      "on-error": "#690005",
+                      "primary-container": "#0f62fe",
+                      "outline-variant": "#424656",
+                      "on-secondary": "#313030",
+                      "on-primary-container": "#f3f3ff",
+                      "surface-bright": "#373943",
+                      "surface-container": "#1d1f28",
+                      "surface-variant": "#32343e",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-surface": "#e1e1ee",
+                      "on-secondary-container": "#b7b4b4",
+                      "secondary": "#c8c6c5",
+                      "surface": "#11131c",
+                      "tertiary-container": "#c84000",
+                      "on-primary-fixed": "#00174c",
+                      "on-secondary-fixed": "#1c1b1b",
+                      "surface-container-highest": "#32343e",
+                      "on-tertiary": "#5d1900",
+                      "on-primary": "#002979",
+                      "background": "#11131c",
+                      "surface-container-low": "#191b24",
+                      "tertiary-fixed-dim": "#ffb59d",
+                      "outline": "#8c90a2",
+                      "tertiary": "#ffb59d",
+                      "error": "#ffb4ab",
+                      "surface-container-high": "#272a33",
+                      "on-tertiary-container": "#fff1ed",
+                      "on-secondary-fixed-variant": "#474746",
+                      "on-tertiary-fixed": "#390c00",
+                      "primary": "#b4c5ff",
+                      "inverse-primary": "#0052dd",
+                      "surface-tint": "#b4c5ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "space-sm": "8px",
+                      "touch-target-min": "44px",
+                      "space-xs": "4px",
+                      "space-md": "16px",
+                      "space-lg": "24px",
+                      "margin-mobile": "24px",
+                      "space-xl": "32px",
+                      "gutter-mobile": "16px"
+              },
+              "fontFamily": {
+                      "h1": [
+                              "IBM Plex Sans"
+                      ],
+                      "h3": [
+                              "IBM Plex Sans"
+                      ],
+                      "h2": [
+                              "IBM Plex Sans"
+                      ],
+                      "code-md": [
+                              "IBM Plex Mono"
+                      ],
+                      "body-lg": [
+                              "IBM Plex Sans"
+                      ],
+                      "body-md": [
+                              "IBM Plex Sans"
+                      ],
+                      "label-caps": [
+                              "IBM Plex Sans"
+                      ]
+              },
+              "fontSize": {
+                      "h1": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "h3": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "h2": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "code-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md overflow-hidden relative">
+<!-- TopAppBar -->
+<header class="bg-[#0f0f0f] dark:bg-[#0f0f0f] text-[#0f62fe] dark:text-[#0f62fe] font-inter text-sm tracking-tight font-medium uppercase docked full-width top-0 border-b border-[#393939] flat no shadows hover:bg-[#262626] transition-colors active:scale-95 transition-transform flex justify-between items-center w-full px-6 h-16 z-50 absolute">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</div>
+<div class="font-mono font-black text-xl tracking-tighter text-[#0f62fe]">
+            IBM_BOB
+        </div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</div>
+</header>
+<!-- Main Content Canvas (Graph View) -->
+<main class="flex-1 w-full relative pt-16 pb-16 bg-surface">
+<!-- Graph Container -->
+<div class="absolute inset-0 z-0 overflow-hidden" style="background-image: radial-gradient(circle at 50% 50%, rgba(66, 70, 86, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+<!-- Lines (SVG) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<!-- Line: Core Processor -> Auth Middleware -->
+<line stroke="#424656" stroke-width="2" x1="50%" x2="30%" y1="30%" y2="50%"></line>
+<!-- Line: Core Processor -> Notes -->
+<line stroke="#0f62fe" stroke-dasharray="4 4" stroke-width="2" x1="50%" x2="70%" y1="30%" y2="60%"></line>
+<!-- Line: Auth Middleware -> Notes -->
+<line opacity="0.5" stroke="#424656" stroke-width="1" x1="30%" x2="70%" y1="50%" y2="60%"></line>
+</svg>
+<!-- Node: Core Processor (Active/Central) -->
+<button class="absolute top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-10 group">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center border-4 border-surface shadow-[0_0_20px_rgba(15,98,254,0.3)] transition-transform group-hover:scale-110 group-active:scale-95">
+<span class="material-symbols-outlined text-on-primary-container text-2xl" data-icon="memory">memory</span>
+</div>
+<span class="font-code-md text-code-md text-primary bg-surface-container-high px-2 py-1 rounded-DEFAULT border border-outline-variant">Core Processor</span>
+</button>
+<!-- Node: Auth Middleware -->
+<button class="absolute top-[50%] left-[30%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-10 group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center border-2 border-outline transition-transform group-hover:scale-110 group-active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="vpn_key">vpn_key</span>
+</div>
+<span class="font-code-md text-code-md text-on-surface-variant">Auth Middleware</span>
+</button>
+<!-- Node: Notes (Selected) -->
+<button class="absolute top-[60%] left-[70%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-10 group">
+<div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center border-2 border-primary ring-2 ring-primary ring-offset-2 ring-offset-surface transition-transform group-hover:scale-110 group-active:scale-95">
+<span class="material-symbols-outlined text-primary" data-icon="sticky_note_2">sticky_note_2</span>
+</div>
+<span class="font-code-md text-code-md text-primary font-bold">Notes</span>
+</button>
+<!-- Background Decorative Node -->
+<div class="absolute top-[20%] left-[80%] -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-container-low border border-outline-variant opacity-40 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[16px]" data-icon="database">database</span>
+</div>
+<!-- Background Decorative Node -->
+<div class="absolute top-[75%] left-[20%] -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-container-low border border-outline-variant opacity-40 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[20px]" data-icon="api">api</span>
+</div>
+</div>
+<!-- Node Detail Overlay Card (Bottom Sheet Style) -->
+<div class="absolute bottom-16 left-0 w-full px-margin-mobile pb-space-lg z-20">
+<div class="bg-[#161616] rounded-xl border border-[#393939] shadow-2xl overflow-hidden backdrop-blur-sm">
+<!-- Grabber -->
+<div class="w-full flex justify-center py-3">
+<div class="w-12 h-1.5 bg-outline-variant rounded-full"></div>
+</div>
+<div class="p-space-lg pt-0">
+<div class="flex items-start justify-between mb-4">
+<div>
+<p class="font-label-caps text-label-caps text-primary tracking-widest mb-1 uppercase">Selected Node</p>
+<h2 class="font-h2 text-h2 text-on-surface">Notes Service</h2>
+</div>
+<div class="bg-surface-container-highest p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="sticky_note_2">sticky_note_2</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">
+                        Handles asynchronous ingestion and indexing of user-generated contextual notes. Connected to primary graph database.
+                    </p>
+<div class="grid grid-cols-2 gap-space-md mb-6">
+<div class="bg-surface-container-low p-space-sm rounded-lg border border-outline-variant">
+<span class="font-label-caps text-label-caps text-outline block mb-1">STATUS</span>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#10b981]"></div>
+<span class="font-code-md text-code-md text-on-surface">Healthy</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded-lg border border-outline-variant">
+<span class="font-label-caps text-label-caps text-outline block mb-1">LATENCY</span>
+<span class="font-code-md text-code-md text-on-surface">42ms</span>
+</div>
+</div>
+<div class="flex gap-space-md">
+<button class="flex-1 h-[48px] bg-primary-container text-on-primary-container font-label-caps text-label-caps rounded-DEFAULT flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="query_stats" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+                            ANALYZE
+                        </button>
+<button class="h-[48px] px-space-md bg-[#262626] border border-[#393939] text-on-surface font-label-caps text-label-caps rounded-DEFAULT flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-[#0f0f0f]/80 backdrop-blur-md text-[#0f62fe] dark:text-[#0f62fe] font-mono text-[10px] font-bold tracking-widest text-[#0f62fe] fixed bottom-0 w-full h-[64px] border-t border-[#393939] flat no shadows fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe hidden md:flex" style="display: flex;">
+<button class="flex flex-col items-center justify-center text-gray-500 opacity-60 hover:text-[#0f62fe] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="mt-1">WORKSPACE</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-500 opacity-60 hover:text-[#0f62fe] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="mt-1">EXPLORER</span>
+</button>
+<!-- Active Tab: GRAPH -->
+<button class="flex flex-col items-center justify-center text-[#0f62fe] scale-110 hover:text-[#0f62fe] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="mt-1">GRAPH</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-500 opacity-60 hover:text-[#0f62fe] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="mt-1">SNIPPETS</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-500 opacity-60 hover:text-[#0f62fe] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="mt-1">DOCS</span>
+</button>
+</nav>
+</body></html>

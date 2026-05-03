@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Workspace - IBM BOB</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;600;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#e1e1ee",
+                    "on-error-container": "#ffdad6",
+                    "secondary-container": "#474746",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-surface-variant": "#c3c6d8",
+                    "error-container": "#93000a",
+                    "surface-container-lowest": "#0b0e16",
+                    "tertiary-fixed": "#ffdbd0",
+                    "surface-dim": "#11131c",
+                    "on-primary-fixed-variant": "#003da9",
+                    "inverse-on-surface": "#2e303a",
+                    "primary-fixed": "#dbe1ff",
+                    "on-tertiary-fixed-variant": "#832700",
+                    "on-background": "#e1e1ee",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-error": "#690005",
+                    "primary-container": "#0f62fe",
+                    "outline-variant": "#424656",
+                    "on-secondary": "#313030",
+                    "on-primary-container": "#f3f3ff",
+                    "surface-bright": "#373943",
+                    "surface-container": "#1d1f28",
+                    "surface-variant": "#32343e",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-surface": "#e1e1ee",
+                    "on-secondary-container": "#b7b4b4",
+                    "secondary": "#c8c6c5",
+                    "surface": "#11131c",
+                    "tertiary-container": "#c84000",
+                    "on-primary-fixed": "#00174c",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "surface-container-highest": "#32343e",
+                    "on-tertiary": "#5d1900",
+                    "on-primary": "#002979",
+                    "background": "#11131c",
+                    "surface-container-low": "#191b24",
+                    "tertiary-fixed-dim": "#ffb59d",
+                    "outline": "#8c90a2",
+                    "tertiary": "#ffb59d",
+                    "error": "#ffb4ab",
+                    "surface-container-high": "#272a33",
+                    "on-tertiary-container": "#fff1ed",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-tertiary-fixed": "#390c00",
+                    "primary": "#b4c5ff",
+                    "inverse-primary": "#0052dd",
+                    "surface-tint": "#b4c5ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "space-sm": "8px",
+                    "touch-target-min": "44px",
+                    "space-xs": "4px",
+                    "space-md": "16px",
+                    "space-lg": "24px",
+                    "margin-mobile": "24px",
+                    "space-xl": "32px",
+                    "gutter-mobile": "16px"
+            },
+            "fontFamily": {
+                    "h1": [
+                            "IBM Plex Sans"
+                    ],
+                    "h3": [
+                            "IBM Plex Sans"
+                    ],
+                    "h2": [
+                            "IBM Plex Sans"
+                    ],
+                    "code-md": [
+                            "IBM Plex Mono"
+                    ],
+                    "body-lg": [
+                            "IBM Plex Sans"
+                    ],
+                    "body-md": [
+                            "IBM Plex Sans"
+                    ],
+                    "label-caps": [
+                            "IBM Plex Sans"
+                    ]
+            },
+            "fontSize": {
+                    "h1": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h3": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "h2": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "code-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .pt-safe { padding-top: env(safe-area-inset-top); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased pt-safe">
+<!-- TopAppBar -->
+<header class="bg-[#0f0f0f] dark:bg-[#0f0f0f] docked full-width top-0 border-b border-[#393939] flat no shadows flex justify-between items-center w-full px-6 h-16 sticky z-40">
+<button class="hover:bg-[#262626] transition-colors active:scale-95 transition-transform flex items-center justify-center w-[44px] h-[44px] rounded-full text-gray-400">
+<span class="material-symbols-outlined text-gray-400" style="font-variation-settings: 'FILL' 0;">terminal</span>
+</button>
+<h1 class="font-mono font-black text-xl tracking-tighter text-[#0f62fe]">IBM_BOB</h1>
+<button class="hover:bg-[#262626] transition-colors active:scale-95 transition-transform flex items-center justify-center w-[44px] h-[44px] rounded-full text-gray-400">
+<span class="material-symbols-outlined text-gray-400" style="font-variation-settings: 'FILL' 0;">sensors</span>
+</button>
+</header>
+<!-- Main Chat Canvas -->
+<main class="flex-1 overflow-y-auto px-margin-mobile py-space-lg flex flex-col gap-space-lg pb-[120px]">
+<!-- Context Chip -->
+<div class="flex justify-center mb-space-sm">
+<span class="bg-surface-container-high text-on-surface px-4 py-2 rounded-full font-label-caps text-label-caps border border-outline-variant/30 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">psychiatry</span>
+                SESSION_ID: 9X4-BETA
+            </span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end gap-1 w-full max-w-[85%] self-end">
+<div class="bg-primary-container text-on-primary-container p-space-md rounded-2xl rounded-tr-sm shadow-sm">
+<p class="font-body-lg text-body-lg">Bob, I'm getting a weird hydration error in my React component. It's related to a date rendering on the server vs client. Can you take a look?</p>
+</div>
+<span class="text-[10px] text-outline font-label-caps pr-2">10:42 AM</span>
+</div>
+<!-- Bob (AI) Message -->
+<div class="flex flex-col items-start gap-1 w-full max-w-[90%] self-start">
+<div class="flex items-center gap-2 mb-1 px-2">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-primary">smart_toy</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">IBM_BOB</span>
+</div>
+<div class="bg-surface-container text-on-surface p-space-md rounded-2xl rounded-tl-sm border border-outline-variant/50 shadow-sm w-full">
+<p class="font-body-md text-body-md mb-space-md leading-relaxed">
+                    Hello. This is a common issue with Next.js or SSR React applications. The server renders the date based on its timezone (usually UTC), but the client immediately tries to render it using the user's local timezone. The mismatch causes the hydration error.
+                </p>
+<p class="font-body-md text-body-md mb-space-md leading-relaxed">
+                    You can resolve this by ensuring the date only renders on the client side, or by forcing a consistent timezone. Here is a robust client-side rendering approach using a custom hook:
+                </p>
+<!-- Code Block Container -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 my-space-md">
+<div class="bg-surface-container-highest px-4 py-2 flex justify-between items-center border-b border-outline-variant/30">
+<span class="font-code-md text-code-md text-primary-fixed-dim">useClientDate.ts</span>
+<button class="text-outline hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span class="font-label-caps text-[10px]">COPY</span>
+</button>
+</div>
+<div class="p-4 overflow-x-auto">
+<pre class="font-code-md text-code-md text-on-surface-variant leading-[1.6]"><code class="language-typescript"><span class="text-tertiary">import</span> { useState, useEffect } <span class="text-tertiary">from</span> <span class="text-[#a8ff60]">'react'</span>;
+
+<span class="text-tertiary">export function</span> <span class="text-primary-fixed-dim">useClientDate</span>(date: Date | string) {
+  <span class="text-tertiary">const</span> [formattedDate, setFormattedDate] = <span class="text-primary-fixed-dim">useState</span>&lt;string | null&gt;(<span class="text-[#ffb4ab]">null</span>);
+
+  <span class="text-primary-fixed-dim">useEffect</span>(() =&gt; {
+    <span class="text-outline-variant">// This only runs on the client after initial hydration</span>
+    <span class="text-tertiary">const</span> d = <span class="text-tertiary">typeof</span> date === <span class="text-[#a8ff60]">'string'</span> ? <span class="text-tertiary">new</span> Date(date) : date;
+    <span class="text-primary-fixed-dim">setFormattedDate</span>(d.toLocaleDateString());
+  }, [date]);
+
+  <span class="text-tertiary">return</span> formattedDate;
+}</code></pre>
+</div>
+</div>
+<p class="font-body-md text-body-md mt-space-md leading-relaxed">
+                    Then in your component, simply check if `formattedDate` is null. If it is, return a skeleton loader or nothing until the client takes over.
+                </p>
+</div>
+<div class="flex gap-2 mt-2 px-2">
+<button class="bg-surface-container-highest hover:bg-surface-bright transition-colors rounded-full px-3 py-1.5 flex items-center gap-1 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[14px] text-outline">thumb_up</span>
+</button>
+<button class="bg-surface-container-highest hover:bg-surface-bright transition-colors rounded-full px-3 py-1.5 flex items-center gap-1 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[14px] text-outline">thumb_down</span>
+</button>
+<button class="bg-surface-container-highest hover:bg-surface-bright transition-colors rounded-full px-3 py-1.5 flex items-center gap-1 border border-outline-variant/50 ml-auto">
+<span class="material-symbols-outlined text-[14px] text-outline">refresh</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">REGENERATE</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Input Area (Sticky above BottomNav) -->
+<div class="fixed bottom-[64px] left-0 w-full px-margin-mobile py-space-sm bg-gradient-to-t from-background via-background to-transparent z-30 pb-safe-offset">
+<div class="bg-surface-container-high rounded-full border border-outline-variant/50 flex items-center px-2 py-1 shadow-lg backdrop-blur-md">
+<button class="w-[44px] h-[44px] flex items-center justify-center text-outline hover:text-primary transition-colors shrink-0">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface font-body-md placeholder:text-outline-variant px-2 h-[44px]" placeholder="Message IBM_BOB..." type="text"/>
+<button class="w-[44px] h-[44px] flex items-center justify-center text-primary-container bg-primary-container/10 rounded-full hover:bg-primary-container/20 transition-colors shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="bg-[#0f0f0f]/80 backdrop-blur-md fixed bottom-0 w-full h-[64px] border-t border-[#393939] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe">
+<button class="hover:text-[#0f62fe] transition-all active:scale-90 duration-200 flex flex-col items-center justify-center text-[#0f62fe] scale-110 h-[44px] min-w-[44px]">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-mono text-[10px] font-bold tracking-widest text-[#0f62fe]">WORKSPACE</span>
+</button>
+<button class="hover:text-[#0f62fe] transition-all active:scale-90 duration-200 flex flex-col items-center justify-center text-gray-500 opacity-60 h-[44px] min-w-[44px]">
+<span class="material-symbols-outlined mb-1">search</span>
+<span class="font-mono text-[10px] font-bold tracking-widest">EXPLORER</span>
+</button>
+<button class="hover:text-[#0f62fe] transition-all active:scale-90 duration-200 flex flex-col items-center justify-center text-gray-500 opacity-60 h-[44px] min-w-[44px]">
+<span class="material-symbols-outlined mb-1">account_tree</span>
+<span class="font-mono text-[10px] font-bold tracking-widest">GRAPH</span>
+</button>
+<button class="hover:text-[#0f62fe] transition-all active:scale-90 duration-200 flex flex-col items-center justify-center text-gray-500 opacity-60 h-[44px] min-w-[44px]">
+<span class="material-symbols-outlined mb-1">terminal</span>
+<span class="font-mono text-[10px] font-bold tracking-widest">SNIPPETS</span>
+</button>
+<button class="hover:text-[#0f62fe] transition-all active:scale-90 duration-200 flex flex-col items-center justify-center text-gray-500 opacity-60 h-[44px] min-w-[44px]">
+<span class="material-symbols-outlined mb-1">description</span>
+<span class="font-mono text-[10px] font-bold tracking-widest">DOCS</span>
+</button>
+</nav>
+</body></html>

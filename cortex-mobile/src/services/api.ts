@@ -268,6 +268,9 @@ export interface Automation {
   trigger_kind: string;
   action: string;
   enabled: boolean;
+  schedule?: string;
+  last_run_at?: number | null;
+  run_count?: number;
 }
 
 export async function apiListAutomations(): Promise<Automation[]> {
@@ -279,6 +282,7 @@ export async function apiCreateAutomation(body: {
   name: string;
   trigger_kind: string;
   action: string;
+  schedule?: string;
 }): Promise<{ id: number }> {
   return apiFetch('/api/v1/automations', {
     method: 'POST',
@@ -292,6 +296,14 @@ export async function apiToggleAutomation(id: number, enabled: boolean): Promise
 
 export async function apiDeleteAutomation(id: number): Promise<void> {
   await apiFetch(`/api/v1/automations/${id}`, { method: 'DELETE' });
+}
+
+export async function apiRunAutomationNow(id: number): Promise<{ status: string; reason?: string }> {
+  return apiFetch(`/api/v1/automations/${id}/run`, { method: 'POST' });
+}
+
+export async function apiTickScheduler(): Promise<{ fired: any[]; count: number }> {
+  return apiFetch('/api/v1/scheduler/tick', { method: 'POST' });
 }
 
 // ─── LLM ─────────────────────────────────────────────────────────────────────

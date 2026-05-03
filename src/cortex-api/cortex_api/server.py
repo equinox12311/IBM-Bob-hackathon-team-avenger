@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 
-from cortex_api import codebase, features, generate, llm, skills as skills_mod, storage, wiki
+from cortex_api import codebase, features, generate, llm, scheduler, skills as skills_mod, storage, wiki
 from cortex_api.auth import AuthDep
 from cortex_api.config import settings
 from cortex_api.embeddings import get_provider
@@ -111,10 +111,29 @@ def _get_client_ip(request: Request) -> str:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    import asyncio
+
     provider = get_provider()
     log.info("Embeddings provider: %s (dim=%d)", provider.name, provider.dim)
     storage.init_db(embedding_dim=provider.dim)
-    yield
+
+    # Cron-style scheduler: a daemon task that ticks every 30s and fires
+    # any automation whose schedule is due. Disabled in test/reload mode
+    # to keep test runs deterministic.
+    stop_event: asyncio.Event | None = None
+    task: asyncio.Task | None = None
+    if not settings.reload:
+        stop_event = asyncio.Event()
+        task = asyncio.create_task(scheduler.run_loop(stop_event))
+    try:
+        yield
+    finally:
+        if stop_event is not None and task is not None:
+            stop_event.set()
+            try:
+                await asyncio.wait_for(task, timeout=2.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                task.cancel()
 
 
 app = FastAPI(title="cortex-api", version="0.2.0", lifespan=lifespan)
@@ -334,8 +353,9 @@ def patch_profile(update: ProfileUpdate) -> UserProfile:
 
 class AutomationCreate(BaseModel):
     name: str
-    trigger_kind: str
+    trigger_kind: str  # 'notify' | 'recall' | 'report' (cron) or legacy
     action: str
+    schedule: str = ""  # 5-field cron expression; empty = legacy/event-driven
 
 
 @app.get("/api/v1/automations", dependencies=[AuthDep])
@@ -349,7 +369,19 @@ def list_automations_endpoint() -> dict[str, list[dict[str, Any]]]:
     status_code=status.HTTP_201_CREATED,
 )
 def create_automation(req: AutomationCreate) -> dict[str, int]:
-    new_id = storage.create_automation(req.name, req.trigger_kind, req.action)
+    if req.schedule:
+        # Validate the cron expression at write-time so users get a 400, not
+        # a silent skip on the next tick.
+        try:
+            from croniter import croniter
+
+            if not croniter.is_valid(req.schedule):
+                raise HTTPException(status_code=400, detail="invalid cron expression")
+        except ImportError:
+            pass  # croniter optional in dev; runtime will warn instead
+    new_id = storage.create_automation(
+        req.name, req.trigger_kind, req.action, schedule=req.schedule
+    )
     return {"id": new_id}
 
 
@@ -357,6 +389,32 @@ def create_automation(req: AutomationCreate) -> dict[str, int]:
 def toggle_automation(automation_id: int, enabled: bool) -> dict[str, bool]:
     storage.toggle_automation(automation_id, enabled)
     return {"enabled": enabled}
+
+
+@app.post(
+    "/api/v1/automations/{automation_id}/run",
+    dependencies=[AuthDep],
+)
+def run_automation_now(automation_id: int) -> dict[str, Any]:
+    """Manually fire one automation — useful for the mobile 'Run now' button."""
+
+    auto = storage.get_automation(automation_id)
+    if auto is None:
+        raise HTTPException(status_code=404, detail="automation not found")
+    try:
+        result = scheduler._dispatch(auto)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"dispatch failed: {e}") from e
+    storage.mark_automation_run(automation_id)
+    return {"id": automation_id, **result}
+
+
+@app.post("/api/v1/scheduler/tick", dependencies=[AuthDep])
+def scheduler_tick_now() -> dict[str, Any]:
+    """Force a single scheduler pass — used by tests and the dashboard."""
+
+    fired = scheduler.tick()
+    return {"fired": fired, "count": len(fired)}
 
 
 @app.delete(

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cortex - Today</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e1e1ee",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-secondary-container": "#616363",
+                        "on-tertiary-fixed-variant": "#832700",
+                        "outline-variant": "#c3c6d8",
+                        "tertiary-container": "#c84000",
+                        "on-primary-fixed-variant": "#003da9",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "on-primary-container": "#f3f3ff",
+                        "on-background": "#191b24",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#ecedfa",
+                        "primary-container": "#0f62fe",
+                        "surface-variant": "#e1e1ee",
+                        "outline": "#737687",
+                        "on-tertiary": "#ffffff",
+                        "background": "#faf8ff",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "tertiary-fixed": "#ffdbd0",
+                        "surface": "#faf8ff",
+                        "on-primary-fixed": "#00174c",
+                        "surface-container-low": "#f2f3ff",
+                        "surface-container-high": "#e7e7f4",
+                        "on-tertiary-container": "#fff1ed",
+                        "primary": "#004ccd",
+                        "surface-tint": "#0052dd",
+                        "inverse-primary": "#b4c5ff",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#390c00",
+                        "inverse-on-surface": "#eff0fd",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d8d9e6",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "surface-bright": "#faf8ff",
+                        "tertiary": "#9e3100",
+                        "secondary-container": "#dfe0e0",
+                        "inverse-surface": "#2e303a",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#191b24",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-surface-variant": "#424656",
+                        "secondary": "#5d5f5f",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "container-margin": "24px",
+                        "base-unit": "4px",
+                        "lg": "24px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "code-01": ["IBM Plex Mono"],
+                        "code-02": ["IBM Plex Mono"],
+                        "label-01": ["IBM Plex Sans"],
+                        "body-02": ["IBM Plex Sans"],
+                        "display-01": ["IBM Plex Sans"],
+                        "body-01": ["IBM Plex Sans"],
+                        "heading-03": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "code-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "code-02": ["14px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "label-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0.32px", "fontWeight": "400" }],
+                        "body-02": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "display-01": ["42px", { "lineHeight": "48px", "letterSpacing": "-0.5px", "fontWeight": "300" }],
+                        "body-01": ["14px", { "lineHeight": "20px", "letterSpacing": "0.16px", "fontWeight": "400" }],
+                        "heading-03": ["20px", { "lineHeight": "26px", "letterSpacing": "0px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center px-4 h-12 transition-colors duration-150 ease-in-out">
+<div class="flex items-center gap-2 text-primary font-sans antialiased text-sm font-medium tracking-tight">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="text-lg font-bold tracking-tighter text-on-surface uppercase">Cortex</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center gap-6">
+<span class="text-primary cursor-pointer hover:bg-surface-container-low px-2 py-1 transition-colors rounded-md">Today</span>
+<span class="text-on-surface-variant cursor-pointer hover:bg-surface-container-low px-2 py-1 transition-colors rounded-md">Recall</span>
+<span class="text-on-surface-variant cursor-pointer hover:bg-surface-container-low px-2 py-1 transition-colors rounded-md">Search</span>
+<span class="text-on-surface-variant cursor-pointer hover:bg-surface-container-low px-2 py-1 transition-colors rounded-md">Profile</span>
+</div>
+<div class="w-8 h-8 rounded-full border border-outline-variant overflow-hidden bg-surface-container">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A hyper-realistic, professional headshot of a software developer looking directly at the camera. The lighting is studio-quality, high-key white light emphasizing sharp details. The background is a stark, minimal solid off-white, reflecting a clean, industrial UI aesthetic. The mood is confident and reliable." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHHIp_jzKivSNyB91jgtFGCjMOszxOlP4q6NGzOqUilbulTXh_RkCKYtqmmoPIPw6ekIoRYDNIesnD4Gg7_aUH0aBRUuiktqbJ9iSfZfUFLM_PBUOk84n1oZ2yczcW0kPKVBQw9rX7zxaN1-GHT232mdeY3tO-69itMuWdyMjMyHSMqnANeqWsq60v9vlpojvAIh7pJT2OHcFz5VfkSCgrU_0JGjIIGYXWJucBLdeIuR-D9XvMpqV3y6MecA2HBOBY6tHw_zcqig"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-16 pb-24 px-4 md:px-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 align-top">
+<!-- Left Column / Main Area -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Greeting -->
+<section class="mt-4 mb-2">
+<h1 class="font-display-01 text-display-01 text-on-surface">Good morning, Dev</h1>
+</section>
+<!-- Current Focus -->
+<section class="border border-outline-variant bg-surface-container-lowest p-6 flex flex-col gap-4 rounded-2xl shadow-sm">
+<div class="flex items-center gap-2 border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">target</span>
+<h2 class="font-label-01 text-label-01 text-on-surface-variant uppercase tracking-widest">Current Focus</h2>
+</div>
+<div class="flex flex-col gap-2">
+<span class="inline-flex self-start bg-surface-container-high text-on-surface font-code-01 text-code-01 px-3 py-1.5 rounded-full">cortex-core / src / middleware</span>
+<h3 class="font-heading-03 text-heading-03 text-on-surface">Refactoring Auth Middleware</h3>
+<p class="font-body-02 text-body-02 text-on-surface-variant mt-1">Migrating legacy JWT validation to new unified auth service standard. Branch: feature/auth-v2-migration.</p>
+</div>
+<div class="mt-4 flex flex-wrap items-center gap-4">
+<button class="bg-primary text-on-primary font-body-01 text-body-01 px-6 py-2 hover:bg-surface-tint transition-colors border border-transparent rounded-full shadow-sm hover:shadow">
+                        Resume Work
+                    </button>
+<button class="bg-transparent text-primary border border-outline font-body-01 text-body-01 px-6 py-2 hover:bg-surface-container-low transition-colors rounded-full shadow-sm hover:shadow">
+                        View PR
+                    </button>
+</div>
+</section>
+<!-- Guided Actions (Grid) -->
+<section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<button class="border border-outline-variant bg-surface-container-lowest p-5 flex flex-col items-start gap-3 hover:bg-surface-container-low transition-colors text-left w-full rounded-2xl shadow-sm hover:shadow">
+<span class="material-symbols-outlined text-primary text-2xl">bug_report</span>
+<div>
+<h4 class="font-heading-03 text-heading-03 text-on-surface">Log a Fix</h4>
+<p class="font-body-01 text-body-01 text-on-surface-variant mt-1">Document a resolved issue or bug.</p>
+</div>
+</button>
+<button class="border border-outline-variant bg-surface-container-lowest p-5 flex flex-col items-start gap-3 hover:bg-surface-container-low transition-colors text-left w-full rounded-2xl shadow-sm hover:shadow">
+<span class="material-symbols-outlined text-primary text-2xl">architecture</span>
+<div>
+<h4 class="font-heading-03 text-heading-03 text-on-surface">Save a Decision</h4>
+<p class="font-body-01 text-body-01 text-on-surface-variant mt-1">Record an architectural choice (ADR).</p>
+</div>
+</button>
+<button class="border border-outline-variant bg-surface-container-lowest p-5 flex flex-col items-start gap-3 hover:bg-surface-container-low transition-colors text-left w-full rounded-2xl shadow-sm hover:shadow">
+<span class="material-symbols-outlined text-primary text-2xl">edit_note</span>
+<div>
+<h4 class="font-heading-03 text-heading-03 text-on-surface">Quick Note</h4>
+<p class="font-body-01 text-body-01 text-on-surface-variant mt-1">Jot down a fleeting thought or snippet.</p>
+</div>
+</button>
+</section>
+</div>
+<!-- Right Column / Insights -->
+<div class="lg:col-span-4 flex flex-col gap-6 lg:mt-24">
+<!-- Proactive Insight -->
+<section class="border border-outline-variant bg-surface-container-lowest flex flex-col rounded-2xl overflow-hidden shadow-sm">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">lightbulb</span>
+<h2 class="font-label-01 text-label-01 text-on-surface-variant uppercase tracking-widest">Proactive Insight</h2>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<p class="font-body-02 text-body-02 text-on-surface">
+                        Working on <span class="font-code-02 text-code-02 bg-surface-container px-2 py-0.5 rounded-md">Auth</span>? Here's what you learned yesterday regarding token payload limits.
+                    </p>
+<!-- Code Snippet -->
+<div class="bg-surface-container border border-outline-variant p-4 overflow-x-auto rounded-xl">
+<pre class="font-code-01 text-code-01 text-on-surface whitespace-pre-wrap text-sm"><span class="text-primary">const</span> validatePayload = (token) =&gt; {
+  <span class="text-secondary">// Critical: Ensure payload &lt; 4KB</span>
+  <span class="text-primary">if</span> (Buffer.from(token).length &gt; <span class="text-tertiary">4096</span>) {
+    <span class="text-primary">throw</span> <span class="text-primary">new</span> Error(<span class="text-on-tertiary-fixed-variant">'Token overflow'</span>);
+  }
+};</pre>
+</div>
+<button class="text-primary font-body-01 text-body-01 text-left hover:underline flex items-center gap-1 mt-2">
+<span>View full context in Recall</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-16 z-50 flex justify-around items-stretch border-t border-outline-variant bg-surface-container-lowest shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<!-- Active: Today -->
+<button class="flex flex-col items-center justify-center text-primary border-t-4 border-primary bg-surface-container-lowest w-full h-full">
+<span class="material-symbols-outlined mb-1">calendar_today</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest">Today</span>
+</button>
+<!-- Inactive: Recall -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors active:bg-surface-container-high w-full h-full border-t-4 border-transparent">
+<span class="material-symbols-outlined mb-1">manage_search</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest">Recall</span>
+</button>
+<!-- Inactive: Search -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors active:bg-surface-container-high w-full h-full border-t-4 border-transparent">
+<span class="material-symbols-outlined mb-1">search</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest">Search</span>
+</button>
+<!-- Inactive: Profile -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors active:bg-surface-container-high w-full h-full border-t-4 border-transparent">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest">Profile</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Developer Identity - Cortex</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#0052dd",
+                    "on-surface-variant": "#424656",
+                    "inverse-primary": "#b4c5ff",
+                    "on-tertiary-fixed": "#390c00",
+                    "surface-container-highest": "#e1e1ee",
+                    "on-surface": "#191b24",
+                    "secondary": "#5d5f5f",
+                    "surface-container-high": "#e7e7f4",
+                    "surface-container": "#ecedfa",
+                    "outline": "#737687",
+                    "inverse-on-surface": "#eff0fd",
+                    "primary-container": "#0f62fe",
+                    "surface-variant": "#e1e1ee",
+                    "surface-container-low": "#f2f3ff",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#004ccd",
+                    "error-container": "#ffdad6",
+                    "on-background": "#191b24",
+                    "inverse-surface": "#2e303a",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-primary-container": "#f3f3ff",
+                    "on-error": "#ffffff",
+                    "tertiary-container": "#c84000",
+                    "error": "#ba1a1a",
+                    "surface": "#faf8ff",
+                    "on-tertiary-fixed-variant": "#832700",
+                    "on-primary-fixed-variant": "#003da9",
+                    "primary-fixed": "#dbe1ff",
+                    "secondary-fixed": "#e2e2e2",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "tertiary-fixed-dim": "#ffb59d",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-container": "#fff1ed",
+                    "on-primary": "#ffffff",
+                    "secondary-container": "#dfe0e0",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#00174c",
+                    "tertiary-fixed": "#ffdbd0",
+                    "surface-dim": "#d8d9e6",
+                    "on-secondary-container": "#616363",
+                    "background": "#faf8ff",
+                    "tertiary": "#9e3100",
+                    "surface-bright": "#faf8ff",
+                    "outline-variant": "#c3c6d8",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "primary-fixed-dim": "#b4c5ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "base-unit": "4px",
+                    "gutter": "16px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "container-margin": "24px"
+            },
+            "fontFamily": {
+                    "code-02": ["IBM Plex Mono"],
+                    "label-01": ["IBM Plex Sans"],
+                    "heading-03": ["IBM Plex Sans"],
+                    "body-02": ["IBM Plex Sans"],
+                    "body-01": ["IBM Plex Sans"],
+                    "display-01": ["IBM Plex Sans"],
+                    "code-01": ["IBM Plex Mono"]
+            },
+            "fontSize": {
+                    "code-02": ["14px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                    "label-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0.32px", "fontWeight": "400" }],
+                    "heading-03": ["20px", { "lineHeight": "26px", "letterSpacing": "0px", "fontWeight": "600" }],
+                    "body-02": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                    "body-01": ["14px", { "lineHeight": "20px", "letterSpacing": "0.16px", "fontWeight": "400" }],
+                    "display-01": ["42px", { "lineHeight": "48px", "letterSpacing": "-0.5px", "fontWeight": "300" }],
+                    "code-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: #f4f4f4; }
+        .bg-gray-10 { background-color: #f4f4f4; }
+        .border-gray-20 { border-color: #e0e0e0; }
+        .text-ibm-blue-60 { color: #0f62fe; }
+        .bg-ibm-blue-60 { background-color: #0f62fe; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-10 text-on-surface antialiased min-h-screen pb-20 md:pb-0">
+<!-- TopAppBar -->
+<header class="bg-white border-b border-gray-20 flex justify-between items-center w-full px-4 h-12 sticky top-0 z-50">
+<div class="flex items-center gap-2 text-ibm-blue-60">
+<span class="material-symbols-outlined" data-icon="terminal" data-weight="fill" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<div class="text-lg font-bold tracking-tighter text-on-surface uppercase">Cortex</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A close-up portrait of a professional developer in a bright, modern office setting. The lighting is clean and even, characteristic of high-end corporate photography. The mood is confident and approachable, aligning with a professional, minimalist UI aesthetic. The color palette focuses on neutral tones with subtle blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5D5HV4T3T4u65xaeKuX4Wg1_L7VBTX51yF_EQgMzNVrGMZZJeaL0yqqnbZm_UQyC5KygqmPENlylVW7deZc9gs-39IdAGNrOVWdbsLp45lXqkOROjpSSKVy7psl11vxu0LmMXEPad8P7qK717MVxHnG1ZMiBi3HgklFZhrdZ9v-TruIOiuAk5URn1JcyoYiTRReFHsk8o24lUwCj7DETFOH-Rb2c1wjYXgdYWq-4jMGKkVz1T3LOaTATuObw4hI-kRVsvup_-VA"/>
+</div>
+</div>
+</header>
+<!-- Main Content Grid -->
+<main class="max-w-7xl mx-auto p-4 md:p-gutter grid grid-cols-1 md:grid-cols-12 gap-gutter pt-8">
+<!-- Left Column: Profile & Graph -->
+<div class="col-span-1 md:col-span-8 space-y-gutter">
+<!-- Profile Header -->
+<section class="bg-white border border-gray-20 p-gutter">
+<div class="flex flex-col md:flex-row items-start md:items-center gap-gutter">
+<div class="w-24 h-24 rounded-full bg-surface-container-high overflow-hidden border border-gray-20 flex-shrink-0">
+<img alt="Avatar Large" class="w-full h-full object-cover" data-alt="A crisp, high-resolution portrait of a male developer with a neutral expression, set against a stark white background. The image is evenly lit, conveying a clean, professional aesthetic suitable for a minimalist software interface. The color grading emphasizes high contrast whites and deep blacks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDutDNgnv6hadbjwg080lcpMfRyy0qnpcEHxa9XODjrjadwtC7z1T_4TpXN1afZs2PIn_7NzeIXXqMxJsmB7yDhlVBBpPcSRrJB5QmOic2epOl0sMqelokWgLuLrlXcLhJUPgw8jvsN6utk1sHrjN9Dq9omrOCSRy_88LXQG9CAaVe4O1zJOU8xsAvTDGSSfT2kJtt1IbC6ynJgtzgmWVWpF2RiBkJBwC1Oe29CsGcvoTSnNryLB3z3ZdHZVnLNLnVRn_xMPoHPDA"/>
+</div>
+<div class="flex-grow">
+<h1 class="font-heading-03 text-heading-03 text-on-surface m-0">Alex Developer</h1>
+<p class="font-body-02 text-body-02 text-secondary mt-1">Senior Systems Architect</p>
+<div class="flex gap-2 mt-4">
+<span class="inline-flex items-center bg-gray-10 border border-gray-20 px-2 py-1 font-code-01 text-code-01 text-on-surface">
+                                Lvl. 42
+                            </span>
+<span class="inline-flex items-center bg-gray-10 border border-gray-20 px-2 py-1 font-code-01 text-code-01 text-ibm-blue-60">
+<span class="material-symbols-outlined text-[14px] mr-1" data-icon="hub">hub</span>
+                                Core Node
+                            </span>
+</div>
+</div>
+<div class="w-full md:w-auto mt-4 md:mt-0 p-4 bg-gray-10 border border-gray-20">
+<div class="font-label-01 text-label-01 text-secondary uppercase mb-2">AI Summary</div>
+<p class="font-body-01 text-body-01 text-on-surface m-0 max-w-xs">
+                            Alex demonstrates profound expertise in distributed systems and React-based micro-frontends, frequently analyzing state synchronization patterns across isolated contexts.
+                        </p>
+</div>
+</div>
+</section>
+<!-- Knowledge Graph Visual -->
+<section class="bg-white border border-gray-20 overflow-hidden relative" style="height: 400px;">
+<div class="p-4 border-b border-gray-20 absolute top-0 left-0 w-full bg-white/90 backdrop-blur z-10 flex justify-between items-center">
+<h2 class="font-heading-03 text-heading-03 text-on-surface m-0">Knowledge Graph</h2>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-on-surface" data-icon="fullscreen">fullscreen</span>
+</div>
+<!-- Simulated Graph using div placement -->
+<div class="w-full h-full bg-gray-10 relative flex items-center justify-center overflow-hidden">
+<!-- SVG Lines (Simulated Connections) -->
+<svg class="absolute inset-0 w-full h-full" style="pointer-events: none;">
+<line stroke="#e0e0e0" stroke-width="1" x1="50%" x2="30%" y1="50%" y2="30%"></line>
+<line stroke="#0f62fe" stroke-width="2" x1="50%" x2="70%" y1="50%" y2="25%"></line>
+<line stroke="#e0e0e0" stroke-width="1" x1="50%" x2="80%" y1="50%" y2="60%"></line>
+<line stroke="#0f62fe" stroke-width="2" x1="50%" x2="25%" y1="50%" y2="70%"></line>
+<line stroke="#e0e0e0" stroke-width="1" x1="30%" x2="20%" y1="30%" y2="45%"></line>
+</svg>
+<!-- Nodes -->
+<!-- Central Node -->
+<div class="absolute bg-white border-2 border-ibm-blue-60 rounded-full w-16 h-16 flex items-center justify-center shadow-[0_0_0_4px_rgba(15,98,254,0.1)] z-10" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+<span class="font-code-02 text-code-02 font-bold text-ibm-blue-60">React</span>
+</div>
+<!-- Peripheral Nodes -->
+<div class="absolute bg-white border border-gray-20 rounded-full w-12 h-12 flex items-center justify-center z-10 hover:bg-gray-10 cursor-pointer" style="left: 30%; top: 30%; transform: translate(-50%, -50%);">
+<span class="font-code-01 text-code-01 text-on-surface">Redux</span>
+</div>
+<div class="absolute bg-ibm-blue-60 text-white rounded-full w-14 h-14 flex items-center justify-center z-10" style="left: 70%; top: 25%; transform: translate(-50%, -50%);">
+<span class="font-code-02 text-code-02">Python</span>
+</div>
+<div class="absolute bg-white border border-gray-20 rounded-full w-10 h-10 flex items-center justify-center z-10 hover:bg-gray-10 cursor-pointer" style="left: 80%; top: 60%; transform: translate(-50%, -50%);">
+<span class="font-code-01 text-code-01 text-on-surface">Docker</span>
+</div>
+<div class="absolute bg-ibm-blue-60 text-white rounded-full w-16 h-16 flex items-center justify-center z-10" style="left: 25%; top: 70%; transform: translate(-50%, -50%);">
+<span class="font-code-02 text-code-02">Postgres</span>
+</div>
+<div class="absolute bg-white border border-gray-20 rounded-full w-8 h-8 flex items-center justify-center z-10 hover:bg-gray-10 cursor-pointer" style="left: 20%; top: 45%; transform: translate(-50%, -50%);">
+<span class="font-code-01 text-code-01 text-on-surface text-[10px]">Jest</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Stats & Concepts -->
+<div class="col-span-1 md:col-span-4 space-y-gutter">
+<!-- Writing Style Profile -->
+<section class="bg-white border border-gray-20">
+<div class="p-4 border-b border-gray-20">
+<h2 class="font-heading-03 text-heading-03 text-on-surface m-0">Cognitive Profile</h2>
+</div>
+<div class="p-4 space-y-4">
+<!-- Progress Bar Item -->
+<div>
+<div class="flex justify-between mb-1">
+<span class="font-label-01 text-label-01 text-on-surface uppercase">Conciseness</span>
+<span class="font-code-01 text-code-01 text-secondary">85%</span>
+</div>
+<div class="w-full h-2 bg-gray-10 border border-gray-20">
+<div class="h-full bg-ibm-blue-60" style="width: 85%"></div>
+</div>
+</div>
+<!-- Progress Bar Item -->
+<div>
+<div class="flex justify-between mb-1">
+<span class="font-label-01 text-label-01 text-on-surface uppercase">Technical Depth</span>
+<span class="font-code-01 text-code-01 text-secondary">92%</span>
+</div>
+<div class="w-full h-2 bg-gray-10 border border-gray-20">
+<div class="h-full bg-ibm-blue-60" style="width: 92%"></div>
+</div>
+</div>
+<!-- Progress Bar Item -->
+<div>
+<div class="flex justify-between mb-1">
+<span class="font-label-01 text-label-01 text-on-surface uppercase">Exploratory</span>
+<span class="font-code-01 text-code-01 text-secondary">45%</span>
+</div>
+<div class="w-full h-2 bg-gray-10 border border-gray-20">
+<div class="h-full bg-secondary" style="width: 45%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Top Concepts List -->
+<section class="bg-white border border-gray-20">
+<div class="p-4 border-b border-gray-20">
+<h2 class="font-heading-03 text-heading-03 text-on-surface m-0">Top Concepts</h2>
+</div>
+<div class="flex flex-col">
+<!-- List Item -->
+<div class="px-4 py-3 border-b border-gray-20 hover:bg-gray-10 flex items-center relative group cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-ibm-blue-60 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined text-secondary mr-3" data-icon="data_object">data_object</span>
+<div class="flex-grow">
+<div class="font-body-02 text-body-02 text-on-surface">Micro-frontends</div>
+<div class="font-label-01 text-label-01 text-secondary">142 references</div>
+</div>
+<span class="font-code-01 text-code-01 text-secondary">2h ago</span>
+</div>
+<!-- List Item -->
+<div class="px-4 py-3 border-b border-gray-20 hover:bg-gray-10 flex items-center relative group cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-ibm-blue-60 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined text-secondary mr-3" data-icon="database">database</span>
+<div class="flex-grow">
+<div class="font-body-02 text-body-02 text-on-surface">ACID Transactions</div>
+<div class="font-label-01 text-label-01 text-secondary">89 references</div>
+</div>
+<span class="font-code-01 text-code-01 text-secondary">1d ago</span>
+</div>
+<!-- List Item -->
+<div class="px-4 py-3 border-b border-gray-20 hover:bg-gray-10 flex items-center relative group cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-ibm-blue-60 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined text-secondary mr-3" data-icon="api">api</span>
+<div class="flex-grow">
+<div class="font-body-02 text-body-02 text-on-surface">GraphQL Federation</div>
+<div class="font-label-01 text-label-01 text-secondary">56 references</div>
+</div>
+<span class="font-code-01 text-code-01 text-secondary">3d ago</span>
+</div>
+<!-- List Item -->
+<div class="px-4 py-3 hover:bg-gray-10 flex items-center relative group cursor-pointer">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-ibm-blue-60 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined text-secondary mr-3" data-icon="memory">memory</span>
+<div class="flex-grow">
+<div class="font-body-02 text-body-02 text-on-surface">Vector Embeddings</div>
+<div class="font-label-01 text-label-01 text-secondary">34 references</div>
+</div>
+<span class="font-code-01 text-code-01 text-secondary">1w ago</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full h-16 z-50 flex justify-around items-stretch bg-neutral-50 border-t border-neutral-200 md:hidden">
+<button class="flex flex-col items-center justify-center text-neutral-500 w-full h-full hover:bg-neutral-100 active:bg-neutral-200">
+<span class="material-symbols-outlined mb-1 text-[20px]" data-icon="calendar_today">calendar_today</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">Today</span>
+</button>
+<button class="flex flex-col items-center justify-center text-neutral-500 w-full h-full hover:bg-neutral-100 active:bg-neutral-200">
+<span class="material-symbols-outlined mb-1 text-[20px]" data-icon="manage_search">manage_search</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">Recall</span>
+</button>
+<button class="flex flex-col items-center justify-center text-blue-600 border-t-4 border-blue-600 bg-white w-full h-full hover:bg-neutral-100 active:bg-neutral-200">
+<span class="material-symbols-outlined mb-1 text-[20px]" data-icon="person">person</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">Profile</span>
+</button>
+</nav>
+</body></html>

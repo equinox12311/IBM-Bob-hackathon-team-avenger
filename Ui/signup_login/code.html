@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cortex - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "outline-variant": "#c3c6d8",
+                    "tertiary": "#9e3100",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#d8d9e6",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#eff0fd",
+                    "surface": "#faf8ff",
+                    "surface-container-low": "#f2f3ff",
+                    "on-background": "#191b24",
+                    "tertiary-fixed-dim": "#ffb59d",
+                    "on-surface-variant": "#424656",
+                    "outline": "#737687",
+                    "inverse-surface": "#2e303a",
+                    "tertiary-fixed": "#ffdbd0",
+                    "tertiary-container": "#c84000",
+                    "primary-container": "#0f62fe",
+                    "on-secondary-fixed-variant": "#454747",
+                    "primary": "#004ccd",
+                    "on-surface": "#191b24",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-primary-fixed-variant": "#003da9",
+                    "on-secondary-container": "#616363",
+                    "secondary-container": "#dfe0e0",
+                    "surface-tint": "#0052dd",
+                    "background": "#faf8ff",
+                    "secondary": "#5d5f5f",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-tertiary-fixed-variant": "#832700",
+                    "on-primary-container": "#f3f3ff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-container-highest": "#e1e1ee",
+                    "on-tertiary-container": "#fff1ed",
+                    "surface-container-high": "#e7e7f4",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-fixed": "#00174c",
+                    "on-tertiary-fixed": "#390c00",
+                    "on-error": "#ffffff",
+                    "surface-container": "#ecedfa",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e1e1ee",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#faf8ff",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-margin": "24px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "base-unit": "4px"
+            },
+            "fontFamily": {
+                    "display-01": [
+                            "IBM Plex Sans"
+                    ],
+                    "heading-03": [
+                            "IBM Plex Sans"
+                    ],
+                    "code-01": [
+                            "IBM Plex Mono"
+                    ],
+                    "label-01": [
+                            "IBM Plex Sans"
+                    ],
+                    "code-02": [
+                            "IBM Plex Mono"
+                    ],
+                    "body-02": [
+                            "IBM Plex Sans"
+                    ],
+                    "body-01": [
+                            "IBM Plex Sans"
+                    ]
+            },
+            "fontSize": {
+                    "display-01": [
+                            "42px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "-0.5px",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "heading-03": [
+                            "20px",
+                            {
+                                    "lineHeight": "26px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "code-01": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-01": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.32px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "code-02": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-02": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-01": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.16px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        /* Custom input focus transition for bottom border */
+        .input-industrial:focus {
+            border-bottom-width: 2px;
+            margin-bottom: -1px; /* Prevents layout shift from thicker border */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen flex items-center justify-center p-md font-body-01 text-on-background">
+<!-- Focused View - Navigation Excluded -->
+<main class="w-full max-w-[420px] bg-surface-container-lowest border border-outline-variant p-xl flex flex-col gap-xl">
+<!-- Header -->
+<div class="flex flex-col items-center gap-sm">
+<div class="w-12 h-12 bg-surface flex items-center justify-center border border-outline-variant mb-sm">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="hub">hub</span>
+</div>
+<h1 class="text-heading-03 font-heading-03 text-on-surface">Welcome to Cortex</h1>
+<p class="text-body-01 font-body-01 text-on-surface-variant text-center">Sign in to access your dashboard and manage your integrations.</p>
+</div>
+<!-- Primary Action -->
+<button class="w-full flex items-center justify-center gap-md bg-primary text-on-primary h-[40px] hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-01 uppercase tracking-wide cursor-pointer">
+<svg fill="currentColor" height="20px" viewbox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+<path d="M208.31,75.68A59.78,59.78,0,0,0,202.93,28,8,8,0,0,0,196,24a59.75,59.75,0,0,0-48,24H124A59.75,59.75,0,0,0,76,24a8,8,0,0,0-6.93,4,59.78,59.78,0,0,0-5.38,47.68A58.14,58.14,0,0,0,56,104v8a56.06,56.06,0,0,0,48.44,55.47A39.8,39.8,0,0,0,96,192v8H72a24,24,0,0,1-24-24A40,40,0,0,0,8,136a8,8,0,0,0,0,16,24,24,0,0,1,24,24,40,40,0,0,0,40,40H96v16a8,8,0,0,0,16,0V192a24,24,0,0,1,48,0v40a8,8,0,0,0,16,0V192a39.8,39.8,0,0,0-8.44-24.53A56.06,56.06,0,0,0,216,112v-8A58.14,58.14,0,0,0,208.31,75.68ZM200,112a40,40,0,0,1-40,40H112a40,40,0,0,1-40-40v-8a41.74,41.74,0,0,1,6.9-22.48A8,8,0,0,0,80,73.83a43.81,43.81,0,0,1,.79-33.58,43.88,43.88,0,0,1,32.32,20.06A8,8,0,0,0,119.82,64h32.35a8,8,0,0,0,6.74-3.69,43.87,43.87,0,0,1,32.32-20.06A43.81,43.81,0,0,1,192,73.83a8.09,8.09,0,0,0,1,7.65A41.72,41.72,0,0,1,200,104Z"></path>
+</svg>
+            Continue with GitHub
+        </button>
+<!-- Divider -->
+<div class="flex items-center gap-md">
+<hr class="flex-1 border-t border-outline-variant"/>
+<span class="text-code-01 font-code-01 text-on-surface-variant uppercase tracking-widest">or</span>
+<hr class="flex-1 border-t border-outline-variant"/>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-md">
+<div class="flex flex-col gap-xs">
+<label class="text-label-01 font-label-01 text-on-surface uppercase tracking-wide" for="email">Email</label>
+<input class="input-industrial bg-surface-container border-b border-outline focus:border-primary outline-none h-[40px] px-sm rounded-t font-body-01 text-on-surface placeholder:text-outline transition-all" id="email" placeholder="developer@company.com" required="" type="email"/>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<label class="text-label-01 font-label-01 text-on-surface uppercase tracking-wide" for="password">Password</label>
+<a class="text-label-01 font-label-01 text-primary hover:underline" href="#">Forgot?</a>
+</div>
+<input class="input-industrial bg-surface-container border-b border-outline focus:border-primary outline-none h-[40px] px-sm rounded-t font-body-01 text-on-surface placeholder:text-outline transition-all" id="password" placeholder="••••••••" required="" type="password"/>
+</div>
+<button class="w-full h-[40px] mt-sm border border-outline bg-transparent text-primary hover:bg-surface-container transition-colors font-label-01 uppercase tracking-wide cursor-pointer flex items-center justify-center gap-sm" type="submit">
+<span class="material-symbols-outlined text-[18px]" data-icon="login">login</span>
+                Sign In with Email
+            </button>
+</form>
+<!-- Footer -->
+<div class="text-center pt-sm border-t border-outline-variant mt-xs">
+<p class="text-label-01 font-label-01 text-on-surface-variant">
+                Don't have an account? <a class="text-primary hover:underline font-medium" href="#">Create one now</a>
+</p>
+</div>
+</main>
+</body></html>

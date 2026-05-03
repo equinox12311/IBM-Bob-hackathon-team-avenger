@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cortex - Touch Grass</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#454747",
+                        "surface-container-low": "#f2f3ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-background": "#191b24",
+                        "surface-dim": "#d8d9e6",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c6d8",
+                        "on-primary-fixed-variant": "#003da9",
+                        "secondary": "#5d5f5f",
+                        "on-tertiary-fixed": "#390c00",
+                        "background": "#faf8ff",
+                        "surface": "#faf8ff",
+                        "on-surface-variant": "#424656",
+                        "surface-variant": "#e1e1ee",
+                        "tertiary-fixed": "#ffdbd0",
+                        "on-surface": "#191b24",
+                        "outline": "#737687",
+                        "primary": "#004ccd",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "tertiary": "#9e3100",
+                        "surface-container": "#ecedfa",
+                        "surface-container-highest": "#e1e1ee",
+                        "inverse-on-surface": "#eff0fd",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#f3f3ff",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2e303a",
+                        "on-secondary-container": "#616363",
+                        "surface-tint": "#0052dd",
+                        "tertiary-container": "#c84000",
+                        "on-primary-fixed": "#00174c",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#832700",
+                        "primary-fixed": "#dbe1ff",
+                        "on-tertiary-container": "#fff1ed",
+                        "primary-container": "#0f62fe",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "surface-container-high": "#e7e7f4",
+                        "secondary-container": "#dfe0e0",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "inverse-primary": "#b4c5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "base-unit": "4px",
+                        "md": "16px",
+                        "container-margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-02": ["IBM Plex Sans"],
+                        "body-01": ["IBM Plex Sans"],
+                        "label-01": ["IBM Plex Sans"],
+                        "code-01": ["IBM Plex Mono"],
+                        "heading-03": ["IBM Plex Sans"],
+                        "display-01": ["IBM Plex Sans"],
+                        "code-02": ["IBM Plex Mono"]
+                    },
+                    "fontSize": {
+                        "body-02": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "body-01": ["14px", { "lineHeight": "20px", "letterSpacing": "0.16px", "fontWeight": "400" }],
+                        "label-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0.32px", "fontWeight": "400" }],
+                        "code-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "heading-03": ["20px", { "lineHeight": "26px", "letterSpacing": "0px", "fontWeight": "600" }],
+                        "display-01": ["42px", { "lineHeight": "48px", "letterSpacing": "-0.5px", "fontWeight": "300" }],
+                        "code-02": ["14px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #faf8ff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-02 text-body-02 text-on-surface antialiased bg-background min-h-screen pb-20">
+<!-- TopAppBar (Suppressed back button as per intent, acting as global destination) -->
+<header class="flex justify-between items-center w-full px-4 h-12 bg-white border-b border-neutral-200">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600">terminal</span>
+<span class="font-sans antialiased text-sm font-medium tracking-tight text-lg font-bold tracking-tighter text-neutral-900 uppercase">Cortex</span>
+</div>
+<div>
+<!-- Avatar Placeholder -->
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHyvlyPt2gEysddgg4dqHbaIwt-EkmL4uTXQff5T2iQ_nHqhr--4ZrnpUUYZJXRMPYLmuEFhbG8xrhuoCDZIh4Wv2RyMdzUBmQk8zNdblcToghrX_qCXyP1g9e-xtyn81TgnA5KKMPagJiwlM7EVBgzFqxiT16ZZy07vIMpGaPyU42EtucfsfiptWXC2VLjZwFfJRCFnBhJVZRPR-Zmxp1dswInFqsOcliQOpIi7DQm26u8ZFE8jBv_uTGC7G_sMx5ExxEvWBbgw"/>
+</div>
+</div>
+</header>
+<main class="max-w-3xl mx-auto px-4 py-6 md:px-gutter lg:py-lg grid grid-cols-1 gap-6">
+<!-- Touch Grass Hero Button -->
+<section class="flex flex-col items-center justify-center py-xl">
+<button class="relative group w-48 h-48 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden flex flex-col items-center justify-center transition-all duration-300 hover:border-primary-container focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2 focus:ring-offset-background">
+<img alt="Touch Grass Background" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300" data-alt="A macro photograph of lush, vibrant green grass blades covered in morning dew drops. The lighting is soft and natural, suggesting a peaceful, early morning outdoor setting. The image should evoke a sense of calm, nature, and refreshment, contrasting with digital screens. High resolution, shallow depth of field focusing on a single dew-covered blade." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4hWrI3_Gi2LZkfpxAytKpMuAZFavNmjN4h_f3RsYZ7ZydHZ_mecseHpuNYKamDBEfSgYOO5HT7fpikibuRrxfjiQUam8v_4G8wplhx-75ZxYyDFGaUIIg4BFxfPq982EAeHpXRIRCQP3-GNpmuocQhntgktDljz0qTmbEgn6JN7s1tYXD_dheGMyExfkotKsvHyq1NWY3fU01N4QuSYJKIidUGvQvDyTK98Xj6zJzvr-vgbg80w2gkZSsQONAKGBxjwY0ZMC4EQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+<div class="relative z-10 flex flex-col items-center">
+<span class="material-symbols-outlined text-primary-container text-4xl mb-2" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="font-heading-03 text-heading-03 text-on-surface">Touch Grass</span>
+</div>
+</button>
+<div class="mt-lg text-center">
+<p class="font-code-02 text-code-02 text-on-surface-variant mb-xs">3h 45m deep work</p>
+<p class="font-body-01 text-body-01 text-on-surface">Time for a 15-minute screen break.</p>
+</div>
+</section>
+<!-- Bento Grid Stats & Resets -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Daily Balance -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-md flex flex-col justify-between">
+<div>
+<h3 class="font-heading-03 text-heading-03 text-on-surface mb-sm">Daily Balance</h3>
+<p class="font-body-01 text-body-01 text-on-surface-variant mb-lg">Breaks vs. Focused Hours</p>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center font-code-01 text-code-01">
+<span class="text-on-surface">Breaks Taken</span>
+<span class="text-primary-container">2 / 5</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-2/5"></div>
+</div>
+</div>
+</div>
+<!-- Quick Resets -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-md">
+<h3 class="font-heading-03 text-heading-03 text-on-surface mb-sm">Quick Resets</h3>
+<ul class="flex flex-col border-t border-outline-variant mt-sm">
+<li class="flex items-center gap-3 py-sm border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary-container">self_improvement</span>
+<span class="font-body-01 text-body-01 text-on-surface">5-minute stretch</span>
+</li>
+<li class="flex items-center gap-3 py-sm border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary-container">directions_walk</span>
+<span class="font-body-01 text-body-01 text-on-surface">Walk around the block</span>
+</li>
+<li class="flex items-center gap-3 py-sm border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary-container">water_drop</span>
+<span class="font-body-01 text-body-01 text-on-surface">Hydrate</span>
+</li>
+<li class="flex items-center gap-3 py-sm hover:bg-surface-container-low transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary-container">air</span>
+<span class="font-body-01 text-body-01 text-on-surface">Deep breathing</span>
+</li>
+</ul>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full h-16 z-50 flex justify-around items-stretch bg-neutral-50 border-t border-neutral-200">
+<!-- Today (Active based on semantic intent of daily wellness/tracking) -->
+<button class="flex flex-col items-center justify-center text-blue-600 border-t-4 border-blue-600 bg-white w-full h-full">
+<span class="material-symbols-outlined mb-1">calendar_today</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">Today</span>
+</button>
+<!-- Recall -->
+<button class="flex flex-col items-center justify-center text-neutral-500 w-full h-full hover:bg-neutral-100 active:bg-neutral-200 transition-colors duration-150 ease-in-out">
+<span class="material-symbols-outlined mb-1">manage_search</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">Recall</span>
+</button>
+<!-- Profile -->
+<button class="flex flex-col items-center justify-center text-neutral-500 w-full h-full hover:bg-neutral-100 active:bg-neutral-200 transition-colors duration-150 ease-in-out">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-mono text-[10px] uppercase tracking-widest">Profile</span>
+</button>
+</nav>
+</body></html>

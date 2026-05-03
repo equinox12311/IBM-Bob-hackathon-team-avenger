@@ -104,9 +104,14 @@ CREATE INDEX IF NOT EXISTS idx_pending_open ON pending_actions(consumed_at, crea
 CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(ts DESC);
 """
 
-# In-place migration for v0.1 → v0.2 (adds kind column to existing dbs).
+# In-place migrations applied best-effort on init_db (errors swallowed when
+# the column already exists — the only thing ALTER complains about for these).
 MIGRATIONS_SQL = [
     "ALTER TABLE entries ADD COLUMN kind TEXT NOT NULL DEFAULT 'note'",
+    # v0.3 → v0.4: cron-style scheduling on automations.
+    "ALTER TABLE automations ADD COLUMN schedule TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE automations ADD COLUMN last_run_at INTEGER",
+    "ALTER TABLE automations ADD COLUMN run_count INTEGER NOT NULL DEFAULT 0",
 ]
 
 VEC_TABLE_SQL = (
@@ -382,12 +387,18 @@ def list_automations() -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def create_automation(name: str, trigger_kind: str, action: str) -> int:
+def create_automation(
+    name: str,
+    trigger_kind: str,
+    action: str,
+    schedule: str = "",
+) -> int:
     with _connect() as conn:
         cur = conn.execute(
-            "INSERT INTO automations (name, trigger_kind, action, enabled, created_at) "
-            "VALUES (?, ?, ?, 1, ?)",
-            (name, trigger_kind, action, now_ms()),
+            "INSERT INTO automations "
+            "(name, trigger_kind, action, enabled, schedule, created_at) "
+            "VALUES (?, ?, ?, 1, ?, ?)",
+            (name, trigger_kind, action, schedule, now_ms()),
         )
         return cur.lastrowid or 0
 
@@ -403,6 +414,39 @@ def toggle_automation(automation_id: int, enabled: bool) -> None:
 def delete_automation(automation_id: int) -> None:
     with _connect() as conn:
         conn.execute("DELETE FROM automations WHERE id = ?", (automation_id,))
+
+
+def get_automation(automation_id: int) -> dict | None:
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM automations WHERE id = ?", (automation_id,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def list_scheduled_automations() -> list[dict]:
+    """Active automations that have a non-empty cron schedule string."""
+
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM automations "
+            "WHERE enabled = 1 AND schedule IS NOT NULL AND schedule != '' "
+            "ORDER BY id"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def mark_automation_run(automation_id: int, ts: int | None = None) -> None:
+    """Record a successful tick — bumps run_count and last_run_at."""
+
+    ts = ts if ts is not None else now_ms()
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE automations "
+            "SET last_run_at = ?, run_count = run_count + 1 "
+            "WHERE id = ?",
+            (ts, automation_id),
+        )
 
 
 # ---------- pending_actions (Bob queue) -----------------------------------

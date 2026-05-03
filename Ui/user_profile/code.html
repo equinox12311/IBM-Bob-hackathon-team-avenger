@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Developer Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "outline-variant": "#c3c6d8",
+                    "tertiary": "#9e3100",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#d8d9e6",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#eff0fd",
+                    "surface": "#faf8ff",
+                    "surface-container-low": "#f2f3ff",
+                    "on-background": "#191b24",
+                    "tertiary-fixed-dim": "#ffb59d",
+                    "on-surface-variant": "#424656",
+                    "outline": "#737687",
+                    "inverse-surface": "#2e303a",
+                    "tertiary-fixed": "#ffdbd0",
+                    "tertiary-container": "#c84000",
+                    "primary-container": "#0f62fe",
+                    "on-secondary-fixed-variant": "#454747",
+                    "primary": "#004ccd",
+                    "on-surface": "#191b24",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-primary-fixed-variant": "#003da9",
+                    "on-secondary-container": "#616363",
+                    "secondary-container": "#dfe0e0",
+                    "surface-tint": "#0052dd",
+                    "background": "#faf8ff",
+                    "secondary": "#5d5f5f",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-tertiary-fixed-variant": "#832700",
+                    "on-primary-container": "#f3f3ff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-container-highest": "#e1e1ee",
+                    "on-tertiary-container": "#fff1ed",
+                    "surface-container-high": "#e7e7f4",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-fixed": "#00174c",
+                    "on-tertiary-fixed": "#390c00",
+                    "on-error": "#ffffff",
+                    "surface-container": "#ecedfa",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e1e1ee",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#faf8ff",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-margin": "24px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "base-unit": "4px"
+            },
+            "fontFamily": {
+                    "display-01": [
+                            "IBM Plex Sans"
+                    ],
+                    "heading-03": [
+                            "IBM Plex Sans"
+                    ],
+                    "code-01": [
+                            "IBM Plex Mono"
+                    ],
+                    "label-01": [
+                            "IBM Plex Sans"
+                    ],
+                    "code-02": [
+                            "IBM Plex Mono"
+                    ],
+                    "body-02": [
+                            "IBM Plex Sans"
+                    ],
+                    "body-01": [
+                            "IBM Plex Sans"
+                    ]
+            },
+            "fontSize": {
+                    "display-01": [
+                            "42px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "-0.5px",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "heading-03": [
+                            "20px",
+                            {
+                                    "lineHeight": "26px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "code-01": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-01": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.32px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "code-02": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-02": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-01": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.16px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-02 pb-20 selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Header -->
+<header class="h-14 border-b border-outline-variant bg-surface flex items-center justify-center sticky top-0 z-40">
+<h1 class="font-heading-03 text-on-surface">Profile</h1>
+</header>
+<!-- Main Content -->
+<main class="max-w-3xl mx-auto flex flex-col p-md gap-xl mt-sm">
+<!-- Profile Identity -->
+<section class="flex flex-col items-center gap-sm text-center">
+<div class="w-24 h-24 rounded-full border border-outline-variant bg-surface-container-high overflow-hidden bg-cover bg-center mb-xs" data-alt="A clean, modern headshot of a professional software developer in a well-lit, minimalist industrial workspace. The lighting is bright and even, casting soft shadows and highlighting a calm, focused expression. The color palette relies on cool grays, stark whites, and subtle hints of deep IBM Blue in the background to convey technical precision and reliability." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB28HfZ0iNU-WoRJrjPzKC8Z1p8ew3O-cayggd0nfWewo-8SecGUKeQNqJ-NuUCy8KgsxiYEadiNxhIcBeES-hMtxklqw0HJAIt6eSulbKR-SKRgzX-uqPRLOX4iiCXpkyyy_xGOy7LwT7joAb3XQ7MMxGcL0zhIwLIgUEQ8216RapT1j93u8trLmsr3Jy7CAE0XHfQrYgPKK-kVvTCsdTyAIxUl6S2Mn24HezOQXZThk02meue2P8NOAY82IM5uxgcVe7OED0fWA');">
+</div>
+<h2 class="font-heading-03 text-on-background">Dev_User</h2>
+<p class="font-body-01 text-on-surface-variant">Senior Architect</p>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-3 gap-sm md:gap-md">
+<div class="bg-surface border border-outline-variant rounded-lg p-sm md:p-md flex flex-col items-center justify-center gap-xs">
+<span class="font-display-01 text-primary">142</span>
+<span class="font-label-01 text-on-surface-variant uppercase text-center">Logs Created</span>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg p-sm md:p-md flex flex-col items-center justify-center gap-xs">
+<span class="font-display-01 text-primary">89</span>
+<span class="font-label-01 text-on-surface-variant uppercase text-center">Insights Shared</span>
+</div>
+<div class="bg-surface border border-outline-variant rounded-lg p-sm md:p-md flex flex-col items-center justify-center gap-xs">
+<span class="font-display-01 text-primary">12</span>
+<span class="font-label-01 text-on-surface-variant uppercase text-center">Active Repos</span>
+</div>
+</section>
+<!-- Settings List -->
+<section class="flex flex-col gap-sm">
+<h3 class="font-label-01 text-outline uppercase px-xs">Settings</h3>
+<div class="bg-surface border border-outline-variant rounded-lg flex flex-col">
+<!-- Preferences -->
+<button class="w-full flex items-center justify-between p-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer text-left">
+<div class="flex items-center gap-md">
+<span aria-hidden="true" class="material-symbols-outlined text-on-surface-variant">tune</span>
+<span class="font-body-02 text-on-surface">Preferences</span>
+</div>
+<span aria-hidden="true" class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<!-- Security -->
+<button class="w-full flex items-center justify-between p-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer text-left">
+<div class="flex items-center gap-md">
+<span aria-hidden="true" class="material-symbols-outlined text-on-surface-variant">lock</span>
+<span class="font-body-02 text-on-surface">Security</span>
+</div>
+<span aria-hidden="true" class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<!-- Connected Accounts -->
+<button class="w-full flex items-center justify-between p-md border-b border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer text-left">
+<div class="flex items-center gap-md">
+<span aria-hidden="true" class="material-symbols-outlined text-on-surface-variant">cable</span>
+<span class="font-body-02 text-on-surface">Connected Accounts</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-label-01 text-on-surface-variant">GitHub, Slack</span>
+<span aria-hidden="true" class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</button>
+<!-- Logout -->
+<button class="w-full flex items-center justify-between p-md hover:bg-surface-container-low transition-colors cursor-pointer text-left group">
+<div class="flex items-center gap-md">
+<span aria-hidden="true" class="material-symbols-outlined text-error">logout</span>
+<span class="font-body-02 text-error">Logout</span>
+</div>
+</button>
+</div>
+</section>
+</main>
+<!-- Shared Bottom NavBar -->
+<nav class="fixed bottom-0 left-0 w-full border-t border-outline-variant bg-surface px-md pb-sm pt-xs z-50">
+<div class="max-w-3xl mx-auto flex gap-2">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center" data-icon="Table" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">table</span>
+</div>
+<p class="font-label-01">Dashboard</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center" data-icon="FileText" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">files</span>
+</div>
+<p class="font-label-01">Logs</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center" data-icon="GitBranch" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">rebase</span>
+</div>
+<p class="font-label-01">Repos</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center" data-icon="User" data-size="24px" data-weight="fill">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<p class="font-label-01 font-bold">Profile</p>
+</a>
+</div>
+</nav>
+</body></html>

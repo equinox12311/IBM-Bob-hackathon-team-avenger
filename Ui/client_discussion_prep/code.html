@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Client Discussion Prep</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "outline-variant": "#c3c6d8",
+                        "tertiary": "#9e3100",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d8d9e6",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#eff0fd",
+                        "surface": "#faf8ff",
+                        "surface-container-low": "#f2f3ff",
+                        "on-background": "#191b24",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "on-surface-variant": "#424656",
+                        "outline": "#737687",
+                        "inverse-surface": "#2e303a",
+                        "tertiary-fixed": "#ffdbd0",
+                        "tertiary-container": "#c84000",
+                        "primary-container": "#0f62fe",
+                        "on-secondary-fixed-variant": "#454747",
+                        "primary": "#004ccd",
+                        "on-surface": "#191b24",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-primary-fixed-variant": "#003da9",
+                        "on-secondary-container": "#616363",
+                        "secondary-container": "#dfe0e0",
+                        "surface-tint": "#0052dd",
+                        "background": "#faf8ff",
+                        "secondary": "#5d5f5f",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-tertiary-fixed-variant": "#832700",
+                        "on-primary-container": "#f3f3ff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container-highest": "#e1e1ee",
+                        "on-tertiary-container": "#fff1ed",
+                        "surface-container-high": "#e7e7f4",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed": "#00174c",
+                        "on-tertiary-fixed": "#390c00",
+                        "on-error": "#ffffff",
+                        "surface-container": "#ecedfa",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e1e1ee",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "on-error-container": "#93000a"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "container-margin": "24px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "base-unit": "4px"
+                    },
+                    fontFamily: {
+                        "display-01": ["IBM Plex Sans", "sans-serif"],
+                        "heading-03": ["IBM Plex Sans", "sans-serif"],
+                        "code-01": ["IBM Plex Mono", "monospace"],
+                        "label-01": ["IBM Plex Sans", "sans-serif"],
+                        "code-02": ["IBM Plex Mono", "monospace"],
+                        "body-02": ["IBM Plex Sans", "sans-serif"],
+                        "body-01": ["IBM Plex Sans", "sans-serif"]
+                    },
+                    fontSize: {
+                        "display-01": ["42px", { lineHeight: "48px", letterSpacing: "-0.5px", fontWeight: "300" }],
+                        "heading-03": ["20px", { lineHeight: "26px", letterSpacing: "0px", fontWeight: "600" }],
+                        "code-01": ["12px", { lineHeight: "16px", letterSpacing: "0px", fontWeight: "400" }],
+                        "label-01": ["12px", { lineHeight: "16px", letterSpacing: "0.32px", fontWeight: "400" }],
+                        "code-02": ["14px", { lineHeight: "20px", letterSpacing: "0px", fontWeight: "400" }],
+                        "body-02": ["16px", { lineHeight: "24px", letterSpacing: "0px", fontWeight: "400" }],
+                        "body-01": ["14px", { lineHeight: "20px", letterSpacing: "0.16px", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Base styles adhering to Style Guidance */
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            font-family: theme('fontFamily.body-01');
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Functional Input Styling */
+        .industrial-input {
+            background-color: theme('colors.surface-container-low');
+            border: none;
+            border-bottom: 1px solid theme('colors.outline');
+            border-radius: theme('borderRadius.DEFAULT') theme('borderRadius.DEFAULT') 0 0;
+            padding: theme('spacing.sm') theme('spacing.md');
+            font-family: theme('fontFamily.code-02');
+            color: theme('colors.on-surface');
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        
+        .industrial-input:focus {
+            outline: none;
+            border-bottom: 2px solid theme('colors.primary');
+            background-color: theme('colors.surface-container');
+            box-shadow: none;
+            padding-bottom: calc(theme('spacing.sm') - 1px); /* Prevent layout shift */
+        }
+        
+        /* Functional Button Styling */
+        .btn-primary {
+            background-color: theme('colors.primary');
+            color: theme('colors.on-primary');
+            border-radius: theme('borderRadius.DEFAULT');
+            padding: theme('spacing.sm') theme('spacing.md');
+            font-family: theme('fontFamily.label-01');
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: theme('spacing.sm');
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: theme('colors.on-primary-fixed-variant');
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: theme('colors.primary');
+            border-radius: theme('borderRadius.DEFAULT');
+            padding: theme('spacing.sm') theme('spacing.md');
+            font-family: theme('fontFamily.label-01');
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: theme('spacing.sm');
+            border: 1px solid theme('colors.outline');
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: theme('colors.surface-container-high');
+        }
+        
+        /* Card Styling */
+        .industrial-card {
+            background-color: theme('colors.surface');
+            border: 1px solid theme('colors.outline-variant');
+            border-radius: theme('borderRadius.DEFAULT');
+            padding: theme('spacing.md');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col items-center pt-lg px-md pb-xl">
+<!-- Top Navigation Exception for Focused Views -->
+<div class="w-full max-w-[800px] mb-lg flex items-center justify-between border-b border-outline-variant pb-sm">
+<div class="flex items-center gap-sm">
+<button aria-label="Go back" class="flex size-10 shrink-0 items-center justify-center text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-heading-03 text-on-background m-0">Client Discussion Prep</h1>
+</div>
+</div>
+<!-- Main Content Grid -->
+<main class="w-full max-w-[800px] flex flex-col gap-lg">
+<header class="mb-sm">
+<h2 class="text-heading-03 text-on-background mb-xs">Translate Log to Client Summary</h2>
+<p class="text-body-01 text-on-surface-variant">Paste your raw technical logs below to generate a client-friendly update.</p>
+</header>
+<!-- Technical Entry Section -->
+<section class="flex flex-col gap-sm">
+<label class="text-label-01 text-on-surface font-semibold flex items-center justify-between" for="tech-entry">
+                Technical Entry
+                <span class="text-code-01 text-on-surface-variant font-normal">Raw Logs / Git Commits</span>
+</label>
+<div class="industrial-card p-0 overflow-hidden">
+<textarea class="industrial-input min-h-[160px] resize-y border-none rounded-none m-0 focus:border-b-2" id="tech-entry" placeholder="e.g., Refactored Auth module to use JWT instead of session cookies. Updated DB schema for user table to support multi-factor auth fields. Resolved N+1 query issue in dashboard metrics endpoint..."></textarea>
+</div>
+<div class="flex justify-start mt-xs">
+<button class="btn-secondary">
+<span class="material-symbols-outlined text-[18px]" data-icon="ArrowsClockwise">arrow_circle_left</span>
+                    Generate Client Summary
+                </button>
+</div>
+</section>
+<!-- Visual Separator -->
+<div class="flex items-center justify-center py-sm">
+<div class="h-[1px] w-full bg-outline-variant"></div>
+<span class="material-symbols-outlined text-outline mx-md text-[20px]" data-icon="arrow_downward">arrow_downward</span>
+<div class="h-[1px] w-full bg-outline-variant"></div>
+</div>
+<!-- Client-Facing Summary Section -->
+<section class="flex flex-col gap-sm">
+<label class="text-label-01 text-on-surface font-semibold flex items-center justify-between" for="client-summary">
+                Client-Facing Summary
+                <span class="text-code-01 text-on-surface-variant font-normal">Draft Output</span>
+</label>
+<div class="industrial-card p-0 overflow-hidden bg-surface-container-low border-primary-fixed-dim border-2">
+<textarea class="industrial-input min-h-[160px] resize-y border-none rounded-none m-0 focus:border-none focus:bg-surface-container-low" id="client-summary" placeholder="Output will appear here..." readonly="">We've implemented significant security enhancements to the login process this week. The system now uses a more modern authentication method, paving the way for advanced security features like Two-Factor Authentication in the near future. Additionally, we optimized the dashboard performance, ensuring faster loading times when viewing your key metrics.</textarea>
+</div>
+<div class="flex justify-end mt-sm gap-sm">
+<button class="btn-secondary border-transparent text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+                    Edit Draft
+                </button>
+<button class="btn-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="content_copy">content_copy</span>
+                    Copy for Client
+                </button>
+</div>
+</section>
+</main>
+</body></html>

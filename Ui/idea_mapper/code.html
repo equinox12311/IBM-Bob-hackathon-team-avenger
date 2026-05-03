@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Idea Mapper</title>
+<!-- Google Fonts: IBM Plex Sans & Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "outline-variant": "#c3c6d8",
+                    "tertiary": "#9e3100",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#d8d9e6",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#eff0fd",
+                    "surface": "#faf8ff",
+                    "surface-container-low": "#f2f3ff",
+                    "on-background": "#191b24",
+                    "tertiary-fixed-dim": "#ffb59d",
+                    "on-surface-variant": "#424656",
+                    "outline": "#737687",
+                    "inverse-surface": "#2e303a",
+                    "tertiary-fixed": "#ffdbd0",
+                    "tertiary-container": "#c84000",
+                    "primary-container": "#0f62fe",
+                    "on-secondary-fixed-variant": "#454747",
+                    "primary": "#004ccd",
+                    "on-surface": "#191b24",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-primary-fixed-variant": "#003da9",
+                    "on-secondary-container": "#616363",
+                    "secondary-container": "#dfe0e0",
+                    "surface-tint": "#0052dd",
+                    "background": "#faf8ff",
+                    "secondary": "#5d5f5f",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-tertiary-fixed-variant": "#832700",
+                    "on-primary-container": "#f3f3ff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-container-highest": "#e1e1ee",
+                    "on-tertiary-container": "#fff1ed",
+                    "surface-container-high": "#e7e7f4",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-fixed": "#00174c",
+                    "on-tertiary-fixed": "#390c00",
+                    "on-error": "#ffffff",
+                    "surface-container": "#ecedfa",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e1e1ee",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#faf8ff",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px", /* Overridden to match flat/sharp architectural look */
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "0px"
+            },
+            "spacing": {
+                    "container-margin": "24px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "base-unit": "4px"
+            },
+            "fontFamily": {
+                    "display-01": ["IBM Plex Sans", "sans-serif"],
+                    "heading-03": ["IBM Plex Sans", "sans-serif"],
+                    "code-01": ["IBM Plex Mono", "monospace"],
+                    "label-01": ["IBM Plex Sans", "sans-serif"],
+                    "code-02": ["IBM Plex Mono", "monospace"],
+                    "body-02": ["IBM Plex Sans", "sans-serif"],
+                    "body-01": ["IBM Plex Sans", "sans-serif"]
+            },
+            "fontSize": {
+                    "display-01": ["42px", {"lineHeight": "48px", "letterSpacing": "-0.5px", "fontWeight": "300"}],
+                    "heading-03": ["20px", {"lineHeight": "26px", "letterSpacing": "0px", "fontWeight": "600"}],
+                    "code-01": ["12px", {"lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400"}],
+                    "label-01": ["12px", {"lineHeight": "16px", "letterSpacing": "0.32px", "fontWeight": "400"}],
+                    "code-02": ["14px", {"lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400"}],
+                    "body-02": ["16px", {"lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400"}],
+                    "body-01": ["14px", {"lineHeight": "20px", "letterSpacing": "0.16px", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Force sharp edges on interactive elements to adhere strictly to guidelines despite tailwind base */
+        * { border-radius: 0 !important; }
+        
+        /* Interactive row/list item styling per guidelines */
+        .interactive-row {
+            transition: background-color 0.15s ease;
+        }
+        .interactive-row:hover {
+            background-color: #f2f3ff; /* surface-container-low */
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-02 min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Action Bar -->
+<header class="bg-surface-container-lowest border-b border-outline-variant px-lg py-md flex justify-between items-center sticky top-0 z-10">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="polyline">polyline</span>
+<h1 class="font-display-01 text-on-surface text-[24px]">Idea Mapper</h1>
+</div>
+<div class="flex items-center gap-sm">
+<!-- Search Input -->
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]" data-icon="search">search</span>
+<input class="bg-surface-container-low border-0 border-b border-outline-variant focus:border-b-2 focus:border-primary focus:ring-0 pl-xl pr-sm py-sm text-sm font-body-01 text-on-surface w-64 transition-all outline-none" placeholder="Filter ideas..." type="text"/>
+</div>
+<!-- Map it out Button -->
+<button class="bg-primary text-on-primary font-label-01 px-md py-sm flex items-center gap-xs hover:bg-on-primary-fixed-variant transition-colors border-none shadow-none uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]" data-icon="account_tree">account_tree</span>
+                Map It Out
+            </button>
+</div>
+</header>
+<!-- Filter Chips / Secondary Nav -->
+<div class="px-lg py-sm border-b border-outline-variant bg-surface-container-lowest flex gap-xs overflow-x-auto">
+<button class="bg-surface-container-low text-on-surface font-code-01 px-sm py-1 border border-outline-variant hover:bg-surface-container-high transition-colors whitespace-nowrap">#all_nodes</button>
+<button class="bg-surface-container-lowest text-on-surface-variant font-code-01 px-sm py-1 border border-outline-variant hover:bg-surface-container-low transition-colors whitespace-nowrap">#architecture</button>
+<button class="bg-surface-container-lowest text-on-surface-variant font-code-01 px-sm py-1 border border-outline-variant hover:bg-surface-container-low transition-colors whitespace-nowrap">#ai_ml</button>
+<button class="bg-surface-container-lowest text-on-surface-variant font-code-01 px-sm py-1 border border-outline-variant hover:bg-surface-container-low transition-colors whitespace-nowrap">#frontend</button>
+<button class="bg-surface-container-lowest text-on-surface-variant font-code-01 px-sm py-1 border border-outline-variant hover:bg-surface-container-low transition-colors whitespace-nowrap">#data_viz</button>
+</div>
+<!-- Main Content: Bento Grid -->
+<main class="flex-1 p-lg container mx-auto">
+<div class="bento-grid">
+<!-- Card 1: Large Feature (Spans 8 cols on desktop) -->
+<article class="col-span-12 lg:col-span-8 bg-surface-container-lowest border border-outline-variant flex flex-col hover:bg-surface-container-low transition-colors group cursor-pointer shadow-none">
+<div class="h-64 border-b border-outline-variant w-full bg-cover bg-center" data-alt="A highly structured, technical visualization of server racks and networking cables rendered in a stark, minimalist light mode style. The image uses a restrained palette of bright whites, cool grays, and precise primary blue accents. The composition relies on rigid geometric grids and sharp lines, exuding a professional, industrial, and efficient Swiss-design aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDtoJosaeJtnnEqqPZnhIThhVgU6ktEkRKlgOJ5ypwMD1q_Yoc9fdhnqPUoxSNjayFrxDphOun9gFk304fs-FrodYRfi5wJfBM1WCtCEJ-RwfGDxEGFwuxy0EKw8-RRuwxAVHOQ_bWrpYQZ7LttCu05F8PhAz8uwBAjMCiYk-f89cYBfWVroBoTCHD2w4FxMadAkeLNsWXjIkEiYFCR3FSLQV7H5oazbJa2llqSm2oqrCSNXvopXCvlcCozX9aTW--aeEeko7XNWg');">
+</div>
+<div class="p-md flex flex-col flex-1 gap-sm">
+<header class="border-b border-outline-variant pb-sm mb-xs flex justify-between items-start">
+<h2 class="font-heading-03 text-on-surface">Micro-frontend Architecture</h2>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" data-icon="arrow_outward">arrow_outward</span>
+</header>
+<p class="font-body-01 text-on-surface-variant flex-1 line-clamp-2">
+                        Decoupling deployment strategies for scalable web applications. Implementing module federation to allow independent teams to deploy features without central bottlenecks.
+                    </p>
+<footer class="flex gap-xs pt-sm flex-wrap">
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#frontend</span>
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#architecture</span>
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#scalability</span>
+</footer>
+</div>
+</article>
+<!-- Card 2: Medium Feature (Spans 4 cols on desktop) -->
+<article class="col-span-12 md:col-span-6 lg:col-span-4 bg-surface-container-lowest border border-outline-variant flex flex-col hover:bg-surface-container-low transition-colors group cursor-pointer shadow-none">
+<div class="h-40 border-b border-outline-variant w-full bg-cover bg-center" data-alt="A clean, abstract representation of a 3D node graph or data structure against a stark white background. The image features sharp, geometric connections and nodes drawn with precise, thin lines. The lighting is completely flat and high-key, avoiding shadows to maintain an architectural, technical drawing feel in soft grays and strict blues." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCo-SAEHJp2eMdlAnREEUNf9f1MsxLNN2We5EkfnfnW1zIaZ92WOB7OEt-i5C9ta-JbKt90XKuvt_-F3GPte6DHhXpYiCoGzG_eG-v7A63JoPZGPsxfVQUVOr_wGgnfcR-1Sqs4O5A5Uh-_4xLDSACRiza-hZ-uxrkctgC_V1N9K3_-yfUvKiGIhgmGQYNzhd_WZ-e8HItpb021zDXXZm0RV8quwdVkxaBfokNI9_Z1H6zLrXt2ZFn3xPz33HEX9HeOLQChPyUmXQ');">
+</div>
+<div class="p-md flex flex-col flex-1 gap-sm">
+<header class="border-b border-outline-variant pb-sm mb-xs flex justify-between items-start">
+<h2 class="font-heading-03 text-on-surface">WebGL Knowledge Graph</h2>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" data-icon="arrow_outward">arrow_outward</span>
+</header>
+<p class="font-body-01 text-on-surface-variant flex-1 line-clamp-3">
+                        Visualizing linked creative concepts using 3D node graphs. Exploring performance optimization for thousands of edges using instanced rendering.
+                    </p>
+<footer class="flex gap-xs pt-sm flex-wrap">
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#webgl</span>
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#data_viz</span>
+</footer>
+</div>
+</article>
+<!-- Card 3: Small Text-heavy Feature (Spans 4 cols) -->
+<article class="col-span-12 md:col-span-6 lg:col-span-4 bg-surface-container-lowest border border-outline-variant flex flex-col hover:bg-surface-container-low transition-colors group cursor-pointer shadow-none relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+<div class="p-md flex flex-col flex-1 gap-sm">
+<header class="border-b border-outline-variant pb-sm mb-xs">
+<h2 class="font-heading-03 text-on-surface">LLM RAG Pipeline</h2>
+</header>
+<p class="font-body-01 text-on-surface-variant flex-1">
+                        Structuring vector databases for semantic code search. Evaluating chunking strategies for large monorepos to improve context window efficiency.
+                    </p>
+<div class="bg-surface-container-low border border-outline-variant p-sm my-sm font-code-02 text-on-surface-variant text-xs">
+                        {<br/>  "chunk_size": 512,<br/>  "overlap": 50,<br/>  "model": "text-embedding-v2"<br/>}
+                    </div>
+<footer class="flex gap-xs mt-auto flex-wrap">
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#ai_ml</span>
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#backend</span>
+</footer>
+</div>
+</article>
+<!-- Card 4: Small List Feature (Spans 4 cols) -->
+<article class="col-span-12 md:col-span-6 lg:col-span-4 bg-surface-container-lowest border border-outline-variant flex flex-col shadow-none">
+<div class="p-md pb-sm border-b border-outline-variant">
+<h2 class="font-heading-03 text-on-surface">Design System Tokens</h2>
+</div>
+<div class="flex-1 flex flex-col">
+<div class="interactive-row px-md py-sm border-b border-outline-variant flex justify-between items-center cursor-pointer">
+<span class="font-body-01 text-on-surface">Color Palette Migration</span>
+<span class="material-symbols-outlined text-outline-variant text-[16px]" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="interactive-row px-md py-sm border-b border-outline-variant flex justify-between items-center cursor-pointer border-l-4 border-l-primary bg-surface-container-low">
+<span class="font-body-01 text-on-surface">Typography Scales</span>
+<span class="material-symbols-outlined text-primary text-[16px]" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="interactive-row px-md py-sm flex justify-between items-center cursor-pointer">
+<span class="font-body-01 text-on-surface">Elevation Rules</span>
+<span class="material-symbols-outlined text-outline-variant text-[16px]" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</article>
+<!-- Card 5: Medium Feature (Spans 4 cols) -->
+<article class="col-span-12 md:col-span-6 lg:col-span-4 bg-surface-container-lowest border border-outline-variant flex flex-col hover:bg-surface-container-low transition-colors group cursor-pointer shadow-none">
+<div class="h-32 border-b border-outline-variant w-full flex items-center justify-center bg-surface-container-low">
+<span class="material-symbols-outlined text-primary text-[48px]" data-icon="schema">schema</span>
+</div>
+<div class="p-md flex flex-col flex-1 gap-sm">
+<header class="border-b border-outline-variant pb-sm mb-xs flex justify-between items-start">
+<h2 class="font-heading-03 text-on-surface">State Machine UI</h2>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" data-icon="arrow_outward">arrow_outward</span>
+</header>
+<p class="font-body-01 text-on-surface-variant flex-1">
+                        Mapping complex user flows using strict finite state machines to eliminate impossible UI states in the checkout process.
+                    </p>
+<footer class="flex gap-xs pt-sm flex-wrap">
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#frontend</span>
+<span class="bg-surface-container-low text-on-surface font-code-01 px-2 py-1 border border-outline-variant">#logic</span>
+</footer>
+</div>
+</article>
+</div>
+</main>
+<!-- Shared Bottom NavBar (Exact inclusion per instructions for strictly requested logic components) -->
+<div class="mt-auto">
+<div class="flex gap-2 border-t border-outline-variant bg-surface-container-lowest px-4 pb-3 pt-2 w-full max-w-md mx-auto sm:max-w-none sm:justify-center sm:px-lg sm:border-t-2">
+<a class="just flex flex-1 sm:flex-none sm:w-24 flex-col items-center justify-end gap-1 rounded-none text-primary hover:bg-surface-container-low transition-colors py-1" href="#">
+<div class="text-primary flex h-8 items-center justify-center" data-icon="Lightbulb" data-size="24px" data-weight="fill" style="font-variation-settings: 'FILL' 1;">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<p class="text-primary text-xs font-medium leading-normal tracking-[0.015em] font-label-01 uppercase">Ideas</p>
+</a>
+<a class="just flex flex-1 sm:flex-none sm:w-24 flex-col items-center justify-end gap-1 text-on-surface-variant hover:bg-surface-container-low transition-colors py-1" href="#">
+<div class="text-on-surface-variant flex h-8 items-center justify-center" data-icon="Graph" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">hub</span>
+</div>
+<p class="text-on-surface-variant text-xs font-medium leading-normal tracking-[0.015em] font-label-01 uppercase">Graph</p>
+</a>
+<a class="just flex flex-1 sm:flex-none sm:w-24 flex-col items-center justify-end gap-1 text-on-surface-variant hover:bg-surface-container-low transition-colors py-1" href="#">
+<div class="text-on-surface-variant flex h-8 items-center justify-center" data-icon="User" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-on-surface-variant text-xs font-medium leading-normal tracking-[0.015em] font-label-01 uppercase">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

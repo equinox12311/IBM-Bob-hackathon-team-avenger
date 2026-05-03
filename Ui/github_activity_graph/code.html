@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cortex - GitHub Velocity</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-dim": "#d8d9e6",
+                        "outline": "#737687",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#616363",
+                        "on-primary-fixed-variant": "#003da9",
+                        "surface-tint": "#0052dd",
+                        "on-tertiary-fixed": "#390c00",
+                        "surface-container-high": "#e7e7f4",
+                        "surface": "#faf8ff",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "inverse-surface": "#2e303a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#f3f3ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary-fixed-variant": "#454747",
+                        "inverse-primary": "#b4c5ff",
+                        "secondary-fixed": "#e2e2e2",
+                        "outline-variant": "#c3c6d8",
+                        "on-tertiary-fixed-variant": "#832700",
+                        "on-primary-fixed": "#00174c",
+                        "tertiary-container": "#c84000",
+                        "surface-container": "#ecedfa",
+                        "primary": "#004ccd",
+                        "secondary-container": "#dfe0e0",
+                        "primary-fixed": "#dbe1ff",
+                        "on-error": "#ffffff",
+                        "on-background": "#191b24",
+                        "tertiary": "#9e3100",
+                        "surface-container-highest": "#e1e1ee",
+                        "background": "#faf8ff",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#faf8ff",
+                        "primary-container": "#0f62fe",
+                        "secondary": "#5d5f5f",
+                        "on-surface-variant": "#424656",
+                        "inverse-on-surface": "#eff0fd",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "surface-variant": "#e1e1ee",
+                        "on-tertiary-container": "#fff1ed",
+                        "tertiary-fixed": "#ffdbd0",
+                        "surface-container-low": "#f2f3ff",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-surface": "#191b24",
+                        "error": "#ba1a1a"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "container-margin": "24px",
+                        "lg": "24px",
+                        "base-unit": "4px"
+                    },
+                    fontFamily: {
+                        "code-01": ["IBM Plex Mono"],
+                        "code-02": ["IBM Plex Mono"],
+                        "body-01": ["IBM Plex Sans"],
+                        "label-01": ["IBM Plex Sans"],
+                        "heading-03": ["IBM Plex Sans"],
+                        "display-01": ["IBM Plex Sans"],
+                        "body-02": ["IBM Plex Sans"]
+                    },
+                    fontSize: {
+                        "code-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "code-02": ["14px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "body-01": ["14px", { "lineHeight": "20px", "letterSpacing": "0.16px", "fontWeight": "400" }],
+                        "label-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0.32px", "fontWeight": "400" }],
+                        "heading-03": ["20px", { "lineHeight": "26px", "letterSpacing": "0px", "fontWeight": "600" }],
+                        "display-01": ["42px", { "lineHeight": "48px", "letterSpacing": "-0.5px", "fontWeight": "300" }],
+                        "body-02": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-01 text-body-01 min-h-screen pb-20 selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="bg-surface-container-lowest text-primary font-body-01 text-body-01 sticky top-0 z-40 w-full border-b border-outline-variant flex justify-between items-center px-4 h-12 transition-colors duration-150 ease-in-out">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="terminal">terminal</span>
+<span class="text-lg font-bold tracking-tighter text-on-surface uppercase">Cortex</span>
+</div>
+<div>
+<img alt="Avatar" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A clean, high-key studio portrait of a professional individual against a bright white background. The lighting is soft and even, highlighting clear features. The aesthetic is modern, minimalist, and aligns with a professional tech environment, using a neutral color palette with crisp focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjgpXOH0JpLB_Y0PdNH0j6qKipN3j8n0aKxWYiEE4wnoBGgIS4L77rPe97151RlCptgsOfAyB2CmZII1fLmAwY4EUX3Byzrg-FjgDMm8TRb7WslFNXHhy5W0nb9QgCadQcqT-DpYbDw6Zk8FESuoURPb-Uw_8VkFE7ki0gemS52TmZQiqwEnw85MqiJPu4N-a4zqQt9QatLht5uwBkNTFjL_iN89ZLpPmEjTcF8k9ekb9F7ynCQ5KhYkRI3saSiOy8nP_7C45YQg"/>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-md py-lg grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Page Header -->
+<div class="col-span-1 md:col-span-12 mb-sm">
+<h1 class="font-heading-03 text-heading-03 text-on-surface">GitHub Activity</h1>
+<p class="font-body-01 text-body-01 text-outline mt-xs">Technical velocity and repository metrics for the current sprint.</p>
+</div>
+<!-- Heatmap Hero Card -->
+<div class="col-span-1 md:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-lg p-md">
+<div class="flex justify-between items-center mb-md border-b border-outline-variant pb-sm">
+<h2 class="font-code-02 text-code-02 text-on-surface uppercase tracking-wider">Contribution Heatmap</h2>
+<span class="font-label-01 text-label-01 text-outline bg-surface-dim px-sm py-xs rounded-sm">Last 90 Days</span>
+</div>
+<div class="overflow-x-auto">
+<!-- Simulated GitHub Graph -->
+<div class="flex gap-xs w-max">
+<!-- Column Group 1 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div></div>
+<!-- Column Group 2 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div></div>
+<!-- Column Group 3 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-on-primary-fixed-variant rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div></div>
+<!-- Column Group 4 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div></div>
+<!-- Column Group 5 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-on-primary-fixed-variant rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div></div>
+<!-- Column Group 6 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div></div>
+<!-- Column Group 7 -->
+<div class="flex flex-col gap-xs"><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-surface-container rounded-sm"></div><div class="w-3 h-3 bg-primary-fixed rounded-sm"></div><div class="w-3 h-3 bg-primary rounded-sm"></div><div class="w-3 h-3 bg-on-primary-fixed-variant rounded-sm"></div></div>
+</div>
+</div>
+<div class="mt-md flex justify-end items-center gap-xs font-label-01 text-label-01 text-outline">
+<span>Less</span>
+<div class="w-3 h-3 bg-surface-container rounded-sm"></div>
+<div class="w-3 h-3 bg-primary-fixed rounded-sm"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<div class="w-3 h-3 bg-on-primary-fixed-variant rounded-sm"></div>
+<span>More</span>
+</div>
+</div>
+<!-- Commit Breakdown Bento -->
+<div class="col-span-1 md:col-span-4 grid grid-cols-2 gap-sm">
+<div class="col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col justify-center items-center hover:bg-surface-dim transition-colors duration-150">
+<span class="font-label-01 text-label-01 text-outline uppercase tracking-widest mb-xs">Total Commits</span>
+<span class="font-display-01 text-display-01 text-primary">842</span>
+</div>
+<div class="col-span-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col justify-center items-center hover:bg-surface-dim transition-colors duration-150">
+<span class="font-label-01 text-label-01 text-outline uppercase tracking-widest mb-xs text-center">Pull Requests</span>
+<span class="font-heading-03 text-heading-03 text-on-surface">34</span>
+</div>
+<div class="col-span-1 bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col justify-center items-center hover:bg-surface-dim transition-colors duration-150">
+<span class="font-label-01 text-label-01 text-outline uppercase tracking-widest mb-xs text-center">Code Reviews</span>
+<span class="font-heading-03 text-heading-03 text-on-surface">112</span>
+</div>
+</div>
+<!-- Repo Activity -->
+<div class="col-span-1 md:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-lg p-md">
+<h2 class="font-code-02 text-code-02 text-on-surface uppercase tracking-wider border-b border-outline-variant pb-sm mb-sm">Repo Activity</h2>
+<div class="flex flex-col">
+<!-- Repo Item 1 -->
+<div class="flex items-center justify-between py-sm border-b border-outline-variant last:border-0 hover:bg-surface-dim transition-colors duration-150 px-xs -mx-xs rounded-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="folder_zip">folder_zip</span>
+<div>
+<p class="font-code-01 text-code-01 text-on-surface">cortex-core-api</p>
+<p class="font-label-01 text-label-01 text-outline">Updated 2h ago</p>
+</div>
+</div>
+<!-- Sparkline -->
+<div class="flex items-end gap-[2px] h-6">
+<div class="w-1 h-2 bg-outline-variant"></div>
+<div class="w-1 h-4 bg-primary-fixed"></div>
+<div class="w-1 h-3 bg-outline-variant"></div>
+<div class="w-1 h-6 bg-primary"></div>
+<div class="w-1 h-5 bg-primary"></div>
+</div>
+</div>
+<!-- Repo Item 2 -->
+<div class="flex items-center justify-between py-sm border-b border-outline-variant last:border-0 hover:bg-surface-dim transition-colors duration-150 px-xs -mx-xs rounded-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="code_blocks">code_blocks</span>
+<div>
+<p class="font-code-01 text-code-01 text-on-surface">ui-design-system</p>
+<p class="font-label-01 text-label-01 text-outline">Updated 5h ago</p>
+</div>
+</div>
+<div class="flex items-end gap-[2px] h-6">
+<div class="w-1 h-5 bg-primary"></div>
+<div class="w-1 h-2 bg-outline-variant"></div>
+<div class="w-1 h-3 bg-primary-fixed"></div>
+<div class="w-1 h-1 bg-outline-variant"></div>
+<div class="w-1 h-4 bg-primary-fixed"></div>
+</div>
+</div>
+<!-- Repo Item 3 -->
+<div class="flex items-center justify-between py-sm border-b border-outline-variant last:border-0 hover:bg-surface-dim transition-colors duration-150 px-xs -mx-xs rounded-sm">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="database">database</span>
+<div>
+<p class="font-code-01 text-code-01 text-on-surface">auth-microservice</p>
+<p class="font-label-01 text-label-01 text-outline">Updated 1d ago</p>
+</div>
+</div>
+<div class="flex items-end gap-[2px] h-6">
+<div class="w-1 h-1 bg-outline-variant"></div>
+<div class="w-1 h-1 bg-outline-variant"></div>
+<div class="w-1 h-2 bg-outline-variant"></div>
+<div class="w-1 h-3 bg-primary-fixed"></div>
+<div class="w-1 h-2 bg-outline-variant"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Feed -->
+<div class="col-span-1 md:col-span-6 bg-surface-container-lowest border border-outline-variant rounded-lg p-md">
+<h2 class="font-code-02 text-code-02 text-on-surface uppercase tracking-wider border-b border-outline-variant pb-sm mb-md">Recent Activity</h2>
+<div class="relative border-l border-outline-variant ml-sm space-y-md pb-sm">
+<!-- Feed Item 1 -->
+<div class="relative pl-md">
+<div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-primary ring-4 ring-surface-container-lowest"></div>
+<p class="font-label-01 text-label-01 text-outline mb-xs">10:42 AM</p>
+<div class="bg-surface p-sm border border-outline-variant rounded-sm">
+<p class="font-code-01 text-code-01 text-on-surface">feat(auth): implement JWT refresh token rotation logic</p>
+<div class="flex items-center gap-xs mt-xs text-outline">
+<span class="material-symbols-outlined text-[14px]" data-icon="commit">commit</span>
+<span class="font-label-01 text-label-01">cortex-core-api</span>
+<span class="font-code-01 text-[10px] bg-surface-dim px-1 rounded text-primary">#a1b2c3d</span>
+</div>
+</div>
+</div>
+<!-- Feed Item 2 -->
+<div class="relative pl-md">
+<div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-outline ring-4 ring-surface-container-lowest"></div>
+<p class="font-label-01 text-label-01 text-outline mb-xs">Yesterday, 4:15 PM</p>
+<div class="bg-surface p-sm border border-outline-variant rounded-sm">
+<p class="font-code-01 text-code-01 text-on-surface">fix(button): correct hover state tonal alignment</p>
+<div class="flex items-center gap-xs mt-xs text-outline">
+<span class="material-symbols-outlined text-[14px]" data-icon="call_merge">call_merge</span>
+<span class="font-label-01 text-label-01">ui-design-system</span>
+<span class="font-label-01 text-[10px] text-primary">PR #42</span>
+</div>
+</div>
+</div>
+<!-- Feed Item 3 -->
+<div class="relative pl-md">
+<div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-outline ring-4 ring-surface-container-lowest"></div>
+<p class="font-label-01 text-label-01 text-outline mb-xs">Yesterday, 11:30 AM</p>
+<div class="bg-surface p-sm border border-outline-variant rounded-sm">
+<p class="font-code-01 text-code-01 text-on-surface">chore: update dependency react-router to v6.20</p>
+<div class="flex items-center gap-xs mt-xs text-outline">
+<span class="material-symbols-outlined text-[14px]" data-icon="commit">commit</span>
+<span class="font-label-01 text-label-01">cortex-web-client</span>
+<span class="font-code-01 text-[10px] bg-surface-dim px-1 rounded text-outline">#f9e8d7c</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden bg-surface-container-lowest border-t border-outline-variant fixed bottom-0 left-0 w-full h-16 z-50 flex justify-around items-stretch">
+<!-- Tab 1: Today (Inactive) -->
+<a class="flex flex-col items-center justify-center text-outline w-full h-full hover:bg-surface-dim active:bg-surface-variant transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mb-xs" data-icon="calendar_today">calendar_today</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest">Today</span>
+</a>
+<!-- Tab 2: Recall (Active - Semantic intent for viewing history/velocity) -->
+<a class="flex flex-col items-center justify-center text-primary border-t-4 border-primary bg-surface-container-lowest w-full h-full" href="#">
+<span class="material-symbols-outlined mb-xs" data-icon="manage_search">manage_search</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest font-bold">Recall</span>
+</a>
+<!-- Tab 3: Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-outline w-full h-full hover:bg-surface-dim active:bg-surface-variant transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mb-xs" data-icon="person">person</span>
+<span class="font-code-01 text-[10px] uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+</body></html>

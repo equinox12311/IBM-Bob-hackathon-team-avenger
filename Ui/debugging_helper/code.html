@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Debugging Helper - Cortex AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&amp;family=IBM+Plex+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "outline-variant": "#c3c6d8",
+                        "tertiary": "#9e3100",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d8d9e6",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#eff0fd",
+                        "surface": "#faf8ff",
+                        "surface-container-low": "#f2f3ff",
+                        "on-background": "#191b24",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "on-surface-variant": "#424656",
+                        "outline": "#737687",
+                        "inverse-surface": "#2e303a",
+                        "tertiary-fixed": "#ffdbd0",
+                        "tertiary-container": "#c84000",
+                        "primary-container": "#0f62fe",
+                        "on-secondary-fixed-variant": "#454747",
+                        "primary": "#004ccd",
+                        "on-surface": "#191b24",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-primary-fixed-variant": "#003da9",
+                        "on-secondary-container": "#616363",
+                        "secondary-container": "#dfe0e0",
+                        "surface-tint": "#0052dd",
+                        "background": "#faf8ff",
+                        "secondary": "#5d5f5f",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-tertiary-fixed-variant": "#832700",
+                        "on-primary-container": "#f3f3ff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container-highest": "#e1e1ee",
+                        "on-tertiary-container": "#fff1ed",
+                        "surface-container-high": "#e7e7f4",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed": "#00174c",
+                        "on-tertiary-fixed": "#390c00",
+                        "on-error": "#ffffff",
+                        "surface-container": "#ecedfa",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e1e1ee",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "base-unit": "4px"
+                    },
+                    "fontFamily": {
+                        "display-01": ["IBM Plex Sans", "sans-serif"],
+                        "heading-03": ["IBM Plex Sans", "sans-serif"],
+                        "code-01": ["IBM Plex Mono", "monospace"],
+                        "label-01": ["IBM Plex Sans", "sans-serif"],
+                        "code-02": ["IBM Plex Mono", "monospace"],
+                        "body-02": ["IBM Plex Sans", "sans-serif"],
+                        "body-01": ["IBM Plex Sans", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "display-01": ["42px", { "lineHeight": "48px", "letterSpacing": "-0.5px", "fontWeight": "300" }],
+                        "heading-03": ["20px", { "lineHeight": "26px", "letterSpacing": "0px", "fontWeight": "600" }],
+                        "code-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "label-01": ["12px", { "lineHeight": "16px", "letterSpacing": "0.32px", "fontWeight": "400" }],
+                        "code-02": ["14px", { "lineHeight": "20px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "body-02": ["16px", { "lineHeight": "24px", "letterSpacing": "0px", "fontWeight": "400" }],
+                        "body-01": ["14px", { "lineHeight": "20px", "letterSpacing": "0.16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        pre, code {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background h-screen flex flex-col antialiased">
+<!-- Header -->
+<header class="flex items-center justify-between p-md border-b border-outline-variant bg-surface shrink-0">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-heading-03 text-on-surface">Debugging Helper</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</header>
+<!-- Chat Area -->
+<main class="flex-1 overflow-y-auto p-md flex flex-col gap-xl">
+<!-- User Message -->
+<div class="flex flex-col items-end gap-sm w-full">
+<div class="flex items-center gap-sm mb-xs">
+<span class="font-label-01 text-outline">Developer</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest bg-cover bg-center border border-outline-variant" data-alt="A close-up, softly lit portrait of a focused software developer in a modern, minimalist office setting. The lighting is high-key and bright, emphasizing a clean, professional aesthetic. The subtle color grading relies on crisp whites and muted grays, creating a calm and productive mood suitable for a premium tech interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBs0-0Pv5_pjEkwT1YbwVt8DYVVoDONw9gGiXZdL1gGR76tifSag8P3OSsvFhUd-QwgZ_r8Yy3nEJm4L--IyAKyIRpjQ3Taq-XQHDT7ADTBLsuzmWybV4ixlsqaeqFxfe0GiUgIrSWfUvO9LGwyfATYx0dE0kOMMeUcc4cGmSEjfQ8PcG0qxC6dDgR7I8lxsZYTsXTDxBMZWTIq9gX50nxQjDf1SgHs2TF__hQq6sNqEW8Le6esQ3AjIQajifvHfWAKCNM5cFUCBA');">
+</div>
+</div>
+<div class="bg-primary text-on-primary p-md rounded-lg rounded-tr-none max-w-[85%] sm:max-w-[70%] font-body-01 shadow-sm">
+                Error: cannot read properties of undefined (reading 'map')
+            </div>
+</div>
+<!-- AI Message: Root Cause -->
+<div class="flex flex-col items-start gap-sm w-full">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="font-label-01 text-outline">Cortex AI</span>
+</div>
+<div class="bg-surface-container text-on-surface p-md rounded-lg rounded-tl-none max-w-[85%] sm:max-w-[70%] font-body-01 border border-outline-variant">
+<strong class="text-on-surface font-semibold">Root Cause Analysis:</strong><br/>
+                The variable you are trying to map over is currently undefined. This usually happens when the data hasn't finished loading asynchronously, or the API request returned an empty/unexpected response structure before the component rendered.
+            </div>
+</div>
+<!-- AI Message: Suggested Fix & Code -->
+<div class="flex flex-col items-start gap-sm w-full">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-[18px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="font-label-01 text-outline">Cortex AI</span>
+</div>
+<div class="bg-surface-container text-on-surface p-md rounded-lg rounded-tl-none w-full max-w-3xl font-body-01 border border-outline-variant flex flex-col gap-md">
+<p>
+<strong class="text-on-surface font-semibold">Suggested Fix:</strong><br/>
+                    Add an optional chaining operator (<code>?.</code>) or a fallback array to ensure the mapping function only executes when the array exists.
+                </p>
+<!-- Code Block -->
+<div class="bg-surface-container-low border border-outline-variant rounded p-md overflow-x-auto">
+<div class="flex items-center justify-between border-b border-outline-variant pb-xs mb-sm">
+<span class="font-code-01 text-outline uppercase tracking-wider">javascript / jsx</span>
+<button aria-label="Copy code" class="text-outline hover:text-primary transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="content_copy">content_copy</span>
+<span class="font-label-01">Copy</span>
+</button>
+</div>
+<pre class="font-code-02 text-on-surface leading-relaxed text-sm"><code><span class="text-outline">// Solution 1: Using optional chaining</span>
+<span class="text-tertiary">const</span> listItems = data?.items?.<span class="text-primary">map</span>(item =&gt; (
+  &lt;<span class="text-primary">li</span> <span class="text-secondary">key</span>={<span class="text-on-surface">item.id</span>}&gt;{item.name}&lt;/<span class="text-primary">li</span>&gt;
+));
+
+<span class="text-outline">// Solution 2: Providing a fallback array</span>
+<span class="text-tertiary">const</span> safeItems = data.items || [];
+<span class="text-tertiary">const</span> listItems = safeItems.<span class="text-primary">map</span>(item =&gt; (
+  &lt;<span class="text-primary">li</span> <span class="text-secondary">key</span>={<span class="text-on-surface">item.id</span>}&gt;{item.name}&lt;/<span class="text-primary">li</span>&gt;
+));</code></pre>
+</div>
+</div>
+</div>
+</main>
+<!-- Input Area -->
+<footer class="p-md border-t border-outline-variant bg-surface shrink-0">
+<div class="max-w-4xl mx-auto flex items-end gap-sm">
+<div class="flex-1 bg-surface-container-low border-b border-outline-variant focus-within:border-primary focus-within:border-b-[2px] transition-all flex items-start rounded-t pt-xs">
+<button aria-label="Attach file" class="p-sm mt-xs text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 resize-none py-sm px-xs font-body-01 text-on-surface placeholder:text-outline max-h-32 min-h-[44px] w-full" placeholder="Paste stack trace, error message, or code snippet..." rows="1"></textarea>
+</div>
+<button class="h-11 px-lg bg-primary text-on-primary font-label-01 uppercase tracking-wider font-semibold flex items-center justify-center rounded hover:bg-primary-fixed hover:text-on-primary-fixed transition-colors">
+                Analyze
+            </button>
+</div>
+</footer>
+</body></html>
