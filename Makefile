@@ -31,7 +31,7 @@ DIARY_TOKEN  ?= test
 EMBEDDINGS_PROVIDER ?= local
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev judge install-bob verify-mcp build up down test lint submit clean
+.PHONY: help setup dev judge install-bob verify-mcp build up down test lint submit clean pair
 
 help:  ## list targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -60,6 +60,10 @@ setup:  ## one-time install: venv + pip + npm
 install-bob:  ## install Cortex into Bob (~/.bob): mode + skill + commands + rules + MCP config
 	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
 	@$(PY) scripts/install-bob.py
+
+pair:  ## one-click mobile pairing: print a QR with API URL + token
+	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }
+	@$(PY) scripts/pair.py
 
 verify-mcp:  ## launch MCP Inspector against the cortex server (verifies tools without burning Bob coins)
 	@command -v $(PY) > /dev/null || { echo "Run 'make setup' first."; exit 1; }

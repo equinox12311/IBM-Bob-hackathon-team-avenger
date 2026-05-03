@@ -327,6 +327,33 @@ In rough priority order:
 
 ---
 
+## One-click pairing
+
+The mobile app reads a QR printed by the backend and auto-configures itself.
+
+**Backend:**
+```bash
+make pair          # detects LAN IP, reads .env DIARY_TOKEN, prints QR
+```
+
+The QR encodes:
+```json
+{"v":1,"url":"http://<lan-ip>:8080","token":"<DIARY_TOKEN>"}
+```
+
+**Mobile:** Open the app → Settings → "Scan to connect" → point at the QR.
+The app writes both fields to AsyncStorage and runs a health check before
+returning. No copy-paste, no fat-fingering tokens.
+
+Implementation:
+- Script: `scripts/pair.py` (uses the `qrcode` Python lib).
+- Make target: `pair`.
+- Mobile component: `cortex-mobile/src/components/ScanToConnect.tsx`
+  (uses `expo-camera`'s `CameraView` + `useCameraPermissions`).
+- Camera permission declared in `app.json` under the `expo-camera` plugin.
+
+---
+
 ## Quick smoke-test recipes
 
 **Backend up**:

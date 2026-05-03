@@ -8,7 +8,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Radius, Spacing, Typography } from '../../constants/theme';
 import { useThemeMode } from '../../hooks/useThemeMode';
 
-export type PillTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'secondary';
+export type PillTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'secondary' | 'tertiary';
 
 export interface PillProps {
   label: string;
@@ -24,6 +24,7 @@ export function Pill({ label, tone = 'neutral', icon, dot = false }: PillProps) 
     neutral:   { bg: Colors.surfaceContainer,  fg: Colors.onSurfaceVariant },
     primary:   { bg: Colors.primaryFixed,      fg: Colors.primary },
     secondary: { bg: Colors.secondaryFixed,    fg: Colors.secondary },
+    tertiary:  { bg: Colors.tertiaryFixed,     fg: Colors.tertiary },
     success:   { bg: '#defbe6',                fg: Colors.success },
     warning:   { bg: '#fdf6dd',                fg: Colors.warning },
     error:     { bg: Colors.errorContainer,    fg: Colors.error },

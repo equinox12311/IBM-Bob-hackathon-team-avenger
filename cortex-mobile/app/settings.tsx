@@ -19,6 +19,7 @@ import {
   Section,
   StatusBanner,
 } from '../src/components/ui';
+import { ScanToConnect } from '../src/components/ScanToConnect';
 import { Radius, Spacing, Typography } from '../src/constants/theme';
 import { useThemeMode, type ThemeMode } from '../src/hooks/useThemeMode';
 import { checkApiHealth, getApiBase, getToken, setApiBase, setToken } from '../src/services/api';
@@ -31,6 +32,7 @@ export default function SettingsScreen() {
   const [testing, setTesting] = useState(false);
   const [healthOk, setHealthOk] = useState<boolean | null>(null);
   const [healthMsg, setHealthMsg] = useState<string>('');
+  const [scanOpen, setScanOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -77,7 +79,31 @@ export default function SettingsScreen() {
       <Screen padding={Spacing.md}>
         {/* Connection ---------------------------------------------------- */}
         <Section title="Connection">
+          {/* One-click pairing */}
+          <Card variant="primary" padding="lg" size="hero" style={{ marginBottom: Spacing.sm }}>
+            <Text style={[Typography.codeSm, { color: Colors.primary, letterSpacing: 2, textTransform: 'uppercase' }]}>
+              one-click
+            </Text>
+            <Text style={[Typography.h3, { color: Colors.onPrimaryFixed, marginTop: 4, letterSpacing: -0.5 }]}>
+              Scan to connect.
+            </Text>
+            <Text style={[Typography.bodySm, { color: Colors.onPrimaryFixed, opacity: 0.8, marginTop: Spacing.xs }]}>
+              Run <Text style={Typography.code}>make pair</Text> on your Mac, then scan the QR here.
+            </Text>
+            <Button
+              label="Open scanner"
+              icon="qr-code"
+              onPress={() => setScanOpen(true)}
+              variant="primary"
+              fullWidth
+              style={{ marginTop: Spacing.md }}
+            />
+          </Card>
+
           <Card variant="surface" padding="lg" size="hero">
+            <Text style={[Typography.codeSm, { color: Colors.outline, marginBottom: Spacing.sm, textTransform: 'uppercase', letterSpacing: 2 }]}>
+              or enter manually
+            </Text>
             <View style={s.fieldGroup}>
               <Text style={[Typography.labelSm, { color: Colors.onSurfaceVariant, textTransform: 'uppercase' }]}>
                 API base URL
@@ -158,6 +184,19 @@ export default function SettingsScreen() {
             </View>
           </Card>
         </Section>
+
+        {/* QR scanner modal --------------------------------------------- */}
+        <ScanToConnect
+          visible={scanOpen}
+          onClose={() => setScanOpen(false)}
+          onSuccess={async ({ url, version }) => {
+            setScanOpen(false);
+            setApiBaseInput(url);
+            setTokenInput(await getToken());
+            setHealthOk(true);
+            setHealthMsg(`Paired · v${version}`);
+          }}
+        />
 
         {/* About --------------------------------------------------------- */}
         <Section title="About">

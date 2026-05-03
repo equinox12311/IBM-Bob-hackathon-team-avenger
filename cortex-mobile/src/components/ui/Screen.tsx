@@ -20,7 +20,7 @@ import { Spacing } from '../../constants/theme';
 import { useThemeMode } from '../../hooks/useThemeMode';
 
 export interface ScreenProps {
-  children: ReactNode;
+  children?: ReactNode;
   /** Skip the ScrollView wrapper (e.g. chat with its own list). */
   scroll?: boolean;
   /** Pull-to-refresh handler — only relevant when scroll=true. */

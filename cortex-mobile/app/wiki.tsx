@@ -145,7 +145,7 @@ export default function WikiScreen() {
             Auto-wiki, sourced from your diary.
           </Text>
           <Text style={[Typography.bodySm, { color: Colors.onPrimaryFixed, opacity: 0.8, marginTop: Spacing.sm }]}>
-            Granite reads diary entries + indexed code and writes a markdown page to docs/wiki/<slug>.md.
+            {'Granite reads diary entries + indexed code and writes a markdown page to docs/wiki/<slug>.md.'}
           </Text>
         </Card>
 

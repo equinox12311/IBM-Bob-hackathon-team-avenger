@@ -22,7 +22,7 @@ import { apiGetEntry, apiFeedback, apiDeleteEntry, apiGenerateSummary, isApiConf
 
 export default function EntryDetailScreen() {
   const { Colors } = useThemeMode();
-  const S = makeStyles(Colors);
+  const styles = makeStyles(Colors);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [entry, setEntry] = useState<Entry | null>(null);
@@ -237,7 +237,7 @@ export default function EntryDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
