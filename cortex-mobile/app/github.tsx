@@ -92,7 +92,7 @@ export default function GitHubScreen() {
   const cellColor = (count: number) => {
     if (count === 0) return Colors.outlineVariant;
     const intensity = Math.ceil((count / max) * 4);
-    return ['#bcd5ff', '#7aa6ff', '#3878ff', '#0f62fe'][intensity - 1] ?? '#0f62fe';
+    return ['#bcd5ff', '#7aa6ff', '#3878ff', Colors.primary][intensity - 1] ?? Colors.primary;
   };
 
   // Group into weeks (7 cols)
@@ -128,8 +128,8 @@ export default function GitHubScreen() {
             <View style={S.statsRow}>
               {[
                 { label: 'Streak', value: `${streak}d`, color: Colors.primary },
-                { label: 'Total', value: String(total), color: '#8a3ffc' },
-                { label: 'Window', value: `${days}d`, color: '#198038' },
+                { label: 'Total', value: String(total), color: Colors.secondary },
+                { label: 'Window', value: `${days}d`, color: Colors.success },
               ].map(s => (
                 <View key={s.label} style={S.statCard}>
                   <Text style={[S.statValue, { color: s.color }]}>{s.value}</Text>
@@ -199,21 +199,21 @@ export default function GitHubScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
+  safe: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: Colors.onSurface, letterSpacing: -0.3 },
   headerSub: { fontSize: 12, color: Colors.onSurfaceVariant, marginTop: 2 },
   rangeRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 4, marginTop: 8 },
-  rangeBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff', alignItems: 'center' },
+  rangeBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: Colors.surfaceContainerLowest, alignItems: 'center' },
   rangeBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   rangeBtnText: { fontSize: 13, fontWeight: '600', color: Colors.onSurfaceVariant },
-  rangeBtnTextActive: { color: '#fff' },
+  rangeBtnTextActive: { color: Colors.surfaceContainerLowest },
   statsRow: { flexDirection: 'row', gap: 8 },
-  statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, alignItems: 'center' },
+  statCard: { flex: 1, backgroundColor: Colors.surfaceContainerLowest, borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, alignItems: 'center' },
   statValue: { fontSize: 26, fontWeight: '300', lineHeight: 30 },
   statLabel: { fontSize: 10, fontWeight: '600', color: Colors.onSurfaceVariant, textTransform: 'uppercase', marginTop: 2 },
-  card: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
-  cardTitle: { fontSize: 14, fontWeight: '700', color: '#191b24', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  card: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: Colors.onSurface, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
   heatmapGrid: { flexDirection: 'row', gap: 3 },
   heatmapCol: { flexDirection: 'column', gap: 3 },
   heatmapCell: { width: 14, height: 14, borderRadius: 2 },
@@ -222,7 +222,7 @@ const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleS
   legendCell: { width: 12, height: 12, borderRadius: 2 },
   emptyText: { fontSize: 13, color: Colors.onSurfaceVariant, textAlign: 'center', paddingVertical: 8 },
   dayRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  dayDate: { fontSize: 12, color: '#191b24', width: 100 },
+  dayDate: { fontSize: 12, color: Colors.onSurface, width: 100 },
   dayBarTrack: { flex: 1, height: 6, backgroundColor: Colors.outlineVariant, borderRadius: 3, overflow: 'hidden' },
   dayBarFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 3 },
   dayCount: { fontSize: 12, fontWeight: '600', color: Colors.primary, width: 24, textAlign: 'right' },

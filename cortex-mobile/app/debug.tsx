@@ -230,7 +230,7 @@ export default function DebugScreen() {
               onPress={send}
               disabled={!input.trim() || busy}
             >
-              {busy ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="send" size={17} color="#fff" />}
+              {busy ? <ActivityIndicator size="small" color={Colors.surfaceContainerLowest} /> : <Ionicons name="send" size={17} color={Colors.surfaceContainerLowest} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -241,9 +241,9 @@ export default function DebugScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
-  headerTitle: { fontSize: 15, fontWeight: '700', color: '#191b24' },
+  safe: { flex: 1, backgroundColor: Colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.surfaceContainerLowest, borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
+  headerTitle: { fontSize: 15, fontWeight: '700', color: Colors.onSurface },
   headerSub: { fontSize: 11, fontWeight: '600', marginTop: 1 },
   list: { padding: 14, paddingBottom: 8 },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 10 },
@@ -251,13 +251,13 @@ const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleS
   avatar: { width: 26, height: 26, borderRadius: 13, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   bubble: { maxWidth: '82%', borderRadius: 16, paddingVertical: 10, paddingHorizontal: 14 },
   bubbleUser: { backgroundColor: Colors.primary, borderBottomRightRadius: 4 },
-  bubbleAI: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.outlineVariant, borderBottomLeftRadius: 4 },
-  bubbleText: { fontSize: 14, color: '#191b24', lineHeight: 22 },
-  bubbleTextUser: { color: '#fff' },
+  bubbleAI: { backgroundColor: Colors.surfaceContainerLowest, borderWidth: 1, borderColor: Colors.outlineVariant, borderBottomLeftRadius: 4 },
+  bubbleText: { fontSize: 14, color: Colors.onSurface, lineHeight: 22 },
+  bubbleTextUser: { color: Colors.surfaceContainerLowest },
   modelTag: { fontSize: 10, color: Colors.outline, marginTop: 4, fontStyle: 'italic' },
-  inputOuter: { backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: Colors.outlineVariant, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10 },
+  inputOuter: { backgroundColor: Colors.surfaceContainerLowest, borderTopWidth: 1, borderTopColor: Colors.outlineVariant, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10 },
   inputInner: { flexDirection: 'row', alignItems: 'flex-end', backgroundColor: '#f2f3ff', borderRadius: 24, borderWidth: 1, borderColor: Colors.outlineVariant, paddingLeft: 14, paddingRight: 6, paddingVertical: 6, minHeight: 48 },
-  input: { flex: 1, fontSize: 14, color: '#191b24', maxHeight: 120, paddingTop: 6, paddingBottom: 6, lineHeight: 20 },
+  input: { flex: 1, fontSize: 14, color: Colors.onSurface, maxHeight: 120, paddingTop: 6, paddingBottom: 6, lineHeight: 20 },
   sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   sendOff: { opacity: 0.3 },
 });

@@ -14,12 +14,13 @@ import { useThemeMode } from '../src/hooks/useThemeMode';
 import { getDemoBobSkills } from '../src/services/demoData';
 import { apiCreateEntry, apiSearchEntries, isApiConfigured } from '../src/services/api';
 
+// Categorical, theme-independent palette per Bob tool.
 const BOB_TOOLS = [
-  { id: 'diary_save',     name: '/diary-save',     desc: 'Save insight to journal',          icon: 'save-outline',         color: '#0f62fe', bg: '#dbe1ff', inputLabel: 'What to save', placeholder: 'Describe your insight, decision, or fix…' },
-  { id: 'diary_recall',   name: '/diary-recall',   desc: 'Search journal for a topic',       icon: 'search-outline',       color: '#198038', bg: '#defbe6', inputLabel: 'Search topic', placeholder: 'What do you want to recall?' },
-  { id: 'diary_timeline', name: '/diary-timeline', desc: 'Show recent journal entries',      icon: 'time-outline',         color: '#8a3ffc', bg: '#e8daff', inputLabel: 'Limit (optional)', placeholder: '10' },
-  { id: 'diary_feedback', name: '/diary-feedback', desc: 'Boost or flag an entry',           icon: 'thumbs-up-outline',    color: '#f1c21b', bg: '#fdf6dd', inputLabel: 'Entry ID + signal', placeholder: 'e.g. 42 boost' },
-  { id: 'diary_link_code',name: '/diary-link-code',desc: 'Link code location to entry',      icon: 'code-slash-outline',   color: '#da1e28', bg: '#ffdad6', inputLabel: 'Entry ID + file:line', placeholder: 'e.g. 42 src/auth.ts:55' },
+  { id: 'diary_save',      name: '/diary-save',      desc: 'Save insight to journal',     icon: 'save-outline',        color: '#0f62fe', bg: '#dbe1ff', inputLabel: 'What to save',          placeholder: 'Describe your insight, decision, or fix…' },
+  { id: 'diary_recall',    name: '/diary-recall',    desc: 'Search journal for a topic',  icon: 'search-outline',      color: '#198038', bg: '#defbe6', inputLabel: 'Search topic',          placeholder: 'What do you want to recall?' },
+  { id: 'diary_timeline',  name: '/diary-timeline',  desc: 'Show recent journal entries', icon: 'time-outline',        color: '#8a3ffc', bg: '#e8daff', inputLabel: 'Limit (optional)',      placeholder: '10' },
+  { id: 'diary_feedback',  name: '/diary-feedback',  desc: 'Boost or flag an entry',      icon: 'thumbs-up-outline',   color: '#f1c21b', bg: '#fdf6dd', inputLabel: 'Entry ID + signal',     placeholder: 'e.g. 42 boost' },
+  { id: 'diary_link_code', name: '/diary-link-code', desc: 'Link code location to entry', icon: 'code-slash-outline',  color: '#da1e28', bg: '#ffdad6', inputLabel: 'Entry ID + file:line',  placeholder: 'e.g. 42 src/auth.ts:55' },
 ];
 
 interface InvokeResult {
@@ -136,8 +137,8 @@ export default function BobScreen() {
             {BOB_TOOLS.map(tool => (
               <TouchableOpacity key={tool.id} style={[S.toolChip, selectedTool.id === tool.id && { backgroundColor: tool.color, borderColor: tool.color }]}
                 onPress={() => { setSelectedTool(tool); setInput(''); }} activeOpacity={0.75}>
-                <Ionicons name={tool.icon as any} size={14} color={selectedTool.id === tool.id ? '#fff' : Colors.onSurfaceVariant} />
-                <Text style={[S.toolChipTxt, selectedTool.id === tool.id && { color: '#fff' }]}>{tool.name}</Text>
+                <Ionicons name={tool.icon as any} size={14} color={selectedTool.id === tool.id ? Colors.surfaceContainerLowest : Colors.onSurfaceVariant} />
+                <Text style={[S.toolChipTxt, selectedTool.id === tool.id && { color: Colors.surfaceContainerLowest }]}>{tool.name}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -170,7 +171,7 @@ export default function BobScreen() {
               onPress={invokeTool}
               disabled={(!input.trim() && selectedTool.id !== 'diary_timeline') || running}
             >
-              {running ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="send" size={18} color="#fff" />}
+              {running ? <ActivityIndicator size="small" color={Colors.surfaceContainerLowest} /> : <Ionicons name="send" size={18} color={Colors.surfaceContainerLowest} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -241,9 +242,9 @@ export default function BobScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },
+  safe: { flex: 1, backgroundColor: Colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.surfaceContainerLowest, borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.onSurface },
   headerSub: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 1 },
   bobBadge: { backgroundColor: Colors.primaryLight, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   bobBadgeTxt: { fontSize: 12, fontWeight: '700', color: Colors.primary },
@@ -251,34 +252,34 @@ const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleS
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.6 },
   clearTxt: { fontSize: 12, fontWeight: '600', color: Colors.error },
-  toolChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff', marginRight: 8 },
+  toolChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: Colors.surfaceContainerLowest, marginRight: 8 },
   toolChipTxt: { fontSize: 12, fontWeight: '700', color: Colors.onSurfaceVariant, fontFamily: 'monospace' },
-  invokeCard: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: Colors.outlineVariant, margin: 16, padding: 16, gap: 12 },
+  invokeCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 14, borderWidth: 1, borderColor: Colors.outlineVariant, margin: 16, padding: 16, gap: 12 },
   invokeHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   toolIcon: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  toolName: { fontSize: 15, fontWeight: '700', color: '#191b24', fontFamily: 'monospace' },
+  toolName: { fontSize: 15, fontWeight: '700', color: Colors.onSurface, fontFamily: 'monospace' },
   toolDesc: { fontSize: 12, color: Colors.onSurfaceVariant, marginTop: 2 },
   inputLabel: { fontSize: 11, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.5 },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  input: { flex: 1, backgroundColor: '#f4f5fb', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, fontSize: 14, color: '#191b24', maxHeight: 120 },
+  input: { flex: 1, backgroundColor: Colors.background, borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, fontSize: 14, color: Colors.onSurface, maxHeight: 120 },
   runBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   runBtnDim: { opacity: 0.35 },
-  resultCard: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, gap: 6 },
+  resultCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, gap: 6 },
   resultCardError: { borderColor: Colors.error + '60', backgroundColor: '#fff8f8' },
   resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   resultTool: { fontSize: 12, fontWeight: '700', color: Colors.primary, fontFamily: 'monospace' },
   resultTime: { fontSize: 11, color: Colors.outline },
   resultInput: { fontSize: 12, color: Colors.onSurfaceVariant, fontFamily: 'monospace' },
-  resultOutput: { fontSize: 13, color: '#191b24', lineHeight: 20 },
-  skillRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12 },
+  resultOutput: { fontSize: 13, color: Colors.onSurface, lineHeight: 20 },
+  skillRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12 },
   skillIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  skillName: { fontSize: 13, fontWeight: '700', color: '#191b24', fontFamily: 'monospace' },
+  skillName: { fontSize: 13, fontWeight: '700', color: Colors.onSurface, fontFamily: 'monospace' },
   skillDesc: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 1 },
   skillStats: { alignItems: 'flex-end' },
   skillCount: { fontSize: 12, fontWeight: '700', color: Colors.primary },
-  infoCard: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: Colors.outlineVariant, margin: 16, padding: 16, gap: 10 },
+  infoCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 14, borderWidth: 1, borderColor: Colors.outlineVariant, margin: 16, padding: 16, gap: 10 },
   infoHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  infoTitle: { fontSize: 14, fontWeight: '700', color: '#191b24' },
+  infoTitle: { fontSize: 14, fontWeight: '700', color: Colors.onSurface },
   tipRow: { flexDirection: 'row', gap: 8 },
   tipBullet: { fontSize: 13, color: Colors.primary, fontWeight: '700' },
   tipTxt: { flex: 1, fontSize: 13, color: Colors.onSurfaceVariant, lineHeight: 20 },

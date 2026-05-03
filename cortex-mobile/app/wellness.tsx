@@ -94,9 +94,9 @@ export default function WellnessScreen() {
             disabled={busy}
             activeOpacity={0.8}
           >
-            {busy ? <ActivityIndicator size="large" color="#fff" /> : (
+            {busy ? <ActivityIndicator size="large" color={Colors.surfaceContainerLowest} /> : (
               <>
-                <Ionicons name="leaf" size={40} color="#fff" style={{ marginBottom: 8 }} />
+                <Ionicons name="leaf" size={40} color={Colors.surfaceContainerLowest} style={{ marginBottom: 8 }} />
                 <Text style={S.heroBtnText}>I took a break</Text>
               </>
             )}
@@ -145,26 +145,26 @@ export default function WellnessScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
+  safe: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: Colors.onSurface, letterSpacing: -0.3 },
   headerSub: { fontSize: 13, color: Colors.onSurfaceVariant, marginTop: 2 },
   heroSection: { flexDirection: 'row', gap: 16, alignItems: 'center' },
   heroBtn: { width: 140, height: 140, borderRadius: 70, backgroundColor: Colors.success, alignItems: 'center', justifyContent: 'center' },
   heroBtnDue: { backgroundColor: Colors.error },
-  heroBtnText: { fontSize: 13, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  heroBtnText: { fontSize: 13, fontWeight: '700', color: Colors.surfaceContainerLowest, textAlign: 'center' },
   heroStats: { flex: 1 },
   heroMins: { fontSize: 48, fontWeight: '300', color: Colors.primary, lineHeight: 52 },
   heroMinsLabel: { fontSize: 12, color: Colors.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: 0.5 },
   heroStatus: { fontSize: 13, color: Colors.success, marginTop: 8, fontWeight: '600' },
-  card: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
+  card: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  cardTitle: { fontSize: 14, fontWeight: '700', color: '#191b24', textTransform: 'uppercase', letterSpacing: 0.5 },
-  cardBadge: { fontSize: 12, fontWeight: '600', color: Colors.primary, backgroundColor: '#dbe1ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: Colors.onSurface, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardBadge: { fontSize: 12, fontWeight: '600', color: Colors.primary, backgroundColor: Colors.primaryFixed, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   progressTrack: { height: 8, backgroundColor: Colors.outlineVariant, borderRadius: 4, overflow: 'hidden', marginBottom: 8 },
   progressFill: { height: '100%', backgroundColor: Colors.success, borderRadius: 4 },
   lastBreak: { fontSize: 12, color: Colors.onSurfaceVariant },
   resetRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
   resetRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
-  resetLabel: { flex: 1, fontSize: 14, color: '#191b24' },
+  resetLabel: { flex: 1, fontSize: 14, color: Colors.onSurface },
 });

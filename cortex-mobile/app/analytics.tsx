@@ -22,6 +22,7 @@ import { apiGetSessionAnalytics, apiListEntries, getToken } from '../src/service
 import { getDemoAnalytics, getDemoEntries } from '../src/services/demoData';
 
 const WINDOWS = [{ m: 15, l: '15m' }, { m: 60, l: '1h' }, { m: 90, l: '90m' }, { m: 240, l: '4h' }];
+// Categorical, theme-independent — these identify the entry kind, not the surface.
 const KIND_COLOR: Record<string, string> = { idea: '#0f62fe', bug: '#da1e28', insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f' };
 
 export default function AnalyticsScreen() {
@@ -100,8 +101,8 @@ export default function AnalyticsScreen() {
             <View style={S.statsRow}>
               {[
                 { label: 'Entries', value: stats.total, color: Colors.primary },
-                { label: 'Kinds', value: Object.keys(stats.by_kind).length, color: '#8a3ffc' },
-                { label: 'Files', value: stats.files_touched.length, color: '#198038' },
+                { label: 'Kinds', value: Object.keys(stats.by_kind).length, color: Colors.secondary },
+                { label: 'Files', value: stats.files_touched.length, color: Colors.success },
               ].map(s => (
                 <View key={s.label} style={S.statCard}>
                   <Text style={[S.statValue, { color: s.color }]}>{s.value}</Text>
@@ -181,32 +182,32 @@ export default function AnalyticsScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
+  safe: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: Colors.onSurface, letterSpacing: -0.3 },
   windowRow: { flexDirection: 'row', gap: 8 },
-  windowBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff', alignItems: 'center' },
+  windowBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: Colors.surfaceContainerLowest, alignItems: 'center' },
   windowBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   windowBtnText: { fontSize: 13, fontWeight: '600', color: Colors.onSurfaceVariant },
-  windowBtnTextActive: { color: '#fff' },
+  windowBtnTextActive: { color: Colors.surfaceContainerLowest },
   statsRow: { flexDirection: 'row', gap: 8 },
-  statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, alignItems: 'center' },
+  statCard: { flex: 1, backgroundColor: Colors.surfaceContainerLowest, borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, alignItems: 'center' },
   statValue: { fontSize: 26, fontWeight: '300', lineHeight: 30 },
   statLabel: { fontSize: 10, fontWeight: '600', color: Colors.onSurfaceVariant, textTransform: 'uppercase', marginTop: 2 },
-  card: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
-  cardTitle: { fontSize: 14, fontWeight: '700', color: '#191b24', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  card: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: Colors.onSurface, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   barDot: { width: 10, height: 10, borderRadius: 5 },
-  barLabel: { fontSize: 12, color: '#191b24', width: 60, textTransform: 'capitalize' },
+  barLabel: { fontSize: 12, color: Colors.onSurface, width: 60, textTransform: 'capitalize' },
   barTrack: { flex: 1, height: 6, backgroundColor: Colors.outlineVariant, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 3 },
   barCount: { fontSize: 12, fontWeight: '600', color: Colors.onSurfaceVariant, width: 24, textAlign: 'right' },
   emptyText: { fontSize: 13, color: Colors.onSurfaceVariant, textAlign: 'center', paddingVertical: 8 },
-  timerDisplay: { fontSize: 56, fontFamily: 'monospace', fontWeight: '300', color: '#191b24', textAlign: 'center', marginVertical: 12 },
+  timerDisplay: { fontSize: 56, fontFamily: 'monospace', fontWeight: '300', color: Colors.onSurface, textAlign: 'center', marginVertical: 12 },
   timerBtns: { flexDirection: 'row', gap: 12 },
   timerBtn: { flex: 1, backgroundColor: Colors.primary, borderRadius: 8, padding: 12, alignItems: 'center' },
-  timerBtnSecondary: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.outlineVariant },
-  timerBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  timerBtnSecondary: { backgroundColor: Colors.surfaceContainerLowest, borderWidth: 1, borderColor: Colors.outlineVariant },
+  timerBtnText: { fontSize: 14, fontWeight: '700', color: Colors.surfaceContainerLowest },
   timeline: { gap: 0 },
   timelineItem: { flexDirection: 'row', gap: 12, paddingBottom: 12 },
   timelineDot: { width: 10, height: 10, borderRadius: 5, marginTop: 4, flexShrink: 0 },
@@ -216,5 +217,5 @@ const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleS
   kindPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 },
   kindPillText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
   timelineTime: { fontSize: 11, color: Colors.outline },
-  timelineText: { fontSize: 13, color: '#191b24', lineHeight: 18 },
+  timelineText: { fontSize: 13, color: Colors.onSurface, lineHeight: 18 },
 });

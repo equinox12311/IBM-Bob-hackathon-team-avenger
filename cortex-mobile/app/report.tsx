@@ -21,6 +21,7 @@ import { apiListEntries, getToken } from '../src/services/api';
 import { getDemoReport } from '../src/services/demoData';
 
 const RANGES = [{ days: 1, label: 'Today' }, { days: 7, label: '7 days' }, { days: 30, label: '30 days' }];
+// Categorical, theme-independent — these identify the entry kind, not the surface.
 const KIND_COLOR: Record<string, string> = { idea: '#0f62fe', bug: '#da1e28', insight: '#198038', snippet: '#8a3ffc', note: '#5d5f5f' };
 
 export default function ReportScreen() {
@@ -137,15 +138,15 @@ export default function ReportScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
+  safe: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 24, fontWeight: '700', color: '#191b24', letterSpacing: -0.3 },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: Colors.onSurface, letterSpacing: -0.3 },
   rangeRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 4 },
-  rangeBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff', alignItems: 'center' },
+  rangeBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: Colors.surfaceContainerLowest, alignItems: 'center' },
   rangeBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   rangeBtnText: { fontSize: 13, fontWeight: '600', color: Colors.onSurfaceVariant },
-  rangeBtnTextActive: { color: '#fff' },
-  summaryCard: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 20, alignItems: 'center' },
+  rangeBtnTextActive: { color: Colors.surfaceContainerLowest },
+  summaryCard: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 20, alignItems: 'center' },
   summaryNum: { fontSize: 48, fontWeight: '300', color: Colors.primary, lineHeight: 52 },
   summaryLabel: { fontSize: 14, color: Colors.onSurfaceVariant, marginBottom: 12 },
   kindRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 8 },
@@ -156,12 +157,12 @@ const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleS
   sectionTitle: { fontSize: 11, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.6 },
   empty: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyText: { fontSize: 14, color: Colors.onSurfaceVariant },
-  entryCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, marginBottom: 8, overflow: 'hidden' },
+  entryCard: { flexDirection: 'row', backgroundColor: Colors.surfaceContainerLowest, borderRadius: 10, borderWidth: 1, borderColor: Colors.outlineVariant, marginBottom: 8, overflow: 'hidden' },
   entryBar: { width: 4 },
   entryBody: { flex: 1, padding: 10 },
   entryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   kindPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 },
   kindPillText: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
   entryTime: { fontSize: 11, color: Colors.outline },
-  entryText: { fontSize: 14, color: '#191b24', lineHeight: 20 },
+  entryText: { fontSize: 14, color: Colors.onSurface, lineHeight: 20 },
 });

@@ -78,7 +78,7 @@ export default function IdentityScreen() {
   }, []));
 
   const level = Math.floor(totalEntries / 10);
-  const conceptColors = ['#0f62fe', '#8a3ffc', '#198038', '#da1e28', '#f1c21b', '#5d5f5f'];
+  const conceptColors = [Colors.primary, Colors.secondary, Colors.success, Colors.error, Colors.warning, Colors.onSurfaceVariant];
 
   if (loading) return (
     <SafeAreaView style={S.safe} edges={['top']}>
@@ -129,8 +129,8 @@ export default function IdentityScreen() {
         <View style={S.statsRow}>
           {[
             { label: 'Entries', value: totalEntries, color: Colors.primary },
-            { label: 'Concepts', value: topConcepts.length, color: '#8a3ffc' },
-            { label: 'Files', value: filesCount, color: '#198038' },
+            { label: 'Concepts', value: topConcepts.length, color: Colors.secondary },
+            { label: 'Files', value: filesCount, color: Colors.success },
           ].map(s => (
             <View key={s.label} style={S.statCard}>
               <Text style={[S.statValue, { color: s.color }]}>{s.value}</Text>
@@ -211,41 +211,41 @@ export default function IdentityScreen() {
 }
 
 const makeStyles = (Colors: ReturnType<typeof useThemeMode>['Colors']) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },
-  card: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
+  safe: { flex: 1, backgroundColor: Colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.surfaceContainerLowest, borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.onSurface },
+  card: { backgroundColor: Colors.surfaceContainerLowest, borderRadius: 14, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 16 },
   profileRow: { flexDirection: 'row', gap: 14, marginBottom: 12 },
   avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 26, fontWeight: '700', color: Colors.primary },
-  profileName: { fontSize: 18, fontWeight: '700', color: '#191b24' },
+  profileName: { fontSize: 18, fontWeight: '700', color: Colors.onSurface },
   profileBio: { fontSize: 13, color: Colors.onSurfaceVariant, marginTop: 2 },
   badgeRow: { flexDirection: 'row', gap: 6, marginTop: 8 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#f4f5fb', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: Colors.outlineVariant },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.background, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: Colors.outlineVariant },
   badgeText: { fontSize: 11, fontWeight: '700', color: Colors.onSurfaceVariant },
-  aiSummary: { backgroundColor: '#f4f5fb', borderRadius: 10, padding: 12 },
+  aiSummary: { backgroundColor: Colors.background, borderRadius: 10, padding: 12 },
   aiSummaryLabel: { fontSize: 10, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  aiSummaryText: { fontSize: 13, color: '#191b24', lineHeight: 20 },
+  aiSummaryText: { fontSize: 13, color: Colors.onSurface, lineHeight: 20 },
   statsRow: { flexDirection: 'row', gap: 8 },
-  statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, alignItems: 'center' },
+  statCard: { flex: 1, backgroundColor: Colors.surfaceContainerLowest, borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, alignItems: 'center' },
   statValue: { fontSize: 26, fontWeight: '300', lineHeight: 30 },
   statLabel: { fontSize: 10, fontWeight: '600', color: Colors.onSurfaceVariant, textTransform: 'uppercase', marginTop: 2 },
-  cardTitle: { fontSize: 14, fontWeight: '700', color: '#191b24', marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardTitle: { fontSize: 14, fontWeight: '700', color: Colors.onSurface, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 0.5 },
   graphContainer: { height: 220, alignItems: 'center', justifyContent: 'center' },
   graphCenter: { width: 200, height: 200, alignItems: 'center', justifyContent: 'center', position: 'relative' },
   centralNode: { width: 70, height: 70, borderRadius: 35, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', zIndex: 10, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
-  centralNodeText: { fontSize: 11, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  centralNodeText: { fontSize: 11, fontWeight: '700', color: Colors.surfaceContainerLowest, textAlign: 'center' },
   peripheralNode: { position: 'absolute', width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   peripheralNodeText: { fontSize: 9, fontWeight: '700', textAlign: 'center' },
   barHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  barLabel: { fontSize: 12, fontWeight: '600', color: '#191b24', textTransform: 'uppercase', letterSpacing: 0.3 },
+  barLabel: { fontSize: 12, fontWeight: '600', color: Colors.onSurface, textTransform: 'uppercase', letterSpacing: 0.3 },
   barValue: { fontSize: 12, fontWeight: '600', color: Colors.onSurfaceVariant },
   barTrack: { height: 8, backgroundColor: Colors.outlineVariant, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4 },
   conceptRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
   conceptRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
   conceptIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  conceptName: { fontSize: 14, fontWeight: '600', color: '#191b24', textTransform: 'capitalize' },
+  conceptName: { fontSize: 14, fontWeight: '600', color: Colors.onSurface, textTransform: 'capitalize' },
   conceptCount: { fontSize: 12, color: Colors.onSurfaceVariant, marginTop: 1 },
   conceptTime: { fontSize: 11, color: Colors.outline },
 });
