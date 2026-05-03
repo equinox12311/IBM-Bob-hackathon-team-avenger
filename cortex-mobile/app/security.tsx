@@ -1,71 +1,109 @@
 /**
- * Security Dashboard — beautiful OWASP security status with all features.
+ * Security — real audit log + summary from cortex-api.
+ *
+ * Pulls /api/v1/security/audit and /api/v1/security/summary. Each
+ * skill.create / skill.update / skill.delete writes a row, so the
+ * dashboard reflects real activity. Falls back to a clear notice when
+ * the API isn't connected so the screen still demos.
  */
+
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { TAB_BAR_HEIGHT } from '../src/constants/layout';
-import { Colors } from '../src/constants/theme';
+import { Colors, Radius, Shadow, Spacing, Typography } from '../src/constants/theme';
+import {
+  apiAuditLog,
+  apiAuditSummary,
+  isApiConfigured,
+  type AuditEvent,
+} from '../src/services/api';
 
-const SECURITY_FEATURES = [
-  { id: 'auth',       title: 'Bearer Token Auth',        desc: 'All API endpoints protected with bearer token authentication', status: 'active',   layer: 'backend',  icon: 'key-outline',              color: '#198038' },
-  { id: 'secrets',    title: 'Secret Detection',         desc: '11 patterns + entropy heuristic. Blocks AWS keys, GitHub tokens, JWTs, private keys', status: 'active', layer: 'backend', icon: 'shield-checkmark-outline', color: '#198038' },
-  { id: 'cors',       title: 'CORS Tightening',          desc: 'Production: only cortex.dev + localhost:5173. Dev: wildcard', status: 'active',   layer: 'backend',  icon: 'globe-outline',            color: '#198038' },
-  { id: 'headers',    title: 'Security Headers',         desc: 'X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy, HSTS', status: 'active', layer: 'backend', icon: 'lock-closed-outline', color: '#198038' },
-  { id: 'ratelimit',  title: 'Server-Side Rate Limiting',desc: 'Per-IP sliding window: 60 req/min default, 20 creates/min, 30 searches/min, 10 LLM/min', status: 'active', layer: 'backend', icon: 'speedometer-outline', color: '#198038' },
-  { id: 'pydantic',   title: 'Input Validation (Pydantic)',desc: 'All API inputs validated with Pydantic models. Type safety enforced at runtime', status: 'active', layer: 'backend', icon: 'checkmark-circle-outline', color: '#198038' },
-  { id: 'encrypt',    title: 'Token Encryption',         desc: 'XOR cipher with browser fingerprint. Tokens never stored in plaintext', status: 'active',   layer: 'frontend', icon: 'lock-open-outline',        color: '#f1c21b' },
-  { id: 'csp',        title: 'Content Security Policy',  desc: 'CSP headers prevent XSS and malicious script injection', status: 'active',   layer: 'frontend', icon: 'shield-outline',           color: '#198038' },
-  { id: 'validation', title: 'Input Validation (Client)', desc: 'Query length, entry ID, API URL validation before any API call', status: 'active',   layer: 'frontend', icon: 'filter-outline',           color: '#198038' },
-  { id: 'csrf',       title: 'CSRF Protection',          desc: 'Double-submit cookie pattern. Token regenerated on login/logout', status: 'active',   layer: 'frontend', icon: 'finger-print-outline',     color: '#198038' },
-  { id: 'ratelimitfe','title': 'Client-Side Rate Limiting', desc: 'Sliding window: search 10/min, API 30/min, entries 5/min', status: 'active',   layer: 'frontend', icon: 'timer-outline',            color: '#198038' },
-  { id: 'errorsanitize','title': 'Error Sanitization',   desc: 'Production: generic error messages. Dev: full details. Prevents info disclosure', status: 'active', layer: 'frontend', icon: 'eye-off-outline', color: '#198038' },
-  { id: 'botguard',   title: 'Bot Secret Guard',         desc: 'Client-side secret detection in Telegram bot before API round-trip', status: 'active',   layer: 'bot',      icon: 'chatbubble-outline',       color: '#198038' },
-  { id: 'https',      title: 'HTTPS Enforcement',        desc: 'Production requires HTTPS. HTTP blocked in prod mode', status: 'partial',  layer: 'frontend', icon: 'lock-closed-outline',      color: '#f1c21b' },
-  { id: 'audit',      title: 'Audit Logging',            desc: 'Request/response audit trail for security forensics', status: 'planned',  layer: 'backend',  icon: 'document-text-outline',    color: '#da1e28' },
-  { id: 'mfa',        title: 'Multi-Factor Auth',        desc: 'Second authentication factor for enhanced security', status: 'planned',  layer: 'backend',  icon: 'phone-portrait-outline',   color: '#da1e28' },
+const WINDOWS = [
+  { hours: 1, label: '1h' },
+  { hours: 24, label: '24h' },
+  { hours: 168, label: '7d' },
 ];
 
-const OWASP_COVERAGE = [
-  { id: 'A01', name: 'Broken Access Control',    status: 'mitigated',  note: 'Bearer token on all endpoints' },
-  { id: 'A02', name: 'Cryptographic Failures',   status: 'partial',    note: 'Token encrypted (XOR cipher)' },
-  { id: 'A03', name: 'Injection',                status: 'mitigated',  note: 'Pydantic + parameterized queries' },
-  { id: 'A04', name: 'Insecure Design',          status: 'mitigated',  note: 'Threat model documented' },
-  { id: 'A05', name: 'Security Misconfiguration',status: 'mitigated',  note: 'CORS tightened, security headers' },
-  { id: 'A06', name: 'Vulnerable Components',    status: 'partial',    note: 'Dependency scanning recommended' },
-  { id: 'A07', name: 'Auth Failures',            status: 'partial',    note: 'Token + rate limiting, no MFA' },
-  { id: 'A08', name: 'Software Integrity',       status: 'partial',    note: 'No audit logging yet' },
-  { id: 'A09', name: 'Logging Failures',         status: 'planned',    note: 'Structured security logging TODO' },
-  { id: 'A10', name: 'SSRF',                     status: 'na',         note: 'No outbound requests from backend' },
-];
+function relTime(ms: number) {
+  const diff = Date.now() - ms;
+  const m = Math.round(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return `${d}d ago`;
+}
 
-const STATUS_META: Record<string, { color: string; bg: string; label: string }> = {
-  active:    { color: '#198038', bg: '#defbe6', label: 'Active' },
-  partial:   { color: '#f1c21b', bg: '#fdf6dd', label: 'Partial' },
-  planned:   { color: '#da1e28', bg: '#ffdad6', label: 'Planned' },
-  mitigated: { color: '#198038', bg: '#defbe6', label: 'Mitigated' },
-  na:        { color: '#5d5f5f', bg: '#e0e0e0', label: 'N/A' },
-};
-
-const LAYER_COLORS: Record<string, string> = {
-  backend: '#0f62fe', frontend: '#8a3ffc', bot: '#198038',
-};
+function actionTint(action: string): { bg: string; fg: string } {
+  if (action.endsWith('.create')) return { bg: Colors.primaryFixed, fg: Colors.primary };
+  if (action.endsWith('.update')) return { bg: Colors.tertiaryFixed, fg: Colors.tertiary };
+  if (action.endsWith('.delete')) return { bg: Colors.errorContainer, fg: Colors.error };
+  if (action.endsWith('.read'))   return { bg: Colors.secondaryFixed, fg: Colors.secondary };
+  return { bg: Colors.surfaceContainer, fg: Colors.onSurfaceVariant };
+}
 
 export default function SecurityScreen() {
   const router = useRouter();
-  const [layerFilter, setLayerFilter] = useState('all');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [windowHours, setWindowHours] = useState(24);
+  const [summary, setSummary] = useState<{ total: number; by_action: Record<string, number> } | null>(null);
+  const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const active = SECURITY_FEATURES.filter(f => f.status === 'active').length;
-  const partial = SECURITY_FEATURES.filter(f => f.status === 'partial').length;
-  const planned = SECURITY_FEATURES.filter(f => f.status === 'planned').length;
-  const score = Math.round((active + partial * 0.5) / SECURITY_FEATURES.length * 100);
+  useEffect(() => {
+    isApiConfigured().then(setConfigured);
+  }, []);
 
-  const filtered = layerFilter === 'all' ? SECURITY_FEATURES : SECURITY_FEATURES.filter(f => f.layer === layerFilter);
+  async function load() {
+    if (!configured) {
+      setLoading(false);
+      return;
+    }
+    setError(null);
+    try {
+      const since = Date.now() - windowHours * 3600 * 1000;
+      const [s, e] = await Promise.all([
+        apiAuditSummary(windowHours),
+        apiAuditLog(since, 200),
+      ]);
+      setSummary({ total: s.total, by_action: s.by_action });
+      setEvents(e.events ?? []);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, [configured, windowHours]);
+
+  async function refresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
+
+  const topActions = summary
+    ? Object.entries(summary.by_action).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    : [];
+  const maxCount = topActions.length ? Math.max(...topActions.map(([, n]) => n), 1) : 1;
 
   return (
     <SafeAreaView style={S.safe} edges={['top']}>
@@ -73,169 +111,215 @@ export default function SecurityScreen() {
         <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
           <Ionicons name="arrow-back" size={22} color={Colors.onSurface} />
         </TouchableOpacity>
-        <Text style={S.headerTitle}>Security Dashboard</Text>
-        <View style={[S.scoreBadge, { backgroundColor: score >= 80 ? '#defbe6' : '#fdf6dd' }]}>
-          <Text style={[S.scoreTxt, { color: score >= 80 ? '#198038' : '#f1c21b' }]}>{score}%</Text>
-        </View>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + 16 }}>
-        {/* Score card */}
-        <View style={S.scoreCard}>
-          <View style={S.scoreLeft}>
-            <Text style={S.scoreTitle}>Security Score</Text>
-            <Text style={S.scoreSubtitle}>OWASP Top 10 compliance</Text>
-            <View style={S.scoreBar}>
-              <View style={[S.scoreBarFill, { width: `${score}%` as any, backgroundColor: score >= 80 ? '#198038' : '#f1c21b' }]} />
-            </View>
-          </View>
-          <View style={S.scoreCircle}>
-            <Text style={[S.scoreNum, { color: score >= 80 ? '#198038' : '#f1c21b' }]}>{score}</Text>
-            <Text style={S.scorePercent}>%</Text>
-          </View>
-        </View>
-
-        {/* Stats */}
-        <View style={S.statsRow}>
-          {[
-            { label: 'Active', value: active, color: '#198038', bg: '#defbe6' },
-            { label: 'Partial', value: partial, color: '#f1c21b', bg: '#fdf6dd' },
-            { label: 'Planned', value: planned, color: '#da1e28', bg: '#ffdad6' },
-            { label: 'Total', value: SECURITY_FEATURES.length, color: Colors.primary, bg: Colors.primaryLight },
-          ].map(s => (
-            <View key={s.label} style={[S.statCard, { backgroundColor: s.bg }]}>
-              <Text style={[S.statValue, { color: s.color }]}>{s.value}</Text>
-              <Text style={[S.statLabel, { color: s.color }]}>{s.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Layer filter */}
-        <View style={S.filterRow}>
-          {['all', 'backend', 'frontend', 'bot'].map(l => (
-            <TouchableOpacity key={l} style={[S.filterChip, layerFilter === l && S.filterChipActive]} onPress={() => setLayerFilter(l)}>
-              <Text style={[S.filterChipTxt, layerFilter === l && S.filterChipTxtActive]}>{l}</Text>
+        <Text style={S.headerTitle}>Security</Text>
+        <View style={S.windowToggle}>
+          {WINDOWS.map((w) => (
+            <TouchableOpacity
+              key={w.hours}
+              style={[S.windowBtn, windowHours === w.hours && S.windowBtnActive]}
+              onPress={() => setWindowHours(w.hours)}
+            >
+              <Text
+                style={[
+                  S.windowText,
+                  windowHours === w.hours && { color: Colors.onPrimary },
+                ]}
+              >
+                {w.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
+      </View>
 
-        {/* Features list */}
-        <View style={S.section}>
-          <Text style={S.sectionTitle}>Security Features</Text>
-          {filtered.map(f => {
-            const sm = STATUS_META[f.status];
-            const isExpanded = expandedId === f.id;
-            return (
-              <TouchableOpacity key={f.id} style={S.featureCard} onPress={() => setExpandedId(isExpanded ? null : f.id)} activeOpacity={0.85}>
-                <View style={S.featureTop}>
-                  <View style={[S.featureIcon, { backgroundColor: f.color + '20' }]}>
-                    <Ionicons name={f.icon as any} size={18} color={f.color} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={S.featureTitle}>{f.title}</Text>
-                    <View style={S.featureMeta}>
-                      <View style={[S.layerBadge, { backgroundColor: LAYER_COLORS[f.layer] + '20' }]}>
-                        <Text style={[S.layerTxt, { color: LAYER_COLORS[f.layer] }]}>{f.layer}</Text>
-                      </View>
-                      <View style={[S.statusBadge, { backgroundColor: sm.bg }]}>
-                        <Text style={[S.statusTxt, { color: sm.color }]}>{sm.label}</Text>
-                      </View>
+      <ScrollView
+        contentContainerStyle={S.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={Colors.primary} />}
+      >
+        {!configured && (
+          <View style={S.notice}>
+            <Ionicons name="cloud-offline" size={20} color={Colors.outline} />
+            <Text style={S.noticeText}>Connect cortex-api in Profile to view real audit data.</Text>
+          </View>
+        )}
+        {error && (
+          <View style={[S.notice, { borderColor: Colors.error }]}>
+            <Ionicons name="alert-circle" size={20} color={Colors.error} />
+            <Text style={[S.noticeText, { color: Colors.error }]}>{error}</Text>
+          </View>
+        )}
+        {loading && configured && (
+          <View style={S.notice}>
+            <ActivityIndicator color={Colors.primary} />
+            <Text style={S.noticeText}>Loading audit log…</Text>
+          </View>
+        )}
+
+        {summary && (
+          <View style={[S.card, Shadow.cardPrimary]}>
+            <Text style={S.cardLabel}>EVENTS · LAST {windowHours}h</Text>
+            <Text style={S.cardValue}>{summary.total}</Text>
+            <View style={S.bars}>
+              {topActions.map(([action, count]) => {
+                const tint = actionTint(action);
+                return (
+                  <View key={action} style={S.barRow}>
+                    <View style={[S.barPill, { backgroundColor: tint.bg }]}>
+                      <Text style={[S.barAction, { color: tint.fg }]}>{action}</Text>
                     </View>
+                    <View style={S.barTrack}>
+                      <View
+                        style={[
+                          S.barFill,
+                          { width: `${(count / maxCount) * 100}%` as any, backgroundColor: tint.fg },
+                        ]}
+                      />
+                    </View>
+                    <Text style={S.barCount}>{count}</Text>
                   </View>
-                  <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.outline} />
-                </View>
-                {isExpanded && <Text style={S.featureDesc}>{f.desc}</Text>}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                );
+              })}
+              {topActions.length === 0 && configured && (
+                <Text style={S.empty}>No audited activity in this window.</Text>
+              )}
+            </View>
+          </View>
+        )}
 
-        {/* OWASP Top 10 */}
-        <View style={S.section}>
-          <Text style={S.sectionTitle}>OWASP Top 10 Coverage</Text>
-          <View style={S.owaspCard}>
-            {OWASP_COVERAGE.map((item, i) => {
-              const sm = STATUS_META[item.status];
+        {events.length > 0 && (
+          <View style={S.card}>
+            <Text style={S.cardLabel}>RECENT EVENTS</Text>
+            {events.map((e) => {
+              const tint = actionTint(e.action);
               return (
-                <View key={item.id} style={[S.owaspRow, i < OWASP_COVERAGE.length - 1 && S.owaspRowBorder]}>
-                  <Text style={S.owaspId}>{item.id}</Text>
+                <View key={e.id} style={S.eventRow}>
+                  <View style={[S.eventDot, { backgroundColor: tint.fg }]} />
                   <View style={{ flex: 1 }}>
-                    <Text style={S.owaspName}>{item.name}</Text>
-                    <Text style={S.owaspNote}>{item.note}</Text>
-                  </View>
-                  <View style={[S.statusBadge, { backgroundColor: sm.bg }]}>
-                    <Text style={[S.statusTxt, { color: sm.color }]}>{sm.label}</Text>
+                    <View style={S.eventTopLine}>
+                      <Text style={S.eventAction}>{e.action}</Text>
+                      {e.target ? (
+                        <Text style={S.eventTarget} numberOfLines={1}>{e.target}</Text>
+                      ) : null}
+                    </View>
+                    <Text style={S.eventMeta}>
+                      {e.actor} · {relTime(e.ts)}
+                      {e.note ? ` · ${e.note}` : ''}
+                    </Text>
                   </View>
                 </View>
               );
             })}
           </View>
-        </View>
-
-        {/* Rate limits */}
-        <View style={S.section}>
-          <Text style={S.sectionTitle}>Rate Limits (Server-Side)</Text>
-          <View style={S.owaspCard}>
-            {[
-              { endpoint: 'All endpoints',           limit: '60 req/min per IP' },
-              { endpoint: 'POST /api/v1/entries',    limit: '20 req/min per IP' },
-              { endpoint: 'GET /api/v1/search',      limit: '30 req/min per IP' },
-              { endpoint: 'POST /api/v1/chat',       limit: '10 req/min per IP' },
-            ].map((r, i, arr) => (
-              <View key={r.endpoint} style={[S.owaspRow, i < arr.length - 1 && S.owaspRowBorder]}>
-                <Text style={[S.owaspNote, { fontFamily: 'monospace', flex: 1 }]}>{r.endpoint}</Text>
-                <View style={[S.statusBadge, { backgroundColor: Colors.primaryLight }]}>
-                  <Text style={[S.statusTxt, { color: Colors.primary }]}>{r.limit}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const S = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f4f5fb' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#191b24' },
-  scoreBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  scoreTxt: { fontSize: 13, fontWeight: '700' },
-  scoreCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', margin: 16, borderRadius: 16, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 20, gap: 16 },
-  scoreLeft: { flex: 1, gap: 6 },
-  scoreTitle: { fontSize: 16, fontWeight: '700', color: '#191b24' },
-  scoreSubtitle: { fontSize: 12, color: Colors.onSurfaceVariant },
-  scoreBar: { height: 8, backgroundColor: Colors.outlineVariant, borderRadius: 4, overflow: 'hidden', marginTop: 4 },
-  scoreBarFill: { height: '100%', borderRadius: 4 },
-  scoreCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#f4f5fb', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#198038' },
-  scoreNum: { fontSize: 22, fontWeight: '700', lineHeight: 26 },
-  scorePercent: { fontSize: 10, color: Colors.outline },
-  statsRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 8 },
-  statCard: { flex: 1, borderRadius: 12, padding: 12, alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '300', lineHeight: 26 },
-  statLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginTop: 2 },
-  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 8 },
-  filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: Colors.outlineVariant, backgroundColor: '#fff' },
-  filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  filterChipTxt: { fontSize: 12, fontWeight: '600', color: Colors.onSurfaceVariant, textTransform: 'capitalize' },
-  filterChipTxtActive: { color: '#fff' },
-  section: { paddingHorizontal: 16, marginBottom: 8, gap: 8 },
-  sectionTitle: { fontSize: 11, fontWeight: '700', color: Colors.outline, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4 },
-  featureCard: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, padding: 12, gap: 8 },
-  featureTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  featureIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  featureTitle: { fontSize: 13, fontWeight: '700', color: '#191b24' },
-  featureMeta: { flexDirection: 'row', gap: 6, marginTop: 3 },
-  layerBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 20 },
-  layerTxt: { fontSize: 10, fontWeight: '700', textTransform: 'capitalize' },
-  statusBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 20 },
-  statusTxt: { fontSize: 10, fontWeight: '700' },
-  featureDesc: { fontSize: 12, color: Colors.onSurfaceVariant, lineHeight: 18, paddingLeft: 46 },
-  owaspCard: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: Colors.outlineVariant, overflow: 'hidden' },
-  owaspRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 },
-  owaspRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.outlineVariant },
-  owaspId: { fontSize: 12, fontWeight: '700', color: Colors.primary, width: 36, fontFamily: 'monospace' },
-  owaspName: { fontSize: 13, fontWeight: '600', color: '#191b24' },
-  owaspNote: { fontSize: 11, color: Colors.onSurfaceVariant, marginTop: 1 },
+  safe: { flex: 1, backgroundColor: Colors.background },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.outlineVariant,
+  },
+  headerTitle: { ...Typography.heading, color: Colors.onSurface },
+
+  windowToggle: {
+    flexDirection: 'row',
+    gap: 2,
+    backgroundColor: Colors.surfaceContainer,
+    padding: 2,
+    borderRadius: Radius.chip,
+  },
+  windowBtn: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.chip,
+  },
+  windowBtnActive: { backgroundColor: Colors.primary },
+  windowText: { ...Typography.labelSm, color: Colors.onSurfaceVariant },
+
+  content: {
+    padding: Spacing.md,
+    paddingBottom: TAB_BAR_HEIGHT + Spacing.xl,
+    gap: Spacing.md,
+  },
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.surfaceContainerLowest,
+  },
+  noticeText: { ...Typography.bodySm, color: Colors.onSurfaceVariant, flex: 1 },
+
+  card: {
+    padding: Spacing.lg,
+    backgroundColor: Colors.surfaceContainerLowest,
+    borderWidth: 1,
+    borderColor: Colors.outlineVariant,
+    borderRadius: Radius.card,
+  },
+  cardLabel: {
+    ...Typography.labelSm,
+    color: Colors.onSurfaceVariant,
+    marginBottom: Spacing.xs,
+    textTransform: 'uppercase',
+  },
+  cardValue: {
+    fontSize: 42,
+    lineHeight: 48,
+    fontWeight: '300',
+    color: Colors.onSurface,
+    marginBottom: Spacing.md,
+  },
+
+  bars: { gap: Spacing.sm, marginTop: Spacing.sm },
+  barRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  barPill: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: Radius.chip,
+    minWidth: 110,
+    alignItems: 'center',
+  },
+  barAction: { ...Typography.codeSm, fontWeight: '600' },
+  barTrack: {
+    flex: 1,
+    height: 8,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  barFill: { height: 8, borderRadius: 4 },
+  barCount: {
+    ...Typography.code,
+    color: Colors.onSurface,
+    minWidth: 28,
+    textAlign: 'right',
+  },
+  empty: { ...Typography.bodySm, color: Colors.onSurfaceVariant },
+
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surfaceContainer,
+  },
+  eventDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
+  eventTopLine: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  eventAction: { ...Typography.label, color: Colors.onSurface },
+  eventTarget: { ...Typography.code, color: Colors.outline, flex: 1 },
+  eventMeta: { ...Typography.bodySm, color: Colors.onSurfaceVariant, marginTop: 2 },
 });
