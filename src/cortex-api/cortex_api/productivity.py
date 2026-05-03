@@ -148,10 +148,9 @@ def get_productivity_stats(storage, days: int = 7) -> Dict:
     """Get productivity statistics from storage"""
     from datetime import datetime, timedelta
     
-    cutoff = datetime.utcnow() - timedelta(days=days)
-    
-    # Get entries created in period
-    entries = storage.get_entries_since(cutoff)
+    # Use list_recent with since_ms instead of non-existent get_entries_since
+    since_ms = int((datetime.utcnow() - timedelta(days=days)).timestamp() * 1000)
+    entries = storage.list_recent(limit=10000, since_ms=since_ms)
     entries_created = len(entries)
     
     # Get search/recall stats (would need to track these in storage)
