@@ -318,8 +318,33 @@ def print_pairing_qr() -> None:
 
 # ─── 6. Start Expo (foreground) ───────────────────────────────────────────────
 
+def _node_major() -> int | None:
+    """Return the major version of `node` on PATH, or None if absent."""
+    try:
+        result = subprocess.run(
+            ["node", "--version"], capture_output=True, text=True, check=True,
+            shell=IS_WIN,
+        )
+        # Output: v22.22.2 → 22
+        return int(result.stdout.strip().lstrip("v").split(".")[0])
+    except Exception:
+        return None
+
+
 def start_expo() -> None:
     ip = lan_ip()
+
+    # Expo SDK 54 + Node 24 hit ERR_INVALID_PACKAGE_CONFIG on @expo/cli.
+    # Warn loudly before launching so the user doesn't see a silent exit.
+    n = _node_major()
+    if n is not None and n >= 24:
+        warn(
+            f"Node {n}.x is on PATH; Expo SDK 54 is tested on Node 18/20/22. "
+            "Expo may exit immediately with ERR_INVALID_PACKAGE_CONFIG."
+        )
+        print("  Fix: open a new terminal, run `nvm use 22`, then `make start` again.")
+        print()
+
     b(f"▶ Starting Expo (LAN host {ip})")
     print()
     print("  Press q in Expo to quit, or Ctrl-C in this terminal.")
@@ -330,9 +355,21 @@ def start_expo() -> None:
 
     cmd = ["npx", "expo", "start", "--clear"]
     try:
-        subprocess.run(cmd, cwd=str(MOBILE_DIR), env=env, check=False, shell=IS_WIN)
+        completed = subprocess.run(
+            cmd, cwd=str(MOBILE_DIR), env=env, check=False, shell=IS_WIN,
+        )
     except KeyboardInterrupt:
-        pass
+        return
+
+    # If Expo exits non-zero (or even zero, but quickly) before printing its
+    # QR, surface the situation rather than silently dropping back to the
+    # shell prompt — that's how we got bitten by Node 24.
+    if completed.returncode != 0:
+        warn(f"Expo exited with code {completed.returncode}.")
+        print("  Common causes:")
+        print("    • Wrong Node major (we want 18/20/22; you have:", _node_major() or "unknown", ")")
+        print("    • node_modules corrupted — try: cd cortex-mobile && rm -rf node_modules && npm install --legacy-peer-deps")
+        print("    • Port 8081 already in use — Expo will offer to switch; press y next time")
 
 
 # ─── Entrypoint ───────────────────────────────────────────────────────────────
