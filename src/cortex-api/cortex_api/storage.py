@@ -87,10 +87,21 @@ CREATE TABLE IF NOT EXISTS pending_actions (
     consumed_at  INTEGER                   -- NULL until Bob pops it
 );
 
+-- v0.3: append-only audit log of state changes for the security dashboard.
+CREATE TABLE IF NOT EXISTS audit_log (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts     INTEGER NOT NULL,
+    actor  TEXT NOT NULL,
+    action TEXT NOT NULL,
+    target TEXT NOT NULL DEFAULT '',
+    note   TEXT NOT NULL DEFAULT ''
+);
+
 CREATE INDEX IF NOT EXISTS idx_entries_created_at ON entries(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_entries_kind ON entries(kind, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_feedback_entry ON feedback(entry_id);
 CREATE INDEX IF NOT EXISTS idx_pending_open ON pending_actions(consumed_at, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(ts DESC);
 """
 
 # In-place migration for v0.1 → v0.2 (adds kind column to existing dbs).
@@ -445,6 +456,50 @@ def all_pending_actions(limit: int = 100) -> list[dict]:
 def delete_pending_action(action_id: int) -> None:
     with _connect() as conn:
         conn.execute("DELETE FROM pending_actions WHERE id = ?", (action_id,))
+
+
+# ---------- audit log -----------------------------------------------------
+
+
+def append_audit(*, actor: str, action: str, target: str = "", note: str = "") -> int:
+    ts = now_ms()
+    with _connect() as conn:
+        cur = conn.execute(
+            "INSERT INTO audit_log (ts, actor, action, target, note) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (ts, actor, action, target, note),
+        )
+        return cur.lastrowid or 0
+
+
+def list_audit(since_ms: int | None = None, limit: int = 200) -> list[dict]:
+    sql = "SELECT * FROM audit_log"
+    params: list = []
+    if since_ms is not None:
+        sql += " WHERE ts >= ?"
+        params.append(since_ms)
+    sql += " ORDER BY ts DESC LIMIT ?"
+    params.append(limit)
+    with _connect() as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [dict(r) for r in rows]
+
+
+def audit_summary(window_ms: int = 86_400_000) -> dict:
+    cutoff = now_ms() - window_ms
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT action, COUNT(*) AS n FROM audit_log WHERE ts >= ? GROUP BY action",
+            (cutoff,),
+        ).fetchall()
+        total = conn.execute(
+            "SELECT COUNT(*) AS n FROM audit_log WHERE ts >= ?", (cutoff,)
+        ).fetchone()
+    return {
+        "window_ms": window_ms,
+        "total": int(total["n"]) if total else 0,
+        "by_action": {r["action"]: int(r["n"]) for r in rows},
+    }
 
 
 def search(query_embedding: list[float], k: int = 5) -> list[tuple[Entry, float]]:

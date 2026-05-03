@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 
-from cortex_api import codebase, features, generate, llm, storage, wiki
+from cortex_api import codebase, features, generate, llm, skills as skills_mod, storage, wiki
 from cortex_api.auth import AuthDep
 from cortex_api.config import settings
 from cortex_api.embeddings import get_provider
@@ -616,6 +616,101 @@ def calendar(month: str | None = None) -> dict:
         for d, c in sorted(by_day.items())
     ]
     return {"month": f"{year:04d}-{mon:02d}", "days": days}
+
+
+# ---------- skills CRUD (Bob skill creator) -------------------------------
+
+
+class SkillCreateRequest(BaseModel):
+    slug: str
+    description: str
+    body: str
+    name: str | None = None
+
+
+class SkillUpdateRequest(BaseModel):
+    description: str | None = None
+    body: str | None = None
+    name: str | None = None
+
+
+@app.get("/api/v1/skills", dependencies=[AuthDep])
+def skills_list() -> dict:
+    return {"skills": skills_mod.list_skills()}
+
+
+@app.get("/api/v1/skills/{slug}", dependencies=[AuthDep])
+def skills_get(slug: str) -> dict:
+    skill = skills_mod.get_skill(slug)
+    if skill is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="skill not found")
+    return skill
+
+
+@app.post("/api/v1/skills", dependencies=[AuthDep], status_code=status.HTTP_201_CREATED)
+def skills_create(req: SkillCreateRequest) -> dict:
+    try:
+        result = skills_mod.create_skill(
+            slug=req.slug,
+            description=req.description,
+            body=req.body,
+            name=req.name,
+        )
+    except FileExistsError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    except (ValueError, PermissionError) as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    storage.append_audit(actor="api", action="skill.create", target=req.slug)
+    return result
+
+
+@app.patch("/api/v1/skills/{slug}", dependencies=[AuthDep])
+def skills_update(slug: str, req: SkillUpdateRequest) -> dict:
+    try:
+        result = skills_mod.update_skill(
+            slug=slug,
+            description=req.description,
+            body=req.body,
+            name=req.name,
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="skill not found")
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    storage.append_audit(actor="api", action="skill.update", target=slug)
+    return result
+
+
+@app.delete(
+    "/api/v1/skills/{slug}",
+    dependencies=[AuthDep],
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+def skills_delete(slug: str) -> Response:
+    try:
+        skills_mod.delete_skill(slug)
+    except FileNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="skill not found")
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    storage.append_audit(actor="api", action="skill.delete", target=slug)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ---------- security audit log -------------------------------------------
+
+
+@app.get("/api/v1/security/audit", dependencies=[AuthDep])
+def security_audit(since: int | None = None, limit: int = 200) -> dict:
+    return {"events": storage.list_audit(since_ms=since, limit=limit)}
+
+
+@app.get("/api/v1/security/summary", dependencies=[AuthDep])
+def security_summary(window_hours: int = 24) -> dict:
+    return storage.audit_summary(window_ms=window_hours * 3600 * 1000)
 
 
 # ---------- Productivity Metrics endpoints ----------------------------------

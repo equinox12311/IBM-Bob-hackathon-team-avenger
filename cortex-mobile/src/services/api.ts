@@ -332,6 +332,83 @@ export async function apiGenerateReport(days = 1): Promise<{
   return apiFetch(`/api/v1/generate/report?days=${days}`, {}, 60_000);
 }
 
+// ─── skills (Bob skill creator) ─────────────────────────────────────────────
+
+export interface SkillSummary {
+  slug: string;
+  name: string;
+  description: string;
+  managed: boolean;
+  path: string;
+}
+
+export interface Skill extends SkillSummary {
+  body: string;
+}
+
+export async function apiListSkills(): Promise<{ skills: SkillSummary[] }> {
+  return apiFetch('/api/v1/skills');
+}
+
+export async function apiGetSkill(slug: string): Promise<Skill> {
+  return apiFetch(`/api/v1/skills/${encodeURIComponent(slug)}`);
+}
+
+export async function apiCreateSkill(body: {
+  slug: string;
+  description: string;
+  body: string;
+  name?: string;
+}): Promise<Skill> {
+  return apiFetch('/api/v1/skills', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function apiUpdateSkill(slug: string, fields: {
+  description?: string;
+  body?: string;
+  name?: string;
+}): Promise<Skill> {
+  return apiFetch(`/api/v1/skills/${encodeURIComponent(slug)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(fields),
+  });
+}
+
+export async function apiDeleteSkill(slug: string): Promise<void> {
+  await apiFetch(`/api/v1/skills/${encodeURIComponent(slug)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ─── security audit log ─────────────────────────────────────────────────────
+
+export interface AuditEvent {
+  id: number;
+  ts: number;
+  actor: string;
+  action: string;
+  target: string;
+  note: string;
+}
+
+export async function apiAuditLog(since?: number, limit = 200): Promise<{ events: AuditEvent[] }> {
+  const q = new URLSearchParams();
+  if (since !== undefined) q.set('since', String(since));
+  q.set('limit', String(limit));
+  return apiFetch(`/api/v1/security/audit?${q}`);
+}
+
+export async function apiAuditSummary(windowHours = 24): Promise<{
+  window_ms: number;
+  total: number;
+  by_action: Record<string, number>;
+}> {
+  return apiFetch(`/api/v1/security/summary?window_hours=${windowHours}`);
+}
+
 // ─── wiki (auto-generated docs) ─────────────────────────────────────────────
 
 export interface WikiPageSummary {
