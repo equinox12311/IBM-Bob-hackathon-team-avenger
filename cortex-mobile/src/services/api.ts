@@ -331,3 +331,40 @@ export async function apiGenerateReport(days = 1): Promise<{
 }> {
   return apiFetch(`/api/v1/generate/report?days=${days}`, {}, 60_000);
 }
+
+// ─── pending_actions (Bob escalation queue) ──────────────────────────────────
+
+export interface PendingAction {
+  id: number;
+  kind: 'recall' | 'save' | 'analyze' | 'free';
+  payload: Record<string, unknown>;
+  source: string;
+  created_at: number;
+  consumed_at?: number | null;
+}
+
+export async function apiQueueAction(
+  kind: PendingAction['kind'],
+  payload: Record<string, unknown>,
+  source = 'mobile',
+): Promise<{ id: number; created_at: number; queued: boolean }> {
+  return apiFetch('/api/v1/actions/queue', {
+    method: 'POST',
+    body: JSON.stringify({ kind, payload, source }),
+  });
+}
+
+export async function apiPendingActions(
+  consume = false,
+  limit = 50,
+): Promise<{ actions: PendingAction[]; consumed: boolean }> {
+  return apiFetch(`/api/v1/actions/pending?consume=${consume}&limit=${limit}`);
+}
+
+export async function apiAllActions(limit = 100): Promise<{ actions: PendingAction[] }> {
+  return apiFetch(`/api/v1/actions/all?limit=${limit}`);
+}
+
+export async function apiDeleteAction(id: number): Promise<void> {
+  await apiFetch(`/api/v1/actions/${id}`, { method: 'DELETE' });
+}

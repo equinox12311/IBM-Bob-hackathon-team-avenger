@@ -106,6 +106,22 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "required": ["entry_id", "signal"],
         },
     },
+    {
+        "name": "diary_pending_actions",
+        "description": (
+            "Pop the queue of actions enqueued by the developer's mobile or web client. "
+            "Call this once at the start of every Bob session — if it returns any actions, "
+            "surface them and offer to execute. Pass consume=true (default) to mark them "
+            "as picked up so they are not surfaced again."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "consume": {"type": "boolean", "default": True},
+                "limit": {"type": "integer", "default": 10, "minimum": 1, "maximum": 50},
+            },
+        },
+    },
 ]
 
 
@@ -125,9 +141,31 @@ def call_tool(name: str, arguments: dict[str, Any]) -> str:
         result = _diary_link_code(arguments)
     elif name == "diary_feedback":
         result = _diary_feedback(arguments)
+    elif name == "diary_pending_actions":
+        result = _diary_pending_actions(arguments)
     else:
         result = {"error": f"unknown tool: {name}"}
     return json.dumps(result, default=str)
+
+
+def _diary_pending_actions(args: dict[str, Any]) -> dict[str, Any]:
+    consume = bool(args.get("consume", True))
+    limit = int(args.get("limit", 10))
+    rows = storage.list_pending_actions(consume=consume, limit=limit)
+    return {
+        "actions": [
+            {
+                "id": r["id"],
+                "kind": r["kind"],
+                "payload": json.loads(r["payload"]) if r["payload"] else {},
+                "source": r["source"],
+                "created_at": r["created_at"],
+            }
+            for r in rows
+        ],
+        "consumed": consume,
+        "count": len(rows),
+    }
 
 
 def _diary_save(args: dict[str, Any]) -> dict[str, Any]:

@@ -78,4 +78,54 @@ def test_tool_definitions_match_contracts(tools):
         "diary_link_code",
         "diary_feedback",
         "diary_timeline",
+        "diary_pending_actions",
     }
+
+
+def test_pending_actions_queue_and_pop(tools, fake_embed):
+    """Mobile enqueues an action; Bob's diary_pending_actions tool pops it."""
+    import json as _json
+
+    from cortex_api import storage
+
+    storage.queue_action(
+        kind="recall",
+        payload=_json.dumps({"query": "postgres pool"}),
+        source="mobile",
+    )
+    storage.queue_action(
+        kind="free",
+        payload=_json.dumps({"prompt": "what did I learn yesterday?"}),
+        source="mobile",
+    )
+
+    # Bob session start: consume=true should empty the queue
+    resp = _json.loads(
+        tools.call_tool("diary_pending_actions", {"consume": True, "limit": 10})
+    )
+    assert resp["count"] == 2
+    assert {a["kind"] for a in resp["actions"]} == {"recall", "free"}
+
+    # Subsequent call returns empty (already consumed)
+    resp2 = _json.loads(
+        tools.call_tool("diary_pending_actions", {"consume": True})
+    )
+    assert resp2["count"] == 0
+
+
+def test_pending_actions_peek_does_not_consume(tools, fake_embed):
+    import json as _json
+
+    from cortex_api import storage
+
+    storage.queue_action(kind="save", payload=_json.dumps({"text": "x"}), source="web")
+
+    # consume=false leaves the queue intact
+    resp = _json.loads(
+        tools.call_tool("diary_pending_actions", {"consume": False})
+    )
+    assert resp["count"] == 1
+    again = _json.loads(
+        tools.call_tool("diary_pending_actions", {"consume": False})
+    )
+    assert again["count"] == 1

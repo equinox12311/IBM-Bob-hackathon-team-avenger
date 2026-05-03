@@ -370,6 +370,81 @@ def delete_automation(automation_id: int) -> Response:
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+# ---------- pending_actions (Bob escalation queue) -------------------------
+
+
+import json as _json
+
+
+class QueueAction(BaseModel):
+    kind: str  # 'recall' | 'save' | 'analyze' | 'free'
+    payload: dict
+    source: str = "mobile"
+
+
+@app.post("/api/v1/actions/queue", dependencies=[AuthDep], status_code=status.HTTP_201_CREATED)
+def queue_action(req: QueueAction) -> dict:
+    """Queue an action for IBM Bob to pick up via diary_pending_actions."""
+
+    new_id, ts = storage.queue_action(
+        kind=req.kind,
+        payload=_json.dumps(req.payload, default=str),
+        source=req.source,
+    )
+    return {"id": new_id, "created_at": ts, "queued": True}
+
+
+@app.get("/api/v1/actions/pending", dependencies=[AuthDep])
+def pending_actions(consume: bool = False, limit: int = 50) -> dict:
+    """List open pending actions; ``consume=true`` marks them as picked up.
+
+    Bob's MCP `diary_pending_actions` tool calls this with consume=true.
+    Used by the workspace UI in debug-only mode with consume=false.
+    """
+
+    rows = storage.list_pending_actions(consume=consume, limit=limit)
+    actions = [
+        {
+            "id": r["id"],
+            "kind": r["kind"],
+            "payload": _json.loads(r["payload"]) if r["payload"] else {},
+            "source": r["source"],
+            "created_at": r["created_at"],
+        }
+        for r in rows
+    ]
+    return {"actions": actions, "consumed": consume}
+
+
+@app.get("/api/v1/actions/all", dependencies=[AuthDep])
+def all_actions(limit: int = 100) -> dict:
+    """Debug listing — includes consumed actions."""
+
+    rows = storage.all_pending_actions(limit=limit)
+    return {"actions": [
+        {
+            "id": r["id"],
+            "kind": r["kind"],
+            "payload": _json.loads(r["payload"]) if r["payload"] else {},
+            "source": r["source"],
+            "created_at": r["created_at"],
+            "consumed_at": r["consumed_at"],
+        }
+        for r in rows
+    ]}
+
+
+@app.delete(
+    "/api/v1/actions/{action_id}",
+    dependencies=[AuthDep],
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+def delete_action(action_id: int) -> Response:
+    storage.delete_pending_action(action_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 # ---------- Productivity Metrics endpoints ----------------------------------
 
 from cortex_api.productivity import get_productivity_stats

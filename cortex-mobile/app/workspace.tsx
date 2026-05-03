@@ -18,6 +18,7 @@ import { TAB_BAR_HEIGHT } from "../src/constants/layout";
 import { Colors, Radius, Shadow, Spacing, Typography } from "../src/constants/theme";
 import {
   apiCreateEntry,
+  apiQueueAction,
   apiSearchEntries,
   isApiConfigured,
 } from "../src/services/api";
@@ -96,13 +97,22 @@ export default function WorkspaceScreen() {
     }
   }
 
-  function escalateLast() {
+  async function escalateLast() {
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
     if (!lastUser) return;
+    // Optimistic UI
     setMessages((m) =>
       m.map((msg) => (msg === lastUser ? { ...msg, escalated: true } : msg)),
     );
-    // TODO Phase C: POST /api/v1/actions/queue { kind: "diary_recall", payload: lastUser.text }
+    if (!configured) return;
+    try {
+      await apiQueueAction("free", { prompt: lastUser.text });
+    } catch {
+      // Roll back the chip if the queue rejected it
+      setMessages((m) =>
+        m.map((msg) => (msg === lastUser ? { ...msg, escalated: false } : msg)),
+      );
+    }
   }
 
   return (

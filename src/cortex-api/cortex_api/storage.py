@@ -75,9 +75,22 @@ CREATE TABLE IF NOT EXISTS automations (
     created_at   INTEGER NOT NULL
 );
 
+-- v0.3: queue of actions any client (mobile/web) can enqueue for IBM Bob
+-- to pick up at the start of its next session via the diary_pending_actions
+-- MCP tool. The Bob mode rule 05-pending-actions.md drives the polling.
+CREATE TABLE IF NOT EXISTS pending_actions (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind         TEXT NOT NULL,           -- 'recall' | 'save' | 'analyze' | 'free'
+    payload      TEXT NOT NULL,           -- JSON encoded; kind-specific shape
+    source       TEXT NOT NULL,           -- 'mobile' | 'web' | 'bot' | 'cli'
+    created_at   INTEGER NOT NULL,
+    consumed_at  INTEGER                   -- NULL until Bob pops it
+);
+
 CREATE INDEX IF NOT EXISTS idx_entries_created_at ON entries(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_entries_kind ON entries(kind, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_feedback_entry ON feedback(entry_id);
+CREATE INDEX IF NOT EXISTS idx_pending_open ON pending_actions(consumed_at, created_at);
 """
 
 # In-place migration for v0.1 → v0.2 (adds kind column to existing dbs).
@@ -379,6 +392,59 @@ def toggle_automation(automation_id: int, enabled: bool) -> None:
 def delete_automation(automation_id: int) -> None:
     with _connect() as conn:
         conn.execute("DELETE FROM automations WHERE id = ?", (automation_id,))
+
+
+# ---------- pending_actions (Bob queue) -----------------------------------
+
+
+def queue_action(kind: str, payload: str, source: str = "mobile") -> tuple[int, int]:
+    """Enqueue an action for Bob to consume on its next session."""
+
+    ts = now_ms()
+    with _connect() as conn:
+        cur = conn.execute(
+            "INSERT INTO pending_actions (kind, payload, source, created_at) "
+            "VALUES (?, ?, ?, ?)",
+            (kind, payload, source, ts),
+        )
+        return (cur.lastrowid or 0), ts
+
+
+def list_pending_actions(consume: bool = False, limit: int = 50) -> list[dict]:
+    """Return open pending actions; mark them consumed if ``consume=True``."""
+
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM pending_actions WHERE consumed_at IS NULL "
+            "ORDER BY created_at ASC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        results = [dict(r) for r in rows]
+        if consume and results:
+            ts = now_ms()
+            ids = [r["id"] for r in results]
+            placeholders = ",".join("?" * len(ids))
+            conn.execute(
+                f"UPDATE pending_actions SET consumed_at = ? WHERE id IN ({placeholders})",
+                (ts, *ids),
+            )
+    return results
+
+
+def all_pending_actions(limit: int = 100) -> list[dict]:
+    """Debug listing — includes already-consumed actions for inspection."""
+
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM pending_actions ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def delete_pending_action(action_id: int) -> None:
+    with _connect() as conn:
+        conn.execute("DELETE FROM pending_actions WHERE id = ?", (action_id,))
 
 
 def search(query_embedding: list[float], k: int = 5) -> list[tuple[Entry, float]]:
