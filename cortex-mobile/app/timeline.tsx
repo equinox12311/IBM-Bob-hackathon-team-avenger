@@ -63,7 +63,8 @@ export default function TimelineScreen() {
     setRefreshing(true); await load(); setRefreshing(false);
   };
 
-  const filtered = filter === 'all' ? entries : entries.filter((e) => e.kind === filter);
+  const safeEntries = Array.isArray(entries) ? entries : [];
+  const filtered = filter === 'all' ? safeEntries : safeEntries.filter((e) => e.kind === filter);
 
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top']}>
